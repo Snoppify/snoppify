@@ -18,9 +18,12 @@
   },
   "homepage": "https://github.com/mold/snoppify#readme",
   "private": true,
-  "devDependencies": {},
+  "devDependencies": {
+    "dotenv": "^5.0.0"
+  },
   "dependencies": {
     "express": "^4.16.2",
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.0.4",
+    "spotify-web-api-node": "^2.5.0"
   }
 }
