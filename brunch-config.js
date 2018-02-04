@@ -3,5 +3,8 @@ module.exports = {
 		javascripts: {
 			joinTo: 'app.js'
 		}
+	},
+	paths: {
+		watched: ['app']
 	}
 };
