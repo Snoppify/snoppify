@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <h1>{{ msg }}</h1>
+    <h1>Snoppify</h1>
+    <router-link to="/">Home</router-link>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -16,7 +18,7 @@ export default {
 </script>
 
 <style lang="scss">
-#app {
+body {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -28,5 +30,4 @@ export default {
 h1, h2 {
   font-weight: normal;
 }
-
 </style>

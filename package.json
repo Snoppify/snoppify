@@ -30,6 +30,9 @@
     "brunch": "^2.10.12",
     "sass-brunch": "^2.10.4",
     "vue": "^2.5.13",
-    "vue-brunch": "^2.0.1"
+    "vue-brunch": "^2.0.1",
+    "vue-router": "^3.0.1",
+    "vue-template-brunch": "^2.3.0",
+    "vue-template-compiler": "^2.5.13"
   }
 }
