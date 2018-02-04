@@ -1,0 +1,29 @@
+{
+  "name": "snoppify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mold/snoppify.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mold/snoppify/issues"
+  },
+  "homepage": "https://github.com/mold/snoppify#readme",
+  "devDependencies": {
+    "auto-reload-brunch": "^2.7.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel6-brunch": "^7.1.0",
+    "brunch": "^2.10.12",
+    "sass-brunch": "^2.10.4",
+    "vue": "^2.5.13",
+    "vue-brunch": "^2.0.1"
+  }
+}
