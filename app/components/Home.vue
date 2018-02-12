@@ -1,22 +1,21 @@
 <template>
-	<div id="home" class="route-container">
-		<h1>Home</h1>
-
-    <router-link to="/vote">Vote</router-link>
+  <div id="home" class="route-container">
+    <h1>Snoppify</h1>
 
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
-		<form v-on:submit.prevent="search()">
-		<input v-model="searchQuery" placeholder="Search song, artist, album...">
-	    <button type="submit">Search</button>
-		</form>
+    
+    <form v-on:submit.prevent="search()">
+      <input v-model="searchQuery" placeholder="Search song, artist, album...">
+      <button type="submit">Search</button>
+    </form>
 
-		<ul v-if="result" id="track-list">
-			<li v-for="track in result.tracks.items">
-				<b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})
-			</li>
-		</ul>
-	</div>
+    <ul v-if="result" id="track-list">
+      <li v-for="track in result.tracks.items">
+        <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script>

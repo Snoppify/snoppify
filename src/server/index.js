@@ -32,6 +32,16 @@ io.on("connection", (socket) => {
 		spotifyApi.searchTracks(string)
 			.then(data => socket.emit("search", JSON.stringify(data.body)));
 	});
+
+	socket.on("getTrack", (id) => {
+		spotifyApi.getTracks([id])
+			.then(data => {
+				socket.emit("getTrack", JSON.stringify(data.body.tracks[0]));
+			})
+			.catch(data => {
+				socket.emit("getTrack", null);
+			});
+	});
 });
 
 http.listen(3000, () => {
