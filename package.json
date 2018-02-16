@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:server": "node src/server/index.js",
-    "brunch": "brunch"
+    "brunch": "brunch",
+    "start:client": "brunch watch --server"
   },
   "repository": {
     "type": "git",
@@ -36,9 +37,8 @@
     "vue": "^2.5.13",
     "vue-brunch": "^2.0.1",
     "vue-router": "^3.0.1",
-    "vue-socket.io": "^2.1.1-b",
+    "vue-socket.io": "^2.1.1",
     "vue-template-brunch": "^2.3.0",
-    "vue-template-compiler": "^2.5.13",
     "vuex": "^3.0.1"
   }
 }
