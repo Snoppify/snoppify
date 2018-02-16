@@ -14,6 +14,12 @@
 		</p>
 		<h3>Album</h3>
 		<p>{{track.album.name}}</p>
+		<h3>Audio features</h3>
+		<ul>
+			<li v-for="(val, key) in track.audio_features">
+				<i>{{key}}</i>: {{val}}
+			</li>
+		</ul>
 		</div>
 	</div>
 	<div v-else>

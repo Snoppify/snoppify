@@ -34,9 +34,15 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("getTrack", (id) => {
-		spotifyApi.getTracks([id])
+		Promise.all([
+				spotifyApi.getTracks([id]),
+				spotifyApi.getAudioFeaturesForTracks([id])
+			])
 			.then(data => {
-				socket.emit("getTrack", JSON.stringify(data.body.tracks[0]));
+				var track = data[0].body.tracks[0];
+				track.audio_features = data[1].body.audio_features[0];
+
+				socket.emit("getTrack", JSON.stringify(track));
 			})
 			.catch(data => {
 				socket.emit("getTrack", null);
