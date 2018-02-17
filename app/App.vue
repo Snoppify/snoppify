@@ -9,13 +9,12 @@
 </template>
 
 <script>
-export default {
-}
+export default {};
 </script>
 
 <style lang="scss">
 body {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
@@ -26,7 +25,8 @@ body {
   height: 100%;
 }
 
-h1, h2 {
+h1,
+h2 {
   font-weight: normal;
 }
 
@@ -51,16 +51,16 @@ h1, h2 {
   top: 0;
   width: 100%;
   height: 100%;
-  box-shadow: 0 0 100px 0px rgba(0,0,50,0.3);
+  box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
   overflow-y: auto;
 }
 
 $page-transition-speed: 0.5s;
 
 .router-container-enter-active {
-  transition: all $page-transition-speed cubic-bezier(0.195, 0.945, 0.485, 1.000);
+  transition: all $page-transition-speed cubic-bezier(0.195, 0.945, 0.485, 1);
   transform: translateX(0);
-  box-shadow: 0 0 100px 0px rgba(0,0,50,0.3);
+  box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
 }
 .router-container-enter {
   transform-origin: 0 0;
@@ -72,5 +72,4 @@ $page-transition-speed: 0.5s;
 }
 .router-container-leave-to {
 }
-
 </style>
