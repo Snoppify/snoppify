@@ -12,7 +12,6 @@
 
 <script>
 import api from "../api";
-// import router from "../router.js";
 
 export default {
   data: () => ({
@@ -24,7 +23,6 @@ export default {
       api.auth
         .newUser(this.username)
         .then(rep => {
-          console.log(rep);
           this.$store.commit("Session/SET_SESSION", rep);
           this.$router.push("/");
         })

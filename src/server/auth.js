@@ -1,12 +1,13 @@
 module.exports = {
-    init(app, session) {
+    init(app, session, FileStore) {
         app.use(session({
             secret: 'spotify är sh1t, snoppify är bra!',
             resave: false,
             saveUninitialized: true,
             cookie: {
                 secure: false
-            }
+            },
+            store: new FileStore(),
         }));
 
         app.use(function(req, res, next) {
@@ -25,6 +26,7 @@ module.exports = {
             else {
                 req.session.username = req.body.username;
                 req.session.ip = req.ip;
+                req.session.fingerprint = req.body.fp;
 
                 console.log("New session:", req.session);
 
@@ -36,6 +38,11 @@ module.exports = {
 
         app.get("/auth", (req, res) => {
             if (req.session && req.session.username) {
+                req.session.ip = req.ip;
+                req.session.fingerprint = req.query.fp;
+
+                console.log("Returning user:", req.session)
+
                 res.send({ username: req.session.username });
             }
             else {

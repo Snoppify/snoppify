@@ -1,25 +1,25 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
-import Spotify from './Spotify';
 import Session from './Session';
+import Spotify from './Spotify';
 
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
-	state: {
-		io: {},
-	},
+    state: {
+        io: {},
+    },
 
-	modules: {
-		Spotify,
-		Session,
-	},
+    modules: {
+        Spotify,
+        Session,
+    },
 
-	mutations: {
-		setSocket(state, socket) {
-			state.io = socket;
-		},
-	}
+    mutations: {
+        setSocket(state, socket) {
+            state.io = socket;
+        },
+    }
 
 })

@@ -1,5 +1,5 @@
-import Vue from 'vue'
 import VueRouter from 'vue-router'
+import Vue from 'vue'
 
 import { store } from './store'
 import api from "./api";
@@ -8,6 +8,7 @@ import api from "./api";
 import Home from './components/Home'
 import Vote from './components/Vote'
 import NewUser from "./components/NewUser"
+import Fingerprint from "./components/Fingerprint"
 import NotFound from './components/NotFound'
 
 Vue.use(VueRouter)
@@ -25,6 +26,10 @@ const routes = [{
     path: "/new-user",
     name: "newUser",
     component: NewUser,
+}, {
+    path: "/fp",
+    name: "fingerprint",
+    component: Fingerprint,
 }, {
     path: '*',
     component: NotFound

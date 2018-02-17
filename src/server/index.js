@@ -2,7 +2,8 @@ require('dotenv').config();
 
 const app = require('express')(),
     session = require("express-session"),
-    bodyParser = require("body-parser");
+    bodyParser = require("body-parser"),
+    FileStore = require('session-file-store')(session);
 const auth = require("./auth");
 
 const http = require('http').Server(app);
@@ -27,7 +28,7 @@ spotifyApi.clientCredentialsGrant().then(function(data) {
 app.use(bodyParser.json());
 app.enable("trust proxy");
 
-auth.init(app, session);
+auth.init(app, session, FileStore);
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
