@@ -26,6 +26,14 @@ const routes = [{
     path: "/new-user",
     name: "newUser",
     component: NewUser,
+    beforeEnter: (to, from, next) => {
+        api.auth.auth().then(sessData => {
+            store.commit("Session/SET_SESSION", sessData);
+            next("/");
+        }).catch(() => {
+            next();
+        })
+    }
 }, {
     path: "/fp",
     name: "fingerprint",
