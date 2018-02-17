@@ -1,7 +1,5 @@
-import axios from "axios";
 import Vue from "vue";
-
-function url(endpoint) { return "http://localhost:3000/" + endpoint; }
+import api from "../api";
 
 export default {
     namespaced: true,
@@ -20,7 +18,7 @@ export default {
 
     actions: {
         CREATE_SESSION({ commit }, username) {
-            axios.post(url("new-user"), { username, }, { withCredentials: true })
+            return api.auth.newUser(username)
                 .then(resp => {
                     commit("SET_SESSION", { username });
                 }, (err) => {
@@ -28,7 +26,7 @@ export default {
                 });
         },
         AUTH(context) {
-            axios.get(url("auth"), { withCredentials: true }).then(resp => {
+            return api.auth.auth().then(resp => {
                 context.commit("SET_SESSION", resp.data);
             }, err => {
                 console.log(err);
