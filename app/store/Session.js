@@ -13,7 +13,10 @@ export default {
     },
 
     mutations: {
-        SET_SESSION: (state, sessionData) => Object.assign(state, sessionData),
+        SET_SESSION: (state, sessionData) => {
+            console.log("set session data:", sessionData);
+            Object.assign(state, sessionData);
+        },
     },
 
     actions: {
@@ -26,12 +29,11 @@ export default {
                 });
         },
         AUTH(context) {
-            return api.auth.auth().then(resp => {
-                context.commit("SET_SESSION", resp.data);
+            return api.auth.auth().then(sessionData => {
+                context.commit("SET_SESSION", sessionData);
             }, err => {
                 console.log(err);
             })
         }
     }
-
 }

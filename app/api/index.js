@@ -6,6 +6,11 @@ const _axios = axios.create({
     withCredentials: true,
 });
 
+_axios.interceptors.response.use(
+    response => response.data,
+    err => Promise.reject(err)
+);
+
 export default {
     auth: require("./auth")(_axios),
 };

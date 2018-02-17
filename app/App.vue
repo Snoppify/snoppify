@@ -9,11 +9,7 @@
 </template>
 
 <script>
-export default {
-  created() {
-    this.$store.dispatch("Session/AUTH");
-  }
-};
+export default {};
 </script>
 
 <style lang="scss">

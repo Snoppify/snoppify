@@ -5,9 +5,7 @@
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
     
-    <form v-on:submit.prevent="createUser">
-      <input type="text" placeholder="username" v-model="username">
-    </form>
+    <p>You are user: {{username}}</p>
     
     <form v-on:submit.prevent="search()">
       <input v-model="searchQuery" placeholder="Search song, artist, album...">
@@ -28,22 +26,15 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
-      searchQuery: "",
-      username: ""
+      searchQuery: ""
     };
-  },
-
-  created() {
-    this.$watch(
-      () => this.$store.getters["Session/username"],
-      username => (this.username = username)
-    );
   },
 
   computed: {
     ...mapGetters({
       connected: "Spotify/connected",
-      result: "Spotify/result"
+      result: "Spotify/result",
+      username: "Session/username"
     })
   },
 
