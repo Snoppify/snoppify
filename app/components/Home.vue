@@ -5,13 +5,17 @@
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
     
+    <form v-on:submit.prevent="createUser">
+      <input type="text" placeholder="username" v-model="username">
+    </form>
+    
     <form v-on:submit.prevent="search()">
       <input v-model="searchQuery" placeholder="Search song, artist, album...">
       <button type="submit">Search</button>
     </form>
 
     <ul v-if="result" id="track-list">
-      <li v-for="track in result.tracks.items">
+      <li v-for="track in result.tracks.items" v-bind:key="track.id">
         <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
       </li>
     </ul>
@@ -19,35 +23,46 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 
 export default {
   data() {
     return {
-      searchQuery: '',
-    }
+      searchQuery: "",
+      username: ""
+    };
+  },
+
+  created() {
+    this.$watch(
+      () => this.$store.getters["Session/username"],
+      username => (this.username = username)
+    );
   },
 
   computed: {
     ...mapGetters({
-      connected: 'Spotify/connected',
-      result: 'Spotify/result',
+      connected: "Spotify/connected",
+      result: "Spotify/result"
     })
   },
 
   methods: {
     search() {
       this.$store.dispatch("Spotify/search", this.searchQuery);
+    },
+    createUser() {
+      this.$store.dispatch("Session/CREATE_SESSION", this.username);
     }
   }
-}
+};
 </script>
 
 <style lang="scss">
 #track-list {
-	text-align: left;
-    max-width: 600px;
-    margin: 20px auto;
+  text-align: left;
+  max-width: 600px;
+  margin: 20px auto;
 }
 
 #home {
