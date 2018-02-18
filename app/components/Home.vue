@@ -15,6 +15,7 @@
     <ul v-if="result" id="track-list">
       <li v-for="track in result.tracks.items" v-bind:key="track.id">
         <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
+        <button v-on:click="queue(track)">Queue</button>
       </li>
     </ul>
   </div>
@@ -22,6 +23,7 @@
 
 <script>
 import { mapGetters } from "vuex";
+import api from "../api";
 
 export default {
   data() {
@@ -42,8 +44,8 @@ export default {
     search() {
       this.$store.dispatch("Spotify/search", this.searchQuery);
     },
-    createUser() {
-      this.$store.dispatch("Session/CREATE_SESSION", this.username);
+    queue(track) {
+      api.queue.queue(track.id);
     }
   }
 };

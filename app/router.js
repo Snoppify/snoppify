@@ -1,5 +1,5 @@
-import VueRouter from 'vue-router'
 import Vue from 'vue'
+import VueRouter from 'vue-router'
 
 import { store } from './store'
 import api from "./api";

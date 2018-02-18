@@ -1,4 +1,3 @@
-
 <template>
 <div id="new-user" class="route-container">
 	<h1>SNOPPIFY</h1>

@@ -34,6 +34,12 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
+app.post("/queue", (req, res) => {
+    console.log(`soMeBodyY (user "${req.session.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
+
+    res.sendStatus(200);
+});
+
 io.on("connection", (socket) => {
     console.log("we got a live one" /*, socket*/ );
 

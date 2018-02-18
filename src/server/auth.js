@@ -1,3 +1,5 @@
+let sessionStore;
+
 module.exports = {
     init(app, session, FileStore) {
         app.use(session({
@@ -7,7 +9,9 @@ module.exports = {
             cookie: {
                 secure: false
             },
-            store: new FileStore(),
+            store: (sessionStore = new FileStore({
+                ttl: 3600 * 24,
+            })),
         }));
 
         app.use(function(req, res, next) {
