@@ -8,22 +8,8 @@ const auth = require("./auth");
 
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const SpotifyWebApi = require("spotify-web-api-node");
 
-const spotifyApi = new SpotifyWebApi({
-    clientId: process.env.JOHN_CLIENT_ID,
-    clientSecret: process.env.JOHN_CLIENT_SECRET,
-});
-
-spotifyApi.clientCredentialsGrant().then(function(data) {
-    console.log('The access token expires in ' + data.body['expires_in']);
-    console.log('The access token is ' + data.body['access_token']);
-
-    // Save the access token so that it's used in future calls
-    spotifyApi.setAccessToken(data.body['access_token']);
-}, function(err) {
-    console.log('Something went wrong when retrieving an access token', err);
-});
+const spotify = require('./spotify');
 
 app.use(bodyParser.json());
 app.enable("trust proxy");
@@ -47,23 +33,22 @@ io.on("connection", (socket) => {
         const extractedId = extractId(string);
 
         if (extractedId) {
-            spotifyApi.getTracks([extractedId])
+            spotify.api.getTracks([extractedId])
                 .then(data => socket.emit("search", JSON.stringify({
                     tracks: {
                         items: data.body.tracks[0] ? [data.body.tracks[0]] : []
                     }
                 })));
-        }
-        else {
-            spotifyApi.searchTracks(string)
+        } else {
+            spotify.api.searchTracks(string)
                 .then(data => socket.emit("search", JSON.stringify(data.body)));
         }
     });
 
     socket.on("getTrack", (id) => {
         Promise.all([
-                spotifyApi.getTracks([id]),
-                spotifyApi.getAudioFeaturesForTracks([id])
+                spotify.api.getTracks([id]),
+                spotify.api.getAudioFeaturesForTracks([id])
             ])
             .then(data => {
                 var track = data[0].body.tracks[0];
@@ -74,6 +59,22 @@ io.on("connection", (socket) => {
             .catch(data => {
                 socket.emit("getTrack", null);
             });
+    });
+
+    socket.on("playSong", (id) => {
+        spotify.controller.playSong(id);
+    });
+
+    socket.on("play", (id) => {
+        spotify.controller.play();
+    });
+
+    socket.on("stop", (id) => {
+        spotify.controller.stop();
+    });
+
+    socket.on("pause", (id) => {
+        spotify.controller.pause();
     });
 });
 
