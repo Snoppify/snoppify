@@ -1,9 +1,11 @@
 require('dotenv').config();
 
-const app = require('express')(),
+const express = require('express'),
+    app = express(),
     session = require("express-session"),
     bodyParser = require("body-parser"),
     FileStore = require('session-file-store')(session);
+const fs = require('fs');
 const auth = require("./auth");
 
 const http = require('http').Server(app);
@@ -16,9 +18,53 @@ app.enable("trust proxy");
 
 auth.init(app, session, FileStore);
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+const fallback = require('express-history-api-fallback');
+const rootDir = __dirname + '/../../public';
+
+// Spotify refresh token end point
+app.get("/refresh-token", (req, res) => {
+    let refreshToken = "";
+    let p = new Promise(function(resolve, reject) {
+        if (req.query.code && req.query.state == "auth") {
+            spotify.playbackAPI.getRefreshToken(req.query.code)
+                .then(function(token) {
+                    refreshToken = token;
+                    resolve();
+                })
+                .catch(function(r) {
+                    let e = [r.response.status, "(" + r.response.data.error + ")", r.response.data.error_description].join(" ");
+                    console.log(e);
+                    refreshToken = e;
+                    resolve();
+                });
+        } else {
+            resolve();
+        }
+    }).then(function() {
+        fs.readFile(__dirname + "/refresh-token.html", 'utf8', (err, data) => {
+            let authUrl = spotify.playbackAPI.getAuthUrl();
+            data = data.replace(/{authUrl}/g, authUrl);
+            data = data.replace(/{refreshToken}/g, refreshToken);
+            res.send(data);
+        });
+    });
 });
+
+// html5 history api fix
+app.use(express.static(rootDir));
+app.use(fallback('index.html', {
+    root: rootDir
+}));
+
+function successHandler(res) {
+    return r => res.sendStatus(200);
+}
+
+function errorHandler(res) {
+    return r => res.status(r.response.status).send({
+        error: r.response.statusText
+    });
+}
 
 app.post("/queue", (req, res) => {
     console.log(`soMeBodyY (user "${req.session.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
@@ -26,6 +72,31 @@ app.post("/queue", (req, res) => {
     spotify.controller.queueTrack(req.body.trackId);
 
     res.sendStatus(200);
+});
+
+app.post("/play", (req, res) => {
+    spotify.controller.play(req.body.playlist)
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/pause", (req, res) => {
+    spotify.controller.pause()
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/next", (req, res) => {
+    spotify.controller.next()
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/previous", (req, res) => {
+    spotify.controller.previous()
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/empty-playlist", (req, res) => {
+    spotify.controller.emptyPlaylist()
+        .then(successHandler(res)).catch(errorHandler(res));
 });
 
 io.on("connection", (socket) => {
@@ -63,25 +134,14 @@ io.on("connection", (socket) => {
             });
     });
 
-    socket.on("playSong", (id) => {
-        spotify.controller.playSong(id);
-    });
-
-    socket.on("play", (id) => {
-        spotify.controller.play();
-    });
-
-    socket.on("stop", (id) => {
-        spotify.controller.stop();
-    });
-
-    socket.on("pause", (id) => {
-        spotify.controller.pause();
-    });
 });
 
 http.listen(3000, () => {
-    console.log('listening on *:3000');
+
+    let ip = require('ip').address();
+    console.log(`Serving http://${ip}:3000`);
+    console.log(`(Remember to set the environment variable 'export SERVER_IP=${ip}'\n`);
+
 })
 
 function extractId(string) {

@@ -62,3 +62,6 @@ public/
 
 # server sessions
 sessions/
+
+# Snoppify
+snoppify-config.js

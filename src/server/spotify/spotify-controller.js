@@ -14,10 +14,10 @@ module.exports = {
     dequeueTrack,
     playNext,
     play,
-    stop,
     pause,
     next,
     previous,
+    emptyPlaylist,
 };
 
 let state = {
@@ -35,32 +35,23 @@ let history = new Queue({
 let pollTimeout = 2000;
 let nextTrackThreshold = 10;
 
-let ownerId = "johnbrynte";
-// snoppify playlist
-let playlistId = "4aqgvSm1kYgFcsfyfSjcjQ";
-
 let playlist = null;
 
 api.onload.then(function(data) {
-    api.getPlaylist(ownerId, playlistId)
-        .then(function(data) {
-            playlist = data.body;
+    reloadPlaylist();
 
-            // playlist.tracks.items.forEach(function(track) {
-            //     queue.add(track);
-            // });
-        }, function(err) {
-            console.log('Playlist not found');
-        });
-
-    setInterval(function() {
-        pollPlayerStatus();
-    }, pollTimeout);
+    if (api.config.refresh_token) {
+        setInterval(function() {
+            pollPlayerStatus();
+        }, pollTimeout);
+    }
 });
 
 function queueTrack(song) {
     // TODO: check if queue is empty and if song should be playing?
     queue.add(song);
+
+    reloadPlaylist();
 }
 
 function dequeueTrack(song) {
@@ -74,24 +65,72 @@ function playNext() {
     history.add(song);
 }
 
-function play() {
-    playbackAPI.play();
-}
-
-function stop() {
-    playbackAPI.stop();
+function play(playPlaylist = false) {
+    let data = {};
+    if (playPlaylist) {
+        data.playlist = playlist.id;
+    }
+    return playbackAPI.play(data);
 }
 
 function pause() {
-    playbackAPI.pause();
+    return playbackAPI.pause();
 }
 
 function next() {
-    playbackAPI.next();
+    return playbackAPI.next();
 }
 
 function previous() {
-    playbackAPI.previous();
+    return playbackAPI.previous();
+}
+
+function emptyPlaylist() {
+    let promises = [];
+    for (let i = 0; i < playlist.tracks.items.length; i += 100) {
+        let positions = playlist.tracks.items.slice(i, i + 100).map((track, _i) => i + _i);
+        let p = playbackAPI.removePositionsFromPlaylist(api.config.owner, playlist.id, positions, playlist.snapshot_id);
+        promises.push(p);
+    }
+    return Promise.all(promises).then(function() {
+        reloadPlaylist();
+    });
+}
+
+/////////////////////
+
+function reloadPlaylist() {
+    api.getPlaylist(api.config.owner, api.config.playlist)
+        .then(function(data) {
+            playlist = data.body;
+
+            // playlist.tracks.items.forEach(function(track) {
+            //     queue.add(track);
+            // });
+
+            if (playlist.tracks.items.length == 0 && !queue.empty) {
+                // TODO: state should transition to default playlist
+                addToPlaylist(queue.next());
+
+                if (!state.isPlaying) {
+                    playbackAPI.play({
+                        playlist: playlist.id,
+                    });
+                }
+            }
+        }, function(err) {
+            console.log('Playlist not found');
+        });
+}
+
+function addToPlaylist(track) {
+    if (track) {
+        let uri = track.track ? track.track.uri : "spotify:track:" + track;
+        playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(reloadPlaylist);
+        state.waitingForNextSong = true;
+
+        console.log("queued next song: " + (track.track ? track.track.name : track));
+    }
 }
 
 function pollPlayerStatus() {
@@ -108,14 +147,7 @@ function pollPlayerStatus() {
                 let progress = r.data.progress_ms;
                 let duration = state.track.duration_ms;
                 if ((duration - progress) / 1000 < nextTrackThreshold) {
-                    let next = queue.next();
-                    if (next) {
-                        let uri = typeof next == "string" ? "spotify:track:" + next : next.track.uri;
-                        playbackAPI.addToPlaylist(ownerId, playlist.id, [uri]);
-                        state.waitingForNextSong = true;
-
-                        console.log("queued next song: " + next.track.name);
-                    }
+                    addToPlaylist(queue.next());
                 }
             }
         }

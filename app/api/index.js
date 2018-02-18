@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const _axios = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://' + ($PROCESS_ENV_SERVER_IP || 'localhost') + ':3000',
     timeout: 1000,
     withCredentials: true,
 });

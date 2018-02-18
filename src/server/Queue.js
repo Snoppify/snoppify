@@ -16,6 +16,10 @@ module.exports = class Queue {
         return this.queue.length;
     }
 
+    get empty() {
+        return this.size == 0;
+    }
+
     /**
      * @param  {mixed} item Item
      */

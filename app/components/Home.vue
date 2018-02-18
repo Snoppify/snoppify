@@ -6,6 +6,15 @@
     <p v-else>Not connected</p>
     
     <p>You are user: {{username}}</p>
+
+    <button v-on:click="play">Play</button>
+    <button v-on:click="pause">Pause</button>
+    <br/>
+    <button v-on:click="previous">Previous</button>
+    <button v-on:click="next">Next</button>
+    <br/>
+    <button v-on:click="playPlaylist">Play playlist</button>
+    <button v-on:click="emptyPlaylist">Empty playlist</button>
     
     <form v-on:submit.prevent="search()">
       <input v-model="searchQuery" placeholder="Search song, artist, album...">
@@ -46,6 +55,24 @@ export default {
     },
     queue(track) {
       api.queue.queue(track.id);
+    },
+    play(){
+      api.queue.play();
+    },
+    pause(){
+      api.queue.pause();
+    },
+    previous(){
+      api.queue.previous();
+    },
+    next(){
+      api.queue.next();
+    },
+    playPlaylist(){
+      api.queue.play(true);
+    },
+    emptyPlaylist(){
+      api.queue.emptyPlaylist();
     }
   }
 };
