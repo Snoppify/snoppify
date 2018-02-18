@@ -109,11 +109,13 @@ function pollPlayerStatus() {
                 let duration = state.track.duration_ms;
                 if ((duration - progress) / 1000 < nextTrackThreshold) {
                     let next = queue.next();
-                    let uri = typeof next == "string" ? "spotify:track:" + next : next.uri;
-                    playbackAPI.addToPlaylist(ownerId, playlist.id, [uri]);
-                    state.waitingForNextSong = true;
+                    if (next) {
+                        let uri = typeof next == "string" ? "spotify:track:" + next : next.track.uri;
+                        playbackAPI.addToPlaylist(ownerId, playlist.id, [uri]);
+                        state.waitingForNextSong = true;
 
-                    console.log("queued next song: " + next.track.name);
+                        console.log("queued next song: " + next.track.name);
+                    }
                 }
             }
         }

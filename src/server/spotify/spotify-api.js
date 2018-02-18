@@ -6,22 +6,22 @@ const api = new SpotifyWebApi({
     clientSecret: process.env.JOHN_CLIENT_SECRET,
 });
 
-const onloadDeferred = Promise.defer();
+api.onload = new Promise(function(resolve, reject) {
 
-api.onload = onloadDeferred.promise;
+    api.clientCredentialsGrant().then(function(data) {
+        console.log('The access token expires in ' + data.body['expires_in']);
+        console.log('The access token is ' + data.body['access_token']);
 
-api.clientCredentialsGrant().then(function(data) {
-    console.log('The access token expires in ' + data.body['expires_in']);
-    console.log('The access token is ' + data.body['access_token']);
+        // Save the access token so that it's used in future calls
+        api.setAccessToken(data.body['access_token']);
 
-    // Save the access token so that it's used in future calls
-    api.setAccessToken(data.body['access_token']);
+        resolve();
+    }, function(err) {
+        console.log('Something went wrong when retrieving an access token', err);
 
-    onloadDeferred.resolve();
-}, function(err) {
-    console.log('Something went wrong when retrieving an access token', err);
+        reject();
+    });
 
-    onloadDeferred.reject();
 });
 
 module.exports = api;

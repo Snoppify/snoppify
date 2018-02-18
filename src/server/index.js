@@ -23,6 +23,8 @@ app.get('/', (req, res) => {
 app.post("/queue", (req, res) => {
     console.log(`soMeBodyY (user "${req.session.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
 
+    spotify.controller.queueTrack(req.body.trackId);
+
     res.sendStatus(200);
 });
 
