@@ -9,7 +9,10 @@ const fs = require('fs');
 const auth = require("./auth");
 
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
+
+// the socket is initialized here
+const socket = require('./socket')(http);
+const io = socket.io;
 
 const spotify = require('./spotify');
 

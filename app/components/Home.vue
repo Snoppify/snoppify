@@ -7,9 +7,10 @@
     
     <p>You are user: {{username}}</p>
 
+    <p>{{event}}</p>
+
     <button v-on:click="play">Play</button>
     <button v-on:click="pause">Pause</button>
-    <br/>
     <button v-on:click="previous">Previous</button>
     <button v-on:click="next">Next</button>
     <br/>
@@ -43,6 +44,7 @@ export default {
 
   computed: {
     ...mapGetters({
+      event: "Events/event",
       connected: "Spotify/connected",
       result: "Spotify/result",
       username: "Session/username"

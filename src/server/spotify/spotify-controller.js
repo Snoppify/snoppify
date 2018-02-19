@@ -1,14 +1,139 @@
-let api = require("./spotify-api");
-let playbackAPI = require("./spotify-playback-api");
+const socket = require('../socket');
+const api = require("./spotify-api");
+const playbackAPI = require("./spotify-playback-api");
 
-let Queue = require('../Queue');
+const Queue = require('../Queue');
+const StateMachine = require('../StateMachine');
+
+let stateData = {
+    isPlaying: false,
+    //track: null,
+    player: null,
+    events: {
+        queuedTrack: false,
+        dequeuedTrack: false,
+        changedTrack: false,
+        startedPlaying: false,
+        stoppedPlaying: false,
+    },
+}
+
+let stateMachine = new StateMachine({
+    states: [{
+        name: "paused",
+    }, {
+        name: "playing"
+    }, {
+        name: "playSong"
+    }, {
+        name: "waitingForNextSong"
+    }],
+    transitions: [
+        // paused
+        {
+            source: "paused",
+            target: "playSong",
+            value: function(d) {
+                return d.events.changedTrack;
+            }
+        }, {
+            source: "paused",
+            target: "playing",
+            value: function(d) {
+                return d.isPlaying && !d.events.changedTrack;
+            }
+        }, {
+            source: "paused",
+            target: "waitingForNextSong",
+            value: function(d) {
+                return d.events.queuedTrack && d.playlist && d.playlist.tracks.items.length == 0;
+            }
+        },
+        // playing
+        {
+            source: "playing",
+            target: "paused",
+            value: function(d) {
+                return d.events.stoppedPlaying;
+            }
+        }, {
+            source: "playing",
+            target: "playSong",
+            value: function(d) {
+                return d.events.changedTrack;
+            }
+        }, {
+            source: "playing",
+            target: "waitingForNextSong",
+            value: function(d) {
+                return d.player.is_playing && d.player.item && (
+                    (d.player.item.duration_ms - d.player.progress_ms) / 1000 < nextTrackThreshold
+                );
+            }
+        },
+        // playSong
+        {
+            source: "playSong",
+            target: "playing",
+            value: function(d) {
+                return d.isPlaying;
+            }
+        },
+        // waitingForNextSong
+        {
+            source: "waitingForNextSong",
+            target: "playSong",
+            value: function(d) {
+                return d.events.changedTrack;
+            }
+        }, {
+            source: "waitingForNextSong",
+            target: "paused",
+            value: function(d) {
+                return !d.isPlaying;
+            }
+        }
+    ],
+    initialState: "paused",
+    //finalState: "waitingForNextSong",
+});
+
+stateMachine.after(function(s) {
+    // clear events
+    for (var ev in stateData.events) {
+        stateData.events[ev] = false;
+    }
+});
+
+stateMachine.on("paused", function(s) {
+    console.log(s.name);
+    sendEvent(s);
+});
+
+stateMachine.on("playing", function(s) {
+    console.log(s.name);
+    sendEvent(s);
+});
+
+stateMachine.on("playSong", function(s) {
+    console.log(s.name);
+    sendEvent(s);
+});
+
+stateMachine.on("waitingForNextSong", function(s) {
+    console.log(s.name);
+    sendEvent(s);
+    addToPlaylist(queue.next());
+});
+
+stateMachine.start();
 
 module.exports = {
     get queue() {
         return queue;
     },
     get isPlaying() {
-        return state.isPlaying;
+        return stateData.isPlaying;
     },
     queueTrack,
     dequeueTrack,
@@ -20,11 +145,6 @@ module.exports = {
     emptyPlaylist,
 };
 
-let state = {
-    isPlaying: false,
-    track: null,
-    waitingForNextSong: false,
-};
 let queue = new Queue({
     id: "id",
 });
@@ -51,12 +171,17 @@ function queueTrack(song) {
     // TODO: check if queue is empty and if song should be playing?
     queue.add(song);
 
-    reloadPlaylist();
+    stateData.events.queuedTrack = true;
+
+    updateStateMachine();
 }
 
 function dequeueTrack(song) {
     // TODO: check if playing?
-    return queue.remove(song);
+    let item = queue.remove(song);
+    if (item) {
+        stateData.events.dequeuedTrack = true;
+    }
 }
 
 function playNext() {
@@ -104,20 +229,10 @@ function reloadPlaylist() {
         .then(function(data) {
             playlist = data.body;
 
-            // playlist.tracks.items.forEach(function(track) {
-            //     queue.add(track);
-            // });
+            stateData.playlist = playlist;
 
-            if (playlist.tracks.items.length == 0 && !queue.empty) {
-                // TODO: state should transition to default playlist
-                addToPlaylist(queue.next());
+            updateStateMachine();
 
-                if (!state.isPlaying) {
-                    playbackAPI.play({
-                        playlist: playlist.id,
-                    });
-                }
-            }
         }, function(err) {
             console.log('Playlist not found');
         });
@@ -126,32 +241,56 @@ function reloadPlaylist() {
 function addToPlaylist(track) {
     if (track) {
         let uri = track.track ? track.track.uri : "spotify:track:" + track;
-        playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(reloadPlaylist);
-        state.waitingForNextSong = true;
+        playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(function() {
+            console.log("queued next song: " + (track.track ? track.track.name : track));
 
-        console.log("queued next song: " + (track.track ? track.track.name : track));
+            reloadPlaylist();
+        });
     }
 }
 
 function pollPlayerStatus() {
     playbackAPI.currentlyPlaying().then(function(r) {
-        state.isPlaying = r.data.is_playing;
-        let track = r.data.item || null;
+        let player = r.data;
+        stateData.isPlaying = player.is_playing;
 
-        if (state.isPlaying && track && state.track) {
-            if (state.waitingForNextSong) {
-                if (track.id != state.track.id) {
-                    state.waitingForNextSong = false;
+        // got new player
+        if (!stateData.player) {
+            if (player.is_playing) {
+                stateData.events.startedPlaying = true;
+            }
+            if (!player.is_playing) {
+                stateData.events.stoppedPlaying = true;
+            }
+            stateData.changedTrack = true;
+        } else {
+            // started/stopped playing
+            if (stateData.player.is_playing != player.is_playing) {
+                if (player.is_playing) {
+                    stateData.events.startedPlaying = true;
                 }
-            } else {
-                let progress = r.data.progress_ms;
-                let duration = state.track.duration_ms;
-                if ((duration - progress) / 1000 < nextTrackThreshold) {
-                    addToPlaylist(queue.next());
+                if (!player.is_playing) {
+                    stateData.events.stoppedPlaying = true;
                 }
+            }
+            // changed track
+            if (player.item && (!stateData.player.item || stateData.player.item.id != player.item.id)) {
+                stateData.events.changedTrack = true;
             }
         }
 
-        state.track = track;
+        stateData.player = r.data;
+
+        updateStateMachine();
+    });
+}
+
+function updateStateMachine() {
+    stateMachine.update(stateData);
+}
+
+function sendEvent(state) {
+    socket.io.local.emit("event", {
+        type: state.name,
     });
 }

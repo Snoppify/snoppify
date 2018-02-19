@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 
 import Session from './Session';
 import Spotify from './Spotify';
+import Events from './Events';
 
 Vue.use(Vuex);
 
@@ -14,6 +15,7 @@ export const store = new Vuex.Store({
     modules: {
         Spotify,
         Session,
+        Events,
     },
 
     mutations: {
