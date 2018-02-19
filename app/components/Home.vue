@@ -7,7 +7,26 @@
     
     <p>You are user: {{username}}</p>
 
-    <p>{{event}}</p>
+    <p v-if="event">
+      <b>{{event.type}}</b><br/>
+      <span v-if="event.data.track">
+        {{event.data.track.name}} ({{event.data.track.artists[0].name}})
+        <span v-if="event.data.track.issuer">added by <b>{{event.data.track.issuer}}</b></span>
+      </span>
+      <span v-else>
+        {{event.data}}
+      </span>
+    </p>
+
+    <h2>Queue</h2>
+
+    <ul v-if="queue">
+      <li v-for="track in queue" v-bind:key="track.id">
+        {{track.name}} ({{ track.artists[0].name }}) added by <b>{{track.issuer}}</b>
+      </li>
+    </ul>
+
+    <hr/>
 
     <button v-on:click="play">Play</button>
     <button v-on:click="pause">Pause</button>
@@ -16,6 +35,7 @@
     <br/>
     <button v-on:click="playPlaylist">Play playlist</button>
     <button v-on:click="emptyPlaylist">Empty playlist</button>
+    <button v-on:click="emptyQueue">Empty queue</button>
     
     <form v-on:submit.prevent="search()">
       <input v-model="searchQuery" placeholder="Search song, artist, album...">
@@ -25,7 +45,7 @@
     <ul v-if="result" id="track-list">
       <li v-for="track in result.tracks.items" v-bind:key="track.id">
         <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
-        <button v-on:click="queue(track)">Queue</button>
+        <button v-on:click="queueTrack(track)">Queue</button>
       </li>
     </ul>
   </div>
@@ -45,6 +65,7 @@ export default {
   computed: {
     ...mapGetters({
       event: "Events/event",
+      queue: "Events/queue",
       connected: "Spotify/connected",
       result: "Spotify/result",
       username: "Session/username"
@@ -55,8 +76,8 @@ export default {
     search() {
       this.$store.dispatch("Spotify/search", this.searchQuery);
     },
-    queue(track) {
-      api.queue.queue(track.id);
+    queueTrack(track) {
+      api.queue.queueTrack(track.id);
     },
     play(){
       api.queue.play();
@@ -75,6 +96,9 @@ export default {
     },
     emptyPlaylist(){
       api.queue.emptyPlaylist();
+    },
+    emptyQueue() {
+      api.queue.emptyQueue();
     }
   }
 };

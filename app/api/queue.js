@@ -1,6 +1,6 @@
 module.exports = (axios) => ({
-    queue: function(trackId) {
-        return axios.post("/queue", {
+    queueTrack: function(trackId) {
+        return axios.post("/queue-track", {
             trackId
         });
     },
@@ -21,5 +21,11 @@ module.exports = (axios) => ({
     },
     emptyPlaylist: function() {
         return axios.post("/empty-playlist");
+    },
+    emptyQueue: function() {
+        return axios.post("/empty-queue");
+    },
+    get: function() {
+        return axios.get("/get-queue");
     }
 });

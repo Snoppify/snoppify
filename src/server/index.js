@@ -53,12 +53,6 @@ app.get("/refresh-token", (req, res) => {
     });
 });
 
-// html5 history api fix
-app.use(express.static(rootDir));
-app.use(fallback('index.html', {
-    root: rootDir
-}));
-
 function successHandler(res) {
     return r => res.sendStatus(200);
 }
@@ -69,12 +63,11 @@ function errorHandler(res) {
     });
 }
 
-app.post("/queue", (req, res) => {
+app.post("/queue-track", (req, res) => {
     console.log(`soMeBodyY (user "${req.session.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
 
-    spotify.controller.queueTrack(req.body.trackId);
-
-    res.sendStatus(200);
+    spotify.controller.queueTrack(req.session.username, req.body.trackId)
+        .then(successHandler(res)).catch(errorHandler(res));
 });
 
 app.post("/play", (req, res) => {
@@ -101,6 +94,23 @@ app.post("/empty-playlist", (req, res) => {
     spotify.controller.emptyPlaylist()
         .then(successHandler(res)).catch(errorHandler(res));
 });
+
+app.post("/empty-queue", (req, res) => {
+    spotify.controller.emptyQueue()
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.get("/get-queue", (req, res) => {
+    res.json({
+        data: spotify.controller.getQueue()
+    });
+});
+
+// html5 history api fix
+app.use(express.static(rootDir));
+app.use(fallback('index.html', {
+    root: rootDir
+}));
 
 io.on("connection", (socket) => {
     console.log("we got a live one" /*, socket*/ );

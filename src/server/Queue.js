@@ -20,6 +20,10 @@ module.exports = class Queue {
         return this.size == 0;
     }
 
+    clear() {
+        this.queue = [];
+    }
+
     /**
      * @param  {mixed} item Item
      */
@@ -55,7 +59,7 @@ module.exports = class Queue {
      * @return {mixed}      Item
      */
     get(item) {
-        this.queue[this.indexOf(item)];
+        return this.queue[this.indexOf(item)];
     }
 
     /**

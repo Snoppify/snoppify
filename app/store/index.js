@@ -19,6 +19,18 @@ export const store = new Vuex.Store({
     },
 
     mutations: {
+        /**
+         * Commits "init" on the modules if the mutation is defined.
+         */
+        init(state) {
+            for (let m in this._modules.root._children) {
+                let module = this._modules.root._children[m];
+                if (module._rawModule.mutations["init"]) {
+                    module.context.commit("init");
+                }
+            }
+        },
+
         setSocket(state, socket) {
             state.io = socket;
         },

@@ -107,23 +107,53 @@ stateMachine.after(function(s) {
 
 stateMachine.on("paused", function(s) {
     console.log(s.name);
-    sendEvent(s);
+    sendEvent(s.name, {
+        track: getCurrentTrack()
+    });
 });
 
 stateMachine.on("playing", function(s) {
     console.log(s.name);
-    sendEvent(s);
+    sendEvent(s.name, {
+        track: getCurrentTrack()
+    });
 });
 
 stateMachine.on("playSong", function(s) {
     console.log(s.name);
-    sendEvent(s);
+    sendEvent(s.name, {
+        track: getCurrentTrack()
+    });
 });
 
 stateMachine.on("waitingForNextSong", function(s) {
     console.log(s.name);
-    sendEvent(s);
-    addToPlaylist(queue.next());
+
+    let track = queue.next();
+    addToPlaylist(track);
+    // save issuer for later
+    if (track) {
+        history.add(track);
+        console.log(history.queue);
+    }
+
+    sendEvent(s.name, {
+        track: track
+    });
+
+    if (track) {
+        socket.io.local.emit("queue", {
+            queue: queue.queue,
+            addedTracks: [],
+            removedTracks: [track],
+        });
+    }
+
+    if (stateData.playlist && stateData.playlist.tracks.items.length == 0) {
+        // BUG: cant start a playlist that havent been intereacted with from a spotify client,
+        // for example after emptying the playlist
+        //play(true);
+    }
 });
 
 stateMachine.start();
@@ -143,6 +173,8 @@ module.exports = {
     next,
     previous,
     emptyPlaylist,
+    emptyQueue,
+    getQueue,
 };
 
 let queue = new Queue({
@@ -167,27 +199,52 @@ api.onload.then(function(data) {
     }
 });
 
-function queueTrack(song) {
-    // TODO: check if queue is empty and if song should be playing?
-    queue.add(song);
+function queueTrack(user, trackId) {
+    return new Promise(function(resolve, reject) {
+        api.getTracks([trackId])
+            .then(r => {
+                let track = r.body.tracks[0];
 
-    stateData.events.queuedTrack = true;
+                if (!track) {
+                    reject();
+                    return;
+                }
 
-    updateStateMachine();
+                track.issuer = user;
+
+                // TODO: check if queue is empty and if track should be playing?
+                queue.add(track);
+
+                stateData.events.queuedTrack = true;
+
+                socket.io.local.emit("queue", {
+                    queue: queue.queue,
+                    addedTracks: [track],
+                    removedTracks: [],
+                });
+
+                updateStateMachine();
+
+                resolve(track);
+            })
+            .catch(reject);
+    });
 }
 
-function dequeueTrack(song) {
+function dequeueTrack(track) {
     // TODO: check if playing?
-    let item = queue.remove(song);
+    let item = queue.remove(track);
     if (item) {
         stateData.events.dequeuedTrack = true;
+
+        updateStateMachine();
     }
 }
 
 function playNext() {
-    // TODO: play song
-    let song = queue.next();
-    history.add(song);
+    // TODO: play track
+    let track = queue.next();
+    history.add(track);
 }
 
 function play(playPlaylist = false) {
@@ -222,6 +279,26 @@ function emptyPlaylist() {
     });
 }
 
+function emptyQueue() {
+    return new Promise((resolve, reject) => {
+        let removed = queue.queue;
+
+        queue.clear();
+
+        socket.io.local.emit("queue", {
+            queue: queue.queue,
+            addedTracks: [],
+            removedTracks: removed,
+        });
+
+        resolve();
+    });
+}
+
+function getQueue() {
+    return queue.queue;
+}
+
 /////////////////////
 
 function reloadPlaylist() {
@@ -240,7 +317,7 @@ function reloadPlaylist() {
 
 function addToPlaylist(track) {
     if (track) {
-        let uri = track.track ? track.track.uri : "spotify:track:" + track;
+        let uri = typeof track == "string" ? "spotify:track:" + track : track.uri;
         playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(function() {
             console.log("queued next song: " + (track.track ? track.track.name : track));
 
@@ -289,8 +366,18 @@ function updateStateMachine() {
     stateMachine.update(stateData);
 }
 
-function sendEvent(state) {
+function sendEvent(type, data) {
     socket.io.local.emit("event", {
-        type: state.name,
+        type: type,
+        data: data || {},
     });
+}
+
+function getCurrentTrack() {
+    if (stateData.player && stateData.player.item) {
+        console.log(stateData.player.item.name, stateData.player.item.id);
+        console.log(history.get(stateData.player.item));
+        return history.get(stateData.player.item) || stateData.player.item;
+    }
+    return null;
 }
