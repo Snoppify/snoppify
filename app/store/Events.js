@@ -11,18 +11,11 @@ export default {
     },
 
     getters: {
-        queue: state => state.queue,
         event: state => state.event,
         events: state => state.events,
     },
 
     mutations: {
-        init: (state) => {
-            api.queue.get().then(r => {
-                state.queue = r.data;
-            });
-        },
-
         SOCKET_EVENT: (state, event) => {
             state.event = event;
             state.events.push(event);

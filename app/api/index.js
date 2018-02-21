@@ -14,4 +14,5 @@ _axios.interceptors.response.use(
 export default {
     auth: require("./auth")(_axios),
     queue: require("./queue")(_axios),
+    misc: require("./misc")(_axios),
 };

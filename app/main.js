@@ -6,7 +6,8 @@ import router from './router'
 import socket from './socket'
 import {
     store
-} from './store'
+}
+from './store'
 
 import Fingerprint2 from "fingerprintjs2";
 

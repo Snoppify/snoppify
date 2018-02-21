@@ -1,7 +1,52 @@
 <template>
   <div id="home" class="route-container">
-    <h1>Snoppify</h1>
+    <header>
+      <div class="title">
+        Snoppify
+      </div>
+    </header>
 
+    <h1>Now playing</h1>
+    <div class="current-track">
+      <img :src="currentTrack.album.images[1].url" alt="">
+      <div class="current-track__track-info">
+        <div class="title">
+          {{currentTrack.name}}
+        </div>
+        <div class="artist">
+            <span v-for="(artist, index) in currentTrack.artists" :key="index">
+              <span>{{artist.name}}</span><span v-if="index+1 < currentTrack.artists.length">, </span>
+            </span>
+        </div>
+      </div>
+      <div class="current-track__user-info">
+        <div class="image" :style="{'background-image':'url(https://www.billboard.com/files/styles/article_main_image/public/media/jack-dorsey-twitter-headshot-2015-billboard-650.jpg)'}">
+
+        </div>
+        <div class="user">
+          <div class="title">Added by</div>
+          <div class="name">Danne mannen dickdock</div>
+          <div class="upvotes">256 upvotes</div>
+        </div>
+      </div>
+    </div>
+
+    <h1>Queue</h1>
+    <ul v-if="queue">
+      <li v-for="(track, index) in queue" v-bind:key="index">
+         <div class="title">
+          {{track.name}}
+        </div>
+        <div class="artist">
+            <span v-for="(artist, index) in track.artists" :key="index">
+              <span>{{artist.name}}</span><span v-if="index+1 < track.artists.length">, </span>
+            </span>
+        </div>
+        <div>added by <b>{{track.issuer}}</b></div>
+        
+      </li>
+    </ul>
+    
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
     
@@ -20,11 +65,6 @@
 
     <h2>Queue</h2>
 
-    <ul v-if="queue">
-      <li v-for="track in queue" v-bind:key="track.id">
-        {{track.name}} ({{ track.artists[0].name }}) added by <b>{{track.issuer}}</b>
-      </li>
-    </ul>
 
     <hr/>
 
@@ -65,10 +105,11 @@ export default {
   computed: {
     ...mapGetters({
       event: "Events/event",
-      queue: "Events/queue",
       connected: "Spotify/connected",
       result: "Spotify/result",
-      username: "Session/username"
+      username: "Session/username",
+      queue: "Queue/queue",
+      currentTrack: "Queue/currentTrack"
     })
   },
 
@@ -79,22 +120,22 @@ export default {
     queueTrack(track) {
       api.queue.queueTrack(track.id);
     },
-    play(){
+    play() {
       api.queue.play();
     },
-    pause(){
+    pause() {
       api.queue.pause();
     },
-    previous(){
+    previous() {
       api.queue.previous();
     },
-    next(){
+    next() {
       api.queue.next();
     },
-    playPlaylist(){
+    playPlaylist() {
       api.queue.play(true);
     },
-    emptyPlaylist(){
+    emptyPlaylist() {
       api.queue.emptyPlaylist();
     },
     emptyQueue() {
@@ -104,7 +145,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #track-list {
   text-align: left;
   max-width: 600px;
@@ -112,6 +153,86 @@ export default {
 }
 
 #home {
-  background: #ffdffa;
+  // background: $background;
+}
+
+.current-track {
+  margin-bottom: 30px;
+  position: relative;
+  width: 300px;
+  margin: auto;
+  height: 300px;
+  text-align: left;
+  border-radius: 4px;
+  border: 1px solid hsla(0, 0%, 26%, 1);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+  }
+}
+
+.current-track__user-info {
+  position: absolute;
+  top: 0;
+  display: flex;
+  left: 0;
+  right: 0;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+
+  .image {
+    width: 60px;
+    height: 60px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 100px;
+    margin-right: 15px;
+    flex-shrink: 0;
+    border: 1px solid white;
+  }
+
+  .user {
+    text-align: right;
+  }
+
+  .title {
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.7em;
+    margin-bottom: 0.4em;
+  }
+
+  .name {
+    color: white;
+    overflow: hidden;
+    word-break: break-all;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .upvotes {
+    font-size: 0.9em;
+  }
+}
+
+.current-track__track-info {
+  position: absolute;
+  padding: 20px 20px 10px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+
+  .artist {
+    font-size: 0.8em;
+  }
+
+  .title {
+    color: white;
+  }
 }
 </style>

@@ -9,24 +9,60 @@
 </template>
 
 <script>
-export default {};
+import api from "../api";
+
+export default {
+  created() {
+    this.getInfo().then(res => {
+      this.$store.commit("Queue/SET_QUEUE", res.queue);
+      this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
+    });
+  },
+
+  methods: {
+    getInfo() {
+      return api.misc.info();
+    }
+  }
+};
 </script>
 
 <style lang="scss">
+@import "../assets/variables.scss";
+
 body {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   margin: 0;
   position: fixed;
   width: 100%;
   height: 100%;
+  background: $background;
+  color: $gray;
+}
+
+header {
+  padding: 5px;
+  border-bottom: 1px solid $darkgray;
+
+  .title {
+    text-align: center;
+
+    color: $text-dark;
+  }
+}
+
+h1 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 h1,
 h2 {
+  text-align: center;
   font-weight: normal;
 }
 

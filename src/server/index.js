@@ -40,7 +40,8 @@ app.get("/refresh-token", (req, res) => {
                     refreshToken = e;
                     resolve();
                 });
-        } else {
+        }
+        else {
             resolve();
         }
     }).then(function() {
@@ -106,6 +107,13 @@ app.get("/get-queue", (req, res) => {
     });
 });
 
+app.get("/info", (req, res) => {
+    res.send({
+        queue: spotify.controller.getQueue(),
+        currentTrack: spotify.controller.getCurrentTrack(),
+    })
+});
+
 // html5 history api fix
 app.use(express.static(rootDir));
 app.use(fallback('index.html', {
@@ -125,7 +133,8 @@ io.on("connection", (socket) => {
                         items: data.body.tracks[0] ? [data.body.tracks[0]] : []
                     }
                 })));
-        } else {
+        }
+        else {
             spotify.api.searchTracks(string)
                 .then(data => socket.emit("search", JSON.stringify(data.body)));
         }

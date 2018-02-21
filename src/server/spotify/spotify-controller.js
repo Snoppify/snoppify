@@ -175,6 +175,7 @@ module.exports = {
     emptyPlaylist,
     emptyQueue,
     getQueue,
+    getCurrentTrack,
 };
 
 let queue = new Queue({
@@ -340,7 +341,8 @@ function pollPlayerStatus() {
                 stateData.events.stoppedPlaying = true;
             }
             stateData.changedTrack = true;
-        } else {
+        }
+        else {
             // started/stopped playing
             if (stateData.player.is_playing != player.is_playing) {
                 if (player.is_playing) {

@@ -7,6 +7,8 @@ export default {
         isConnected: false,
         storedResult: '',
         tracks: {},
+        currentTrack: {},
+        queue: [],
     },
 
     getters: {

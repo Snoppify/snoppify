@@ -1,10 +1,10 @@
 module.exports = {
-	files: {
-		javascripts: {
-			joinTo: 'app.js'
-		}
-	},
-	paths: {
-		watched: ['app']
-	}
+    files: {
+        javascripts: {
+            joinTo: 'app.js'
+        }
+    },
+    paths: {
+        watched: ['app'],
+    },
 };
