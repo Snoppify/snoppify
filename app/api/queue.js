@@ -4,6 +4,16 @@ module.exports = (axios) => ({
             trackId
         });
     },
+    dequeueTrack: function(trackId) {
+        return axios.post("/dequeue-track", {
+            trackId
+        });
+    },
+    vote: function(trackId) {
+        return axios.post("/vote", {
+            trackId
+        });
+    },
     play: function(playlist = false) {
         let data = {
             playlist: playlist,

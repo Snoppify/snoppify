@@ -59,15 +59,31 @@ function successHandler(res) {
 }
 
 function errorHandler(res) {
-    return r => res.status(r.response.status).send({
-        error: r.response.statusText
-    });
+    return r => {
+        if (!r || !r.response) {
+            let status = r && r.status ? r.status : 500;
+            return res.status(status).send(r);
+        }
+        return res.status(r.response.status).send({
+            error: r.response.statusText
+        });
+    };
 }
 
 app.post("/queue-track", (req, res) => {
     console.log(`soMeBodyY (user "${req.session.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
 
     spotify.controller.queueTrack(req.session.username, req.body.trackId)
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/dequeue-track", (req, res) => {
+    spotify.controller.dequeueTrack(req.session.username, req.body.trackId)
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/vote", (req, res) => {
+    spotify.controller.vote(req.session.username, req.body.trackId)
         .then(successHandler(res)).catch(errorHandler(res));
 });
 
