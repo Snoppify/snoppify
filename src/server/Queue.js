@@ -39,7 +39,7 @@ module.exports = class Queue {
         if (index == -1) {
             return null;
         }
-        return this.queue.splice(index);
+        return this.queue.splice(index, 1)[0];
     }
 
     removeAt(index) {
@@ -47,7 +47,7 @@ module.exports = class Queue {
         if (!item) {
             return null;
         }
-        return this.queue.splice(index);
+        return this.queue.splice(index, 1)[0];
     }
 
     next() {
@@ -76,7 +76,7 @@ module.exports = class Queue {
      */
     indexOf(item) {
         if (typeof this.id != "undefined") {
-            return this.queue.findIndex(i => i[this.id] == item[this.id]);
+            return this.queue.findIndex(i => i[this.id] == item[this.id] || i[this.id] == item);
         } else {
             return this.queue.indexOf(item);
         }

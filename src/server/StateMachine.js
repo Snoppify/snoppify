@@ -1,17 +1,18 @@
 class StateMachine {
     constructor(data) {
-        this.data = data;
-        this.states = this.data.states;
+        this._data = data;
+        this.data = data.data || {};
+        this.states = data.states;
         this.afterHandlers = [];
         this.handlers = {};
-        this.data.states.forEach(s => {
+        data.states.forEach(s => {
             this.handlers[s.name] = [];
         });
     }
 
     setState(state) {
         this.currentState = state;
-        this.currentTransitions = this.data.transitions.filter(t => {
+        this.currentTransitions = this._data.transitions.filter(t => {
             return t.source == state;
         });
         this.emit(state);
@@ -22,10 +23,11 @@ class StateMachine {
         }
     }
 
-    update(data) {
+    update() {
         if (!this.running) {
             return;
         }
+        let data = this.data;
         let next = null;
         this.currentTransitions.forEach(s => {
             if (s.value(data)) {
@@ -58,7 +60,7 @@ class StateMachine {
 
     start() {
         this.running = true;
-        this.setState(this.data.initialState);
+        this.setState(this._data.initialState);
         this.emitAfter();
     }
 

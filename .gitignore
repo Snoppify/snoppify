@@ -63,5 +63,8 @@ public/
 # server sessions
 sessions/
 
+# queues etc.
+data/
+
 # Snoppify
 snoppify-config.js
