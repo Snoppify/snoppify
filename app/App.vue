@@ -43,14 +43,22 @@ body {
   color: $gray;
 }
 
+ul {
+  padding: 0;
+}
+li {
+  list-style: none;
+}
+
 header {
   padding: 5px;
   border-bottom: 1px solid $darkgray;
+  background: $background-light;
 
   .title {
     text-align: center;
 
-    color: $text-dark;
+    color: $text;
   }
 }
 
@@ -58,6 +66,8 @@ h1 {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 3px;
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
 h1,

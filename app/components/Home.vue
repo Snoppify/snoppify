@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="current-track__user-info">
-        <div class="image" :style="{'background-image':'url(https://www.billboard.com/files/styles/article_main_image/public/media/jack-dorsey-twitter-headshot-2015-billboard-650.jpg)'}">
+        <div class="user-image" :style="{'background-image':'url(https://www.billboard.com/files/styles/article_main_image/public/media/jack-dorsey-twitter-headshot-2015-billboard-650.jpg)'}">
 
         </div>
         <div class="user">
@@ -32,18 +32,27 @@
     </div>
 
     <h1>Queue</h1>
-    <ul v-if="queue">
-      <li v-for="(track, index) in queue" v-bind:key="index">
-         <div class="title">
-          {{track.name}}
+    <ul v-if="queue" class="song-list">
+      <li v-for="(track, index) in queue" v-bind:key="index" class="song-list__item">
+        <div class="song-list__item__info">
+          <span class="artist">
+              <span v-for="(artist, index) in track.artists" :key="index">
+                <span>{{artist.name}}</span><span v-if="index+1 < track.artists.length">, </span>
+              </span>
+          </span>
+          - 
+          <span class="title">
+            {{track.name}}
+          </span>
+          <div class="user">
+            <div class="user-image" :style="{'background-image':'url(https://www.billboard.com/files/styles/article_main_image/public/media/jack-dorsey-twitter-headshot-2015-billboard-650.jpg)'}"></div>
+            <div>{{track.snoppify.issuer}}</div>
+          </div>
         </div>
-        <div class="artist">
-            <span v-for="(artist, index) in track.artists" :key="index">
-              <span>{{artist.name}}</span><span v-if="index+1 < track.artists.length">, </span>
-            </span>
+        <div class="song-list__item__action-btn">
+            <div class="arrow-up"></div>
+            <div>26</div>
         </div>
-        <div>added by <b>{{track.issuer}}</b></div>
-        
       </li>
     </ul>
     
@@ -51,23 +60,7 @@
     <p v-else>Not connected</p>
     
     <p>You are user: {{username}}</p>
-
-    <p v-if="event">
-      <b>{{event.type}}</b><br/>
-      <span v-if="event.data.track">
-        {{event.data.track.name}} ({{event.data.track.artists[0].name}})
-        <span v-if="event.data.track.issuer">added by <b>{{event.data.track.issuer}}</b></span>
-      </span>
-      <span v-else>
-        {{event.data}}
-      </span>
-    </p>
-
-    <h2>Queue</h2>
-
-
-    <hr/>
-
+<!--     
     <button v-on:click="play">Play</button>
     <button v-on:click="pause">Pause</button>
     <button v-on:click="previous">Previous</button>
@@ -87,8 +80,8 @@
         <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
         <button v-on:click="queueTrack(track)">Queue</button>
       </li>
-    </ul>
-  </div>
+    </ul>-->
+  </div> 
 </template>
 
 <script>
@@ -146,6 +139,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../assets/variables.scss";
+
 #track-list {
   text-align: left;
   max-width: 600px;
@@ -157,10 +152,10 @@ export default {
 }
 
 .current-track {
-  margin-bottom: 30px;
   position: relative;
   width: 300px;
   margin: auto;
+  margin-bottom: 30px;
   height: 300px;
   text-align: left;
   border-radius: 4px;
@@ -178,13 +173,13 @@ export default {
   display: flex;
   left: 0;
   right: 0;
-  padding: 10px 20px;
+  padding: 10px 15px;
   background: rgba(0, 0, 0, 0.8);
   justify-content: space-between;
   align-items: center;
   overflow: hidden;
 
-  .image {
+  .user-image {
     width: 60px;
     height: 60px;
     background-size: cover;
@@ -221,11 +216,12 @@ export default {
 
 .current-track__track-info {
   position: absolute;
-  padding: 20px 20px 10px;
+  padding: 20px 15px 15px;
   bottom: 0;
   left: 0;
   right: 0;
   background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  font-size: 1.1em;
 
   .artist {
     font-size: 0.8em;
@@ -233,6 +229,79 @@ export default {
 
   .title {
     color: white;
+  }
+}
+
+.song-list {
+  border-top: 1px solid $darkgray;
+}
+
+.song-list__item {
+  border-bottom: 1px solid $darkgray;
+  background: linear-gradient(transparent, #272727);
+  display: flex;
+  align-items: center;
+
+  &__info {
+    width: 100%;
+    padding: 10px 20px;
+  }
+
+  .title {
+    color: white;
+  }
+
+  .user {
+    display: flex;
+    align-items: center;
+    margin-top: 7px;
+    color: white;
+  }
+
+  .user-image {
+    width: 20px;
+    height: 20px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 100px;
+    margin-right: 7px;
+    flex-shrink: 0;
+    border: 1px solid white;
+  }
+
+  &__action-btn {
+    width: 3em;
+    display: flex;
+    align-items: center;
+    font-size: 1.2em;
+    justify-content: center;
+    flex-shrink: 0;
+    background: $background;
+    border-radius: 4px;
+    margin-right: 10px;
+    height: 2em;
+
+    .arrow-up {
+      $size: 6px;
+
+      width: 0;
+      height: 0;
+      border-left: $size solid transparent;
+      border-right: $size solid transparent;
+
+      border-bottom: $size solid $gray;
+
+      margin-right: 5px;
+    }
+
+    &.active {
+      background: linear-gradient(hsla(323, 100%, 50%, 1), magenta);
+      color: white;
+
+      .arrow-up {
+        border-bottom-color: white;
+      }
+    }
   }
 }
 </style>
