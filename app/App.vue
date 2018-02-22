@@ -99,6 +99,7 @@ h2 {
   height: 100%;
   box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
   overflow-y: auto;
+  background: $background;
 }
 
 $page-transition-speed: 0.5s;

@@ -5,7 +5,7 @@ module.exports = class Queue {
      */
     constructor(opts = {}) {
         this.id = opts.id;
-        this.queue = [];
+        this.queue = opts.queue || [];
     }
 
     get top() {

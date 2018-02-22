@@ -14,6 +14,11 @@ module.exports = (axios) => ({
             trackId
         });
     },
+    unvote: function(trackId) {
+        return axios.post("/unvote", {
+            trackId
+        });
+    },
     play: function(playlist = false) {
         let data = {
             playlist: playlist,

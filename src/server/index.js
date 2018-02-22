@@ -40,8 +40,7 @@ app.get("/refresh-token", (req, res) => {
                     refreshToken = e;
                     resolve();
                 });
-        }
-        else {
+        } else {
             resolve();
         }
     }).then(function() {
@@ -61,6 +60,7 @@ function successHandler(res) {
 function errorHandler(res) {
     return r => {
         if (!r || !r.response) {
+            console.log(r);
             let status = r && r.status ? r.status : 500;
             return res.status(status).send(r);
         }
@@ -84,6 +84,11 @@ app.post("/dequeue-track", (req, res) => {
 
 app.post("/vote", (req, res) => {
     spotify.controller.vote(req.session.username, req.body.trackId)
+        .then(successHandler(res)).catch(errorHandler(res));
+});
+
+app.post("/unvote", (req, res) => {
+    spotify.controller.unvote(req.session.username, req.body.trackId)
         .then(successHandler(res)).catch(errorHandler(res));
 });
 
@@ -149,8 +154,7 @@ io.on("connection", (socket) => {
                         items: data.body.tracks[0] ? [data.body.tracks[0]] : []
                     }
                 })));
-        }
-        else {
+        } else {
             spotify.api.searchTracks(string)
                 .then(data => socket.emit("search", JSON.stringify(data.body)));
         }

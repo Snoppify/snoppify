@@ -15,18 +15,20 @@ let queue = new Queue({
 let history = new Queue({
     id: "id",
 });
+let users = {};
 
-let pollTimeout = 2000;
+const pollTimeout = 2000;
+const maxQueueSize = 5;
 
 let playlist = null;
 
 mkdirp('data');
 const queueFile = 'data/snoppify-queue.json';
+const usersFile = 'data/snoppify-users.json';
 
-// load savedqueue
+// load saved queue
 fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
     if (err) {
-        console.log(err);
         return;
     }
     try {
@@ -35,6 +37,23 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
         obj.forEach(function(track) {
             queue.add(track);
         });
+    } catch (e) {
+        console.log(e);
+        return;
+    }
+});
+
+// load saved user data
+fs.readFile(usersFile, 'utf8', function readFileCallback(err, data) {
+    try {
+        let _users = JSON.parse(data);
+        for (let user in _users) {
+            users[user] = _users[user];
+            users[user].queue = new Queue({
+                id: 'id',
+                queue: users[user].queue,
+            });
+        }
     } catch (e) {
         console.log(e);
         return;
@@ -87,10 +106,14 @@ states.on("waitingForNextSong", function(s) {
     // save issuer for later
     if (track) {
         history.add(track);
-        console.log(history.queue);
     }
 
     saveQueue();
+    if (track.snoppify) {
+        let userData = getUserData(track.snoppify.issuer);
+        userData.remove(track.id);
+        saveUsers();
+    }
 
     sendEvent(s.name, {
         track: track
@@ -122,6 +145,7 @@ module.exports = {
     },
     queueTrack,
     vote,
+    unvote,
     dequeueTrack,
     playNext,
     play,
@@ -138,42 +162,67 @@ module.exports = {
 
 function queueTrack(user, trackId) {
     return new Promise(function(resolve, reject) {
-        api.getTracks([trackId])
-            .then(r => {
-                let track = r.body.tracks[0];
+        api.getTracks([trackId]).then(r => {
+            let track = r.body.tracks[0];
+            let userData = getUserData(user);
+            console.log(userData);
 
-                if (!track) {
-                    return reject({
-                        response: {
-                            status: 404,
-                            statusText: 'Track not found'
-                        }
-                    });
-                }
-
-                track.snoppify = {
-                    issuer: user,
-                    votes: [],
-                };
-
-                // TODO: check if queue is empty and if track should be playing?
-                queue.add(track);
-
-                states.data.events.queuedTrack = true;
-
-                states.update();
-
-                socket.io.local.emit("queue", {
-                    queue: queue.queue,
-                    addedTracks: [track],
-                    removedTracks: [],
+            if (!track) {
+                return reject({
+                    response: {
+                        status: 404,
+                        statusText: 'Track not found'
+                    }
                 });
+            }
 
-                saveQueue();
+            if (queue.get(trackId)) {
+                return reject({
+                    response: {
+                        status: 400,
+                        statusText: 'Track already added'
+                    }
+                });
+            }
 
-                resolve(track);
-            })
-            .catch(reject);
+            if (userData.queue.get(trackId)) {
+                return reject({
+                    response: {
+                        status: 400,
+                        statusText: 'You have already added this track'
+                    }
+                });
+            }
+
+            track.snoppify = {
+                issuer: user,
+                votes: [],
+                timestamp: Date.now(),
+            };
+
+            // TODO: check if queue is empty and if track should be playing?
+            queue.add(track);
+            userData.queue.add({
+                id: track.id,
+            });
+
+            rebuildQueueOrder();
+
+            states.data.events.queuedTrack = true;
+
+            states.update();
+
+            socket.io.local.emit("queue", {
+                queue: queue.queue,
+                addedTracks: [track],
+                removedTracks: [],
+            });
+
+            saveQueue();
+            saveUsers();
+
+            resolve(track);
+        }).catch(reject);
     });
 }
 
@@ -181,6 +230,7 @@ function dequeueTrack(user, trackId) {
     return new Promise(function(resolve, reject) {
         // TODO: check if playing?
         let track = queue.get(trackId);
+        let userData = getUserData(user);
 
         if (!track || track.snoppify.issuer != user) {
             return reject({
@@ -200,6 +250,8 @@ function dequeueTrack(user, trackId) {
             });
         }
 
+        userData.queue.remove(track);
+
         states.data.events.dequeuedTrack = true;
 
         states.update();
@@ -211,6 +263,7 @@ function dequeueTrack(user, trackId) {
         });
 
         saveQueue();
+        saveUsers();
 
         resolve();
     });
@@ -229,16 +282,18 @@ function vote(user, trackId) {
             });
         }
 
-        if (track.snoppify.votes.indexOf(user) != -1) {
-            return reject({
-                response: {
-                    status: 400,
-                    statusText: "You have already voted"
-                }
-            });
-        }
+        // if (track.snoppify.votes.indexOf(user) != -1) {
+        //     return reject({
+        //         response: {
+        //             status: 400,
+        //             statusText: "You have already voted"
+        //         }
+        //     });
+        // }
 
         track.snoppify.votes.push(user);
+
+        rebuildQueueOrder();
 
         saveQueue();
 
@@ -255,15 +310,53 @@ function vote(user, trackId) {
             track: track,
             votes: track.snoppify.votes.length,
         });
+
+        resolve();
+    });
+}
+
+function unvote(user, trackId) {
+    return new Promise(function(resolve, reject) {
+        let track = queue.get(trackId);
+
+        if (!track) {
+            return reject({
+                response: {
+                    status: 404,
+                    statusText: "No such track"
+                }
+            });
+        }
+
+        let i = track.snoppify.votes.indexOf(user);
+        if (i != -1) {
+            track.snoppify.votes.splice(i, 1);
+        }
+
+        rebuildQueueOrder();
+
+        saveQueue();
+
+        states.data.events.userVoted = true;
+
+        states.update();
+
+        socket.io.local.emit("queue", {
+            queue: queue.queue,
+            addedTracks: [],
+            removedTracks: [],
+        });
+        sendEvent("unvote", {
+            track: track,
+            votes: track.snoppify.votes.length,
+        });
+
+        resolve();
     });
 }
 
 function playNext() {
     // TODO: play track
-    let track = queue.next();
-    history.add(track);
-
-    saveQueue();
 }
 
 function play(playPlaylist = false) {
@@ -338,8 +431,6 @@ function addToPlaylist(track) {
     if (track) {
         let uri = typeof track == "string" ? "spotify:track:" + track : track.uri;
         playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(function() {
-            console.log("queued next song: " + (track.track ? track.track.name : track));
-
             reloadPlaylist();
         });
     }
@@ -390,16 +481,91 @@ function sendEvent(type, data) {
 
 function getCurrentTrack() {
     if (states.data.player && states.data.player.item) {
-        console.log(states.data.player.item.name, states.data.player.item.id);
-        console.log(history.get(states.data.player.item));
         return history.get(states.data.player.item) || states.data.player.item;
     }
     return null;
 }
 
+/**
+ * Earliest timestamp first
+ */
+function orderByTimestamp(a, b) {
+    if (!a.snoppify || !b.snoppify) {
+        return a.snoppify ? -1 : 1;
+    }
+    return a.snoppify.timestamp - b.snoppify.timestamp;
+}
+
+function rebuildQueueOrder() {
+    let list = [];
+    let maxVotes = -1;
+
+    // fetch all tracks with votes with inital order by addition
+    for (let i = 0; i < maxQueueSize; i++) {
+        let sublist = [];
+        for (let user in users) {
+            let u = users[user];
+            let t = u.queue.getAt(i);
+            if (t) {
+                let track = queue.get(t);
+
+                sublist.push(track);
+
+                maxVotes = Math.max(maxVotes, track.snoppify ? track.snoppify.votes.length : 0);
+            }
+        }
+        sublist.sort(orderByTimestamp);
+        list = list.concat(sublist);
+    }
+
+    // sort list by votes
+    let index = 0;
+    // iterate all votes
+    for (let curVotes = maxVotes; curVotes >= 0; curVotes--) {
+        // find next vote (from lowest safe index)
+        for (let i = index; i < list.length; i++) {
+            if (list[i].snoppify && list[i].snoppify.votes.length == curVotes) {
+                // insert i at position index (shifting the array)
+                let tmp = list.splice(i, 1);
+                list.splice(index, 0, tmp[0]);
+                index++;
+            }
+        }
+    }
+
+    queue.queue = list;
+}
+
 function saveQueue() {
     let json = JSON.stringify(queue.queue);
     fs.writeFile(queueFile, json, 'utf8', function(err) {
+        if (err) {
+            console.log(err);
+        }
+    });
+}
+
+function getUserData(user) {
+    if (!users[user]) {
+        // TODO: do this when the user registers
+        users[user] = {
+            user: user,
+            queue: new Queue({
+                id: 'id',
+            }),
+        };
+    }
+    return users[user];
+}
+
+function saveUsers() {
+    let _users = {};
+    for (let user in users) {
+        _users[user] = JSON.parse(JSON.stringify(users[user]));
+        _users[user].queue = users[user].queue.queue;
+    }
+    let json = JSON.stringify(_users);
+    fs.writeFile(usersFile, json, 'utf8', function(err) {
         if (err) {
             console.log(err);
         }

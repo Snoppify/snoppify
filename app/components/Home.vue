@@ -32,8 +32,8 @@
     </div>
 
     <h1>Queue</h1>
-    <ul v-if="queue" class="song-list">
-      <li v-for="(track, index) in queue" v-bind:key="index" class="song-list__item">
+    <transition-group name="song-list" v-if="queue" tag="ul">
+      <li v-for="(track, index) in queue" v-bind:key="track.id" class="song-list__item">
         <div class="song-list__item__info">
           <span class="artist">
               <span v-for="(artist, index) in track.artists" :key="index">
@@ -49,12 +49,14 @@
             <div>{{track.snoppify.issuer}}</div>
           </div>
         </div>
-        <div class="song-list__item__action-btn">
-            <div class="arrow-up"></div>
-            <div>26</div>
+        <div class="song-list__item__action-btn"
+          v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
+          v-on:click="vote(track)">
+            <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
+            <div>{{track.snoppify.votes.length}}</div>
         </div>
       </li>
-    </ul>
+    </transition-group>
     
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
@@ -112,6 +114,20 @@ export default {
     },
     queueTrack(track) {
       api.queue.queueTrack(track.id);
+    },
+    vote(track) {
+      let func, i;
+      if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
+        func = "vote";
+        track.snoppify.votes.push(this.username);
+      } else {
+        func = "unvote";
+        track.snoppify.votes.splice(i, 1);
+      }
+      // some delay, so the track does change position immediately
+      setTimeout(() => {
+        api.queue[func](track.id);
+      }, 200);
     },
     play() {
       api.queue.play();
@@ -236,9 +252,13 @@ export default {
   border-top: 1px solid $darkgray;
 }
 
+.song-list-move {
+  transition: transform .6s;
+}
+
 .song-list__item {
   border-bottom: 1px solid $darkgray;
-  background: linear-gradient(transparent, #272727);
+  background: linear-gradient($background, #272727);
   display: flex;
   align-items: center;
 

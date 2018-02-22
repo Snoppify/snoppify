@@ -1,28 +1,32 @@
 import Vue from "vue";
 
-export default{
-    namespaced:true,
+export default {
+    namespaced: true,
 
-    state:{
-        queue:[],
-        currentTrack:{},
+    state: {
+        queue: [],
+        currentTrack: {},
     },
 
-    getters:{
-         currentTrack: state => state.currentTrack,
+    getters: {
+        currentTrack: state => state.currentTrack,
         queue: state => state.queue,
     },
 
-    mutations:{
-                SET_CURRENT_TRACK(state, track) {
+    mutations: {
+        SET_CURRENT_TRACK(state, track) {
             state.currentTrack = track;
         },
 
         SET_QUEUE(state, queue) {
             state.queue = queue;
         },
+
+        SOCKET_QUEUE(state, data) {
+            state.queue = data.queue;
+        },
     },
 
-    
-    
+
+
 }
