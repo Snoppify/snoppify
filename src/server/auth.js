@@ -14,46 +14,59 @@ module.exports = {
             })),
         }));
 
-        app.use(function(req, res, next) {
-            let ip = require('ip').address();
+        // app.use(function(req, res, next) {
+        //     let ip = require('ip').address();
 
-            res.header("Access-Control-Allow-Origin", `http://${ip}:3000`);
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-            res.header("Access-Control-Allow-Credentials", "true");
-            next();
-        });
+        //     res.header("Access-Control-Allow-Origin", `http://${ip}:3000`);
+        //     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        //     res.header("Access-Control-Allow-Credentials", "true");
+        //     next();
+        // });
 
         /////////// ENDPOINTS
 
-        app.post("/new-user", (req, res) => {
-            if (!req.body.username) {
-                res.sendStatus(400);
-            } else {
-                req.session.username = req.body.username;
-                req.session.ip = req.ip;
-                req.session.fingerprint = req.body.fp;
+        // app.post("/new-user", (req, res) => {
+        //     if (!req.body.username) {
+        //         res.sendStatus(400);
+        //     } else {
+        //         req.session.username = req.body.username;
+        //         req.session.ip = req.ip;
+        //         req.session.fingerprint = req.body.fp;
 
-                console.log("New session:", req.session);
+        //         console.log("New session:", req.session);
 
-                res.send({
-                    username: req.body.username,
-                })
-            }
-        });
+        //         res.send({
+        //             username: req.body.username,
+        //         })
+        //     }
+        // });
 
         app.get("/auth", (req, res) => {
-            if (req.session && req.session.username) {
-                req.session.ip = req.ip;
-                req.session.fingerprint = req.query.fp;
-
-                console.log("Returning user:", req.session)
+            console.log("fock", req.isAuthenticated(), req.user);
+            // if user is authenticated in the session, carry on
+            if (req.isAuthenticated() && req.user) {
+                console.log("Returning user:", req.user)
 
                 res.send({
-                    username: req.session.username
+                    id: req.user.id,
+                    username: req.user.name
                 });
             } else {
                 res.sendStatus(403);
             }
+
+            // if (req.session && req.session.username) {
+            //     req.session.ip = req.ip;
+            //     req.session.fingerprint = req.query.fp;
+
+            //     console.log("Returning user:", req.session)
+
+            //     res.send({
+            //         username: req.session.username
+            //     });
+            // } else {
+            //     res.sendStatus(403);
+            // }
         })
     },
 };

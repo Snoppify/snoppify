@@ -3,8 +3,9 @@ require('dotenv').config();
 const express = require('express'),
     app = express(),
     session = require("express-session"),
+    FileStore = require('session-file-store')(session),
     bodyParser = require("body-parser"),
-    FileStore = require('session-file-store')(session);
+    cookieParser = require("cookie-parser");
 const fs = require('fs');
 const auth = require("./auth");
 
@@ -16,130 +17,53 @@ const io = socket.io;
 
 const spotify = require('./spotify');
 
-app.use(bodyParser.json());
-app.enable("trust proxy");
-
-auth.init(app, session, FileStore);
-
 const fallback = require('express-history-api-fallback');
+
+const passport = require('passport');
+
+// consts
 const rootDir = __dirname + '/../../public';
 
-// Spotify refresh token end point
-app.get("/refresh-token", (req, res) => {
-    let refreshToken = "";
-    let p = new Promise(function(resolve, reject) {
-        if (req.query.code && req.query.state == "auth") {
-            spotify.playbackAPI.getRefreshToken(req.query.code)
-                .then(function(token) {
-                    refreshToken = token;
-                    resolve();
-                })
-                .catch(function(r) {
-                    let e = [r.response.status, "(" + r.response.data.error + ")", r.response.data.error_description].join(" ");
-                    console.log(e);
-                    refreshToken = e;
-                    resolve();
-                });
-        } else {
-            resolve();
-        }
-    }).then(function() {
-        fs.readFile(__dirname + "/refresh-token.html", 'utf8', (err, data) => {
-            let authUrl = spotify.playbackAPI.getAuthUrl();
-            data = data.replace(/{authUrl}/g, authUrl);
-            data = data.replace(/{refreshToken}/g, refreshToken);
-            res.send(data);
-        });
-    });
-});
-
-function successHandler(res) {
-    return r => res.sendStatus(200);
-}
-
-function errorHandler(res) {
-    return r => {
-        if (!r || !r.response) {
-            console.log(r);
-            let status = r && r.status ? r.status : 500;
-            return res.status(status).send(r);
-        }
-        return res.status(r.response.status).send({
-            error: r.response.statusText
-        });
-    };
-}
-
-app.post("/queue-track", (req, res) => {
-    console.log(`soMeBodyY (user "${req.session.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
-
-    spotify.controller.queueTrack(req.session.username, req.body.trackId)
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/dequeue-track", (req, res) => {
-    spotify.controller.dequeueTrack(req.session.username, req.body.trackId)
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/vote", (req, res) => {
-    spotify.controller.vote(req.session.username, req.body.trackId)
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/unvote", (req, res) => {
-    spotify.controller.unvote(req.session.username, req.body.trackId)
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/play", (req, res) => {
-    spotify.controller.play(req.body.playlist)
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/pause", (req, res) => {
-    spotify.controller.pause()
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/next", (req, res) => {
-    spotify.controller.next()
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/previous", (req, res) => {
-    spotify.controller.previous()
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/empty-playlist", (req, res) => {
-    spotify.controller.emptyPlaylist()
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.post("/empty-queue", (req, res) => {
-    spotify.controller.emptyQueue()
-        .then(successHandler(res)).catch(errorHandler(res));
-});
-
-app.get("/get-queue", (req, res) => {
-    res.json({
-        data: spotify.controller.getQueue()
-    });
-});
-
-app.get("/info", (req, res) => {
-    res.send({
-        queue: spotify.controller.getQueue(),
-        currentTrack: spotify.controller.getCurrentTrack(),
-    })
-});
-
-// html5 history api fix
-app.use(express.static(rootDir));
-app.use(fallback('index.html', {
-    root: rootDir
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true,
 }));
+app.use(cookieParser());
+app.use(express.static(rootDir));
+
+app.use(session({
+    secret: 'spotify är sh1t, snoppify är bra!',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        secure: false
+    },
+    store: (sessionStore = new FileStore({
+        ttl: 3600 * 24,
+    })),
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// old session
+//auth.init(app, session, FileStore);
+
+require('./auth/passport')(passport);
+//require('./auth/routes')(app, passport);
+
+var routes = require('./routes/index')(passport, spotify);
+app.use('/', routes);
+
+/// catch 404 and forward to error handler
+// app.use(function(req, res, next) {
+//     console.log("404 req.originalUrl:", req.originalUrl);
+//     var err = new Error('Not Found');
+//     err.status = 404;
+//     next(err);
+// });
+
+
+///////////
 
 io.on("connection", (socket) => {
     console.log("we got a live one" /*, socket*/ );
@@ -181,8 +105,19 @@ io.on("connection", (socket) => {
 http.listen(3000, () => {
 
     let ip = require('ip').address();
+    const hostile = require('hostile');
+
     console.log(`Serving http://${ip}:3000`);
     console.log(`(Remember to set the environment variable 'export SERVER_IP=${ip}'\n`);
+
+    let domain = ip;
+    hostile.set(domain, 'snoppi.fy', function(err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('added: ' + domain);
+        }
+    });
 
 })
 

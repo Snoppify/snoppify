@@ -6,6 +6,9 @@
 		<input type="text" v-model="username">
 		<button>GO!</button>
 	</form>
+  <p>
+    <a href="/auth/facebook" class="btn btn-primary"><span class="fa fa-facebook"></span> Facebook</a>
+  </p>
 </div>
 </template>
 

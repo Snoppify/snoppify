@@ -7,7 +7,7 @@
     </header>
 
     <h1>Now playing</h1>
-    <div class="current-track">
+    <div class="current-track" v-if="currentTrack">
       <img :src="currentTrack.album.images[1].url" alt="">
       <div class="current-track__track-info">
         <div class="title">

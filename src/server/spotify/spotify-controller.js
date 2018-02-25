@@ -5,6 +5,7 @@ const states = require('./spotify-states.js');
 const fs = require("fs");
 const mkdirp = require('mkdirp');
 
+const User = require('../models/user');
 const Queue = require('../Queue');
 
 /////////////////////
@@ -37,23 +38,6 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
         obj.forEach(function(track) {
             queue.add(track);
         });
-    } catch (e) {
-        console.log(e);
-        return;
-    }
-});
-
-// load saved user data
-fs.readFile(usersFile, 'utf8', function readFileCallback(err, data) {
-    try {
-        let _users = JSON.parse(data);
-        for (let user in _users) {
-            users[user] = _users[user];
-            users[user].queue = new Queue({
-                id: 'id',
-                queue: users[user].queue,
-            });
-        }
     } catch (e) {
         console.log(e);
         return;
@@ -110,9 +94,10 @@ states.on("waitingForNextSong", function(s) {
 
     saveQueue();
     if (track.snoppify) {
-        let userData = getUserData(track.snoppify.issuer);
-        userData.remove(track.id);
-        saveUsers();
+        getUserData(track.snoppify.issuer, function(err, userData) {
+            userData.remove(track.id);
+            saveUsers();
+        });
     }
 
     sendEvent(s.name, {
@@ -164,64 +149,68 @@ function queueTrack(user, trackId) {
     return new Promise(function(resolve, reject) {
         api.getTracks([trackId]).then(r => {
             let track = r.body.tracks[0];
-            let userData = getUserData(user);
-            console.log(userData);
+            getUserData(user, function(err, userData) {
+                if (err) {
+                    return reject(err);
+                }
+                console.log(userData);
 
-            if (!track) {
-                return reject({
-                    response: {
-                        status: 404,
-                        statusText: 'Track not found'
-                    }
+                if (!track) {
+                    return reject({
+                        response: {
+                            status: 404,
+                            statusText: 'Track not found'
+                        }
+                    });
+                }
+
+                if (queue.get(trackId)) {
+                    return reject({
+                        response: {
+                            status: 400,
+                            statusText: 'Track already added'
+                        }
+                    });
+                }
+
+                if (userData.queue.get(trackId)) {
+                    return reject({
+                        response: {
+                            status: 400,
+                            statusText: 'You have already added this track'
+                        }
+                    });
+                }
+
+                track.snoppify = {
+                    issuer: user,
+                    votes: [],
+                    timestamp: Date.now(),
+                };
+
+                // TODO: check if queue is empty and if track should be playing?
+                queue.add(track);
+                userData.queue.add({
+                    id: track.id,
                 });
-            }
 
-            if (queue.get(trackId)) {
-                return reject({
-                    response: {
-                        status: 400,
-                        statusText: 'Track already added'
-                    }
+                rebuildQueueOrder();
+
+                states.data.events.queuedTrack = true;
+
+                states.update();
+
+                socket.io.local.emit("queue", {
+                    queue: queue.queue,
+                    addedTracks: [track],
+                    removedTracks: [],
                 });
-            }
 
-            if (userData.queue.get(trackId)) {
-                return reject({
-                    response: {
-                        status: 400,
-                        statusText: 'You have already added this track'
-                    }
-                });
-            }
+                saveQueue();
+                saveUsers();
 
-            track.snoppify = {
-                issuer: user,
-                votes: [],
-                timestamp: Date.now(),
-            };
-
-            // TODO: check if queue is empty and if track should be playing?
-            queue.add(track);
-            userData.queue.add({
-                id: track.id,
+                resolve(track);
             });
-
-            rebuildQueueOrder();
-
-            states.data.events.queuedTrack = true;
-
-            states.update();
-
-            socket.io.local.emit("queue", {
-                queue: queue.queue,
-                addedTracks: [track],
-                removedTracks: [],
-            });
-
-            saveQueue();
-            saveUsers();
-
-            resolve(track);
         }).catch(reject);
     });
 }
@@ -230,42 +219,46 @@ function dequeueTrack(user, trackId) {
     return new Promise(function(resolve, reject) {
         // TODO: check if playing?
         let track = queue.get(trackId);
-        let userData = getUserData(user);
+        getUserData(user, function(err, userData) {
+            if (err) {
+                return reject(err);
+            }
 
-        if (!track || track.snoppify.issuer != user) {
-            return reject({
-                response: {
-                    status: 404,
-                    statusText: 'Track not found'
-                }
+            if (!track || track.snoppify.issuer != user) {
+                return reject({
+                    response: {
+                        status: 404,
+                        statusText: 'Track not found'
+                    }
+                });
+            }
+
+            if (!queue.remove(track)) {
+                return reject({
+                    response: {
+                        status: 500,
+                        statusText: 'Track could not be removed'
+                    }
+                });
+            }
+
+            userData.queue.remove(track);
+
+            states.data.events.dequeuedTrack = true;
+
+            states.update();
+
+            socket.io.local.emit("queue", {
+                queue: queue.queue,
+                addedTracks: [],
+                removedTracks: [track],
             });
-        }
 
-        if (!queue.remove(track)) {
-            return reject({
-                response: {
-                    status: 500,
-                    statusText: 'Track could not be removed'
-                }
-            });
-        }
+            saveQueue();
+            saveUsers();
 
-        userData.queue.remove(track);
-
-        states.data.events.dequeuedTrack = true;
-
-        states.update();
-
-        socket.io.local.emit("queue", {
-            queue: queue.queue,
-            addedTracks: [],
-            removedTracks: [track],
+            resolve();
         });
-
-        saveQueue();
-        saveUsers();
-
-        resolve();
     });
 }
 
@@ -545,29 +538,10 @@ function saveQueue() {
     });
 }
 
-function getUserData(user) {
-    if (!users[user]) {
-        // TODO: do this when the user registers
-        users[user] = {
-            user: user,
-            queue: new Queue({
-                id: 'id',
-            }),
-        };
-    }
-    return users[user];
+function getUserData(user, callback) {
+    User.find(user, callback);
 }
 
 function saveUsers() {
-    let _users = {};
-    for (let user in users) {
-        _users[user] = JSON.parse(JSON.stringify(users[user]));
-        _users[user].queue = users[user].queue.queue;
-    }
-    let json = JSON.stringify(_users);
-    fs.writeFile(usersFile, json, 'utf8', function(err) {
-        if (err) {
-            console.log(err);
-        }
-    });
+    User.save();
 }

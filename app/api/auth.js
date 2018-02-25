@@ -4,14 +4,21 @@ const fingerprint = new Promise(resolve => new Fingerprint2().get(fp => resolve(
 
 module.exports = (axios) => ({
     auth() {
-        return fingerprint.then(fp =>
-            axios.get("/auth", { params: { fp } })
-        );
+        console.log("auth me please");
+        return axios.get("/auth", {
+            params: {}
+        });
+        // return fingerprint.then(fp =>
+        //     axios.get("/auth", { params: { fp } })
+        // );
     },
 
     newUser(username) {
-        return fingerprint.then(fp =>
-            axios.post("/new-user", { username, fp })
-        );
+        return axios.post("/new-user", {
+            username
+        });
+        // return fingerprint.then(fp =>
+        //     axios.post("/new-user", { username, fp })
+        // );
     },
 });
