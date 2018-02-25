@@ -51,7 +51,8 @@ li {
 }
 
 header {
-  padding: 5px;
+  padding-top: 5px;
+  //padding: 5px;
   border-bottom: 1px solid $darkgray;
   background: $background-light;
 

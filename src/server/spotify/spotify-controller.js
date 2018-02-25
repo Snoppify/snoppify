@@ -109,7 +109,7 @@ states.on("waitingForNextSong", function(s) {
     }
 
     saveQueue();
-    if (track.snoppify) {
+    if (track && track.snoppify) {
         let userData = getUserData(track.snoppify.issuer);
         userData.remove(track.id);
         saveUsers();
@@ -508,6 +508,11 @@ function rebuildQueueOrder() {
             let t = u.queue.getAt(i);
             if (t) {
                 let track = queue.get(t);
+
+                if (!track) {
+                    console.error("Error in queue rebuilder: Could not find track " + t.id);
+                    continue;
+                }
 
                 sublist.push(track);
 

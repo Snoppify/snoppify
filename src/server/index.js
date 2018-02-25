@@ -92,6 +92,36 @@ app.post("/unvote", (req, res) => {
         .then(successHandler(res)).catch(errorHandler(res));
 });
 
+app.get("/search", (req, res) => {
+    let query = req.query.query || "";
+
+    if (query == "") {
+        return res.send({
+            tracks: {
+                items: [],
+            }
+        });
+    }
+
+    const extractedId = extractId(query);
+
+    if (extractedId) {
+        spotify.api.getTracks([extractedId])
+            .then(data => {
+                res.send({
+                    tracks: {
+                        items: data.body.tracks[0] ? [data.body.tracks[0]] : []
+                    }
+                });
+            }).catch(errorHandler(res));
+    } else {
+        spotify.api.searchTracks(query)
+            .then(data => {
+                res.send(data.body);
+            }).catch(errorHandler(res));
+    }
+});
+
 app.post("/play", (req, res) => {
     spotify.controller.play(req.body.playlist)
         .then(successHandler(res)).catch(errorHandler(res));

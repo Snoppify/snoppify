@@ -4,6 +4,7 @@
       <div class="title">
         Snoppify
       </div>
+      <search-dropdown :options="{'search': 'Search term'}"></search-dropdown>
     </header>
 
     <h1>Now playing</h1>
@@ -90,7 +91,14 @@
 import { mapGetters } from "vuex";
 import api from "../api";
 
+// components
+import SearchDropdown from './SearchDropdown'
+
 export default {
+  components: {
+    searchDropdown: SearchDropdown
+  },
+
   data() {
     return {
       searchQuery: ""
