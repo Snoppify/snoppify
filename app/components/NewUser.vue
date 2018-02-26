@@ -1,14 +1,14 @@
 <template>
 <div id="new-user" class="route-container">
 	<h1>SNOPPIFY</h1>
-	<p>sign up, BIIGGHHHCC</p>
+	<!-- <p>sign up, BIIGGHHHCC</p>
 	<form v-on:submit.prevent="createUser">
 		<input type="text" v-model="username">
 		<button>GO!</button>
-	</form>
-  <p>
-    <a href="/auth/facebook" class="btn btn-primary"><span class="fa fa-facebook"></span> Facebook</a>
-  </p>
+	</form> -->
+  <form action="/auth/facebook" class="facebook-auth">
+    <input type="submit" value="Login with Facebook" />
+  </form>
 </div>
 </template>
 
@@ -61,6 +61,22 @@ export default {
 
   p {
     margin: 0.1em 0;
+  }
+}
+
+.facebook-auth {
+  padding: 2em 0;
+  text-align: center;
+
+  input {
+    background: #4266b2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 1em 1.4em;
+    font-size: 1.3em;
+    font-weight: bold;
+    cursor: pointer;
   }
 }
 

@@ -150,11 +150,11 @@ module.exports = function(passport, spotify) {
 
     /* Handle Logout */
     router.get('/logout', function(req, res) {
-        // req.logout();
-        // res.redirect('/');
-        req.session.destroy(function(err) {
-            res.redirect('/'); //Inside a callback… bulletproof!
-        });
+        req.logout();
+        res.redirect('/');
+        // req.session.destroy(function(err) {
+        //     res.redirect('/'); //Inside a callback… bulletproof!
+        // });
     });
 
     //////// auth /////////

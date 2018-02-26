@@ -8,7 +8,7 @@
 
     <h1>Now playing</h1>
     <div class="current-track" v-if="currentTrack">
-      <img :src="currentTrack.album.images[1].url" alt="">
+      <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt="">
       <div class="current-track__track-info">
         <div class="title">
           {{currentTrack.name}}
@@ -62,6 +62,10 @@
     <p v-else>Not connected</p>
     
     <p>You are user: {{username}}</p>
+
+    <form action="/logout">
+      <input type="submit" value="Logout" />
+    </form>
 <!--     
     <button v-on:click="play">Play</button>
     <button v-on:click="pause">Pause</button>
