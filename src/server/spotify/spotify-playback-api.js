@@ -89,14 +89,15 @@ function getAccessToken() {
         let time = (Date.now() - refreshTime) / 1000;
         if (time < expireTime) {
             resolve(accessToken);
-        } else {
+        }
+        else {
             axios({
                     method: "post",
                     url: "https://accounts.spotify.com/api/token",
                     params: {
                         grant_type: 'refresh_token', // client_credentials, authorization_code or refresh_token
                         refresh_token: api.config.refresh_token,
-                        redirect_uri: 'http://localhost:3000',
+                        redirect_uri: 'http://snoppi.fy:3000',
                     },
                     headers: {
                         'Authorization': 'Basic ' + api.config.auth_token,
@@ -124,7 +125,7 @@ function getRefreshToken(code) {
                 params: {
                     grant_type: 'authorization_code', // client_credentials, authorization_code or refresh_token
                     code: code,
-                    redirect_uri: 'http://localhost:3000/refresh-token',
+                    redirect_uri: 'http://snoppi.fy:3000/refresh-token',
                 },
                 headers: {
                     'Authorization': 'Basic ' + api.config.auth_token,

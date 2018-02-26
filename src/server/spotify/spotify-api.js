@@ -8,12 +8,13 @@ try {
     if (config.client_id && config.client_secret) {
         config.auth_token = new Buffer(config.client_id + ":" + config.client_secret).toString('base64');
     }
-} catch (ex) {
+}
+catch (ex) {
     console.log("No snoppify config file");
 }
 
 const api = new SpotifyWebApi({
-    redirectUri: "http://localhost:3000/refresh-token",
+    redirectUri: "http://snoppi.fy:3000/refresh-token",
     clientId: config.client_id,
     clientSecret: config.client_secret,
 });
