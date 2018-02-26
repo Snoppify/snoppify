@@ -78,10 +78,7 @@ class User {
         }
         // load saved user data
         fs.readFile(User.usersFile, 'utf8', function readFileCallback(err, data) {
-            if (err) {
-                callback(err);
-                return;
-            }
+            console.log(err);
             try {
                 let users = JSON.parse(data);
                 if (!users.users) {

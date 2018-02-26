@@ -51,6 +51,8 @@ app.use(passport.session());
 require('./auth/passport')(passport);
 //require('./auth/routes')(app, passport);
 
+require('express-debug')(app, {});
+
 var routes = require('./routes/index')(passport, spotify);
 app.use('/', routes);
 
@@ -120,13 +122,3 @@ http.listen(3000, () => {
     });
 
 })
-
-function extractId(string) {
-    let id;
-
-    [/spotify:track:(.+)/, /.?open.spotify.com\/track\/(.+)/].find(
-        pattern => string.match(pattern) && (id = string.match(pattern)[1])
-    );
-
-    return id;
-}

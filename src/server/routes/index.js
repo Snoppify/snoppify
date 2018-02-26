@@ -9,7 +9,13 @@ const isAuthenticated = function(req, res, next) {
     if (req.isAuthenticated())
         return next();
     // if the user is not authenticated then redirect him to the login page
-    res.redirect('/');
+    res.redirect('/new-user');
+}
+
+const redirectIfAuthenticated = function(req, res, next) {
+    if (req.isAuthenticated())
+        return res.redirect('/');
+    next();
 }
 
 module.exports = function(passport, spotify) {
@@ -60,6 +66,16 @@ module.exports = function(passport, spotify) {
         };
     }
 
+    function extractId(string) {
+        let id;
+
+        [/spotify:track:(.+)/, /.?open.spotify.com\/track\/(.+)/].find(
+            pattern => string.match(pattern) && (id = string.match(pattern)[1])
+        );
+
+        return id;
+    }
+
     router.post("/queue-track", (req, res) => {
         console.log(`soMeBodyY (user "${req.user.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
 
@@ -81,6 +97,37 @@ module.exports = function(passport, spotify) {
         spotify.controller.unvote(req.user.username, req.body.trackId)
             .then(successHandler(res)).catch(errorHandler(res));
     });
+
+    router.get("/search", (req, res) => {
+        let query = req.query.query || "";
+
+        if (query == "") {
+            return res.send({
+                tracks: {
+                    items: [],
+                }
+            });
+        }
+
+        const extractedId = extractId(query);
+
+        if (extractedId) {
+            spotify.api.getTracks([extractedId])
+                .then(data => {
+                    res.send({
+                        tracks: {
+                            items: data.body.tracks[0] ? [data.body.tracks[0]] : []
+                        }
+                    });
+                }).catch(errorHandler(res));
+        } else {
+            spotify.api.searchTracks(query)
+                .then(data => {
+                    res.send(data.body);
+                }).catch(errorHandler(res));
+        }
+    });
+
 
     router.post("/play", (req, res) => {
         spotify.controller.play(req.body.playlist)
@@ -139,7 +186,11 @@ module.exports = function(passport, spotify) {
         }
     });
 
-    router.get('/new-user', isAuthenticated, function(req, res) {
+    router.get('/', isAuthenticated, function(req, res) {
+        res.sendFile(path.resolve('public/index.html'));
+    });
+
+    router.get('/new-user', redirectIfAuthenticated, function(req, res) {
         res.sendFile(path.resolve('public/index.html'));
     });
 
