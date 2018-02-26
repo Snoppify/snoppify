@@ -43,7 +43,7 @@ app.use(session({
     })),
 }));
 app.use(passport.initialize());
-app.use(passport.session());
+// ssapp.use(passport.session());
 
 // old session
 //auth.init(app, session, FileStore);
@@ -80,7 +80,8 @@ io.on("connection", (socket) => {
                         items: data.body.tracks[0] ? [data.body.tracks[0]] : []
                     }
                 })));
-        } else {
+        }
+        else {
             spotify.api.searchTracks(string)
                 .then(data => socket.emit("search", JSON.stringify(data.body)));
         }
@@ -116,7 +117,8 @@ http.listen(3000, () => {
     hostile.set(domain, 'snoppi.fy', function(err) {
         if (err) {
             console.log(err);
-        } else {
+        }
+        else {
             console.log('added: ' + domain);
         }
     });

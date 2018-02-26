@@ -6,8 +6,13 @@ const isAuthenticated = function(req, res, next) {
     // if user is authenticated in the session, call the next() to call the next request handler 
     // Passport adds this method to request object. A middleware is allowed to add properties to
     // request and response objects
-    if (req.isAuthenticated())
-        return next();
+    // if (req.isAuthenticated())
+    //     return next();
+
+    if (req.session && req.session.user) {
+        next();
+    }
+
     // if the user is not authenticated then redirect him to the login page
     res.redirect('/new-user');
 }
@@ -36,7 +41,8 @@ module.exports = function(passport, spotify) {
                         refreshToken = e;
                         resolve();
                     });
-            } else {
+            }
+            else {
                 resolve();
             }
         }).then(function() {
@@ -77,24 +83,24 @@ module.exports = function(passport, spotify) {
     }
 
     router.post("/queue-track", (req, res) => {
-        console.log(`soMeBodyY (user "${req.user.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
+        console.log(`soMeBodyY (user "${req.session.user.username}" waTNTS to UQUE a song!!!`, req.body.trackId);
 
-        spotify.controller.queueTrack(req.user.username, req.body.trackId)
+        spotify.controller.queueTrack(req.session.user.username, req.body.trackId)
             .then(successHandler(res)).catch(errorHandler(res));
     });
 
     router.post("/dequeue-track", (req, res) => {
-        spotify.controller.dequeueTrack(req.user.username, req.body.trackId)
+        spotify.controller.dequeueTrack(req.session.user.username, req.body.trackId)
             .then(successHandler(res)).catch(errorHandler(res));
     });
 
     router.post("/vote", (req, res) => {
-        spotify.controller.vote(req.user.username, req.body.trackId)
+        spotify.controller.vote(req.session.user.username, req.body.trackId)
             .then(successHandler(res)).catch(errorHandler(res));
     });
 
     router.post("/unvote", (req, res) => {
-        spotify.controller.unvote(req.user.username, req.body.trackId)
+        spotify.controller.unvote(req.session.user.username, req.body.trackId)
             .then(successHandler(res)).catch(errorHandler(res));
     });
 
@@ -120,7 +126,8 @@ module.exports = function(passport, spotify) {
                         }
                     });
                 }).catch(errorHandler(res));
-        } else {
+        }
+        else {
             spotify.api.searchTracks(query)
                 .then(data => {
                     res.send(data.body);
@@ -174,14 +181,15 @@ module.exports = function(passport, spotify) {
 
     router.get("/auth", (req, res) => {
         // if user is authenticated in the session, carry on
-        if (req.isAuthenticated() && req.user) {
+        if (req.session && req.session.user) {
             res.json({
-                id: req.user.id,
-                username: req.user.username,
-                name: req.user.name,
+                id: req.session.user.id,
+                username: req.session.user.username,
+                name: req.session.user.name,
             });
             res.end();
-        } else {
+        }
+        else {
             res.sendStatus(403);
         }
     });
@@ -201,11 +209,11 @@ module.exports = function(passport, spotify) {
 
     /* Handle Logout */
     router.get('/logout', function(req, res) {
-        req.logout();
-        res.redirect('/');
-        // req.session.destroy(function(err) {
-        //     res.redirect('/'); //Inside a callback… bulletproof!
-        // });
+        // req.logout();
+        // res.redirect('/');
+        req.session.destroy(function(err) {
+            res.redirect('/new-user'); //Inside a callback… bulletproof!
+        });
     });
 
     //////// auth /////////
@@ -219,12 +227,16 @@ module.exports = function(passport, spotify) {
     );
 
     // handle the callback after facebook has authenticated the user
-    router.get('/auth/facebook/callback',
-        passport.authenticate('facebook', {
-            successRedirect: '/',
-            failureRedirect: '/new-user'
-        })
-    );
+    router.get('/auth/facebook/callback', (req, res, next) => {
+        passport.authenticate('facebook', function(err, user, info) {
+            if (err) {
+                return res.redirect("/new-user");
+            }
+
+            req.session.user = user;
+            res.redirect("/");
+        })(req, res, next)
+    });
 
     return router;
 }
