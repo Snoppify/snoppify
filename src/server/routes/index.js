@@ -10,7 +10,7 @@ const isAuthenticated = function(req, res, next) {
     //     return next();
 
     if (req.session && req.session.user) {
-        next();
+        return next();
     }
 
     // if the user is not authenticated then redirect him to the login page

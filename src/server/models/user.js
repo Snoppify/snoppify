@@ -60,13 +60,15 @@ class User {
                     if (index == -1) {
                         // add user
                         User.users.push(user);
-                    } else {
+                    }
+                    else {
                         // update user in case the reference was lost somewhere
                         User.users[index] = user;
                     }
                     User.saveToFile(callback);
                 });
-            } else {
+            }
+            else {
                 User.saveToFile(callback || function() {});
             }
         });
@@ -74,7 +76,7 @@ class User {
 
     static init(callback) {
         if (typeof User.users != "undefined") {
-            callback();
+            return callback();
         }
         // load saved user data
         fs.readFile(User.usersFile, 'utf8', function readFileCallback(err, data) {
@@ -85,7 +87,8 @@ class User {
                     throw "Invalid format";
                 }
                 User.users = users.users.map(user => new User(user));
-            } catch (e) {
+            }
+            catch (e) {
                 User.users = [];
             }
             callback(null);
