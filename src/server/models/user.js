@@ -14,7 +14,7 @@ class User {
     }
 
     save(callback) {
-        User.save(this, callback);
+        return User.save(this, callback);
     }
 
     ////////////
@@ -22,40 +22,36 @@ class User {
     static find(id, callback) {
         this.init(err => {
             if (err) {
-                callback(err, null);
-                return;
+                return callback(err, null);
             }
             let user = User.users.find(u => {
                 return u.id == id;
             });
-            callback(null, user);
+            return callback(null, user);
         });
     }
 
     static findIndex(id, callback) {
         this.init(err => {
             if (err) {
-                callback(err, null);
-                return;
+                return callback(err, null);
             }
             let index = User.users.findIndex(u => {
                 return u.id == id;
             });
-            callback(null, index);
+            return callback(null, index);
         });
     }
 
     static save(user, callback) {
         this.init(err => {
             if (err) {
-                callback(err);
-                return;
+                return callback(err);
             }
             if (user) {
                 User.findIndex(user.id, (err, index) => {
                     if (err) {
-                        callback(err);
-                        return;
+                        return callback(err);
                     }
                     if (index == -1) {
                         // add user
@@ -65,11 +61,11 @@ class User {
                         // update user in case the reference was lost somewhere
                         User.users[index] = user;
                     }
-                    User.saveToFile(callback);
+                    return User.saveToFile(callback);
                 });
             }
             else {
-                User.saveToFile(callback || function() {});
+                return User.saveToFile(callback || function() {});
             }
         });
     }
@@ -80,7 +76,6 @@ class User {
         }
         // load saved user data
         fs.readFile(User.usersFile, 'utf8', function readFileCallback(err, data) {
-            console.log(err);
             try {
                 let users = JSON.parse(data);
                 if (!users.users) {
@@ -91,7 +86,7 @@ class User {
             catch (e) {
                 User.users = [];
             }
-            callback(null);
+            return callback(null);
         });
     }
 
@@ -105,12 +100,13 @@ class User {
         let json = JSON.stringify({
             users: _users
         });
-        fs.writeFile(User.usersFile, json, 'utf8', function(err) {
+
+        return fs.writeFile(User.usersFile, json, 'utf8', function(err) {
             if (err) {
-                callback(err);
-                return;
+                return callback(err);
+
             }
-            callback(null);
+            return callback(null);
         });
     }
 
