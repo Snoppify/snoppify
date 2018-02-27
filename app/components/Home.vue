@@ -179,6 +179,8 @@ export default {
   // background: $background;
 }
 
+$current-track__border-radius: 4px;
+
 .current-track {
   position: relative;
   width: 300px;
@@ -186,12 +188,12 @@ export default {
   margin-bottom: 30px;
   height: 300px;
   text-align: left;
-  border-radius: 4px;
   border: 1px solid hsla(0, 0%, 26%, 1);
-  overflow: hidden;
+  border-radius: $current-track__border-radius;
 
   img {
     width: 100%;
+    border-radius: $current-track__border-radius - 1px;
   }
 }
 
@@ -206,6 +208,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   overflow: hidden;
+  border-top-left-radius: $current-track__border-radius - 1px;
+  border-top-right-radius: $current-track__border-radius - 1px;
 
   .user-image {
     width: 60px;
@@ -251,6 +255,8 @@ export default {
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   font-size: 1.1em;
   text-shadow: 1px 1px 5px black;
+  border-bottom-left-radius: $current-track__border-radius - 1px;
+  border-bottom-right-radius: $current-track__border-radius - 1px;
 
   .artist {
     font-size: 0.8em;
