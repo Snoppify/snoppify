@@ -96,7 +96,7 @@ import { mapGetters } from "vuex";
 import api from "../api";
 
 // components
-import SearchDropdown from './SearchDropdown'
+import SearchDropdown from "./SearchDropdown";
 
 export default {
   components: {
@@ -248,8 +248,9 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   font-size: 1.1em;
+  text-shadow: 1px 1px 5px black;
 
   .artist {
     font-size: 0.8em;
@@ -265,7 +266,7 @@ export default {
 }
 
 .song-list-move {
-  transition: transform .6s;
+  transition: transform 0.6s;
 }
 
 .song-list__item {
