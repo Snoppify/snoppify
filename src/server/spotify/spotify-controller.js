@@ -16,7 +16,6 @@ let queue = new Queue({
 let history = new Queue({
     id: "id",
 });
-let users = {};
 
 const pollTimeout = 2000;
 const maxQueueSize = 5;
@@ -25,7 +24,6 @@ let playlist = null;
 
 mkdirp('data');
 const queueFile = 'data/snoppify-queue.json';
-const usersFile = 'data/snoppify-users.json';
 
 // load saved queue
 fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
@@ -496,8 +494,8 @@ function rebuildQueueOrder() {
     // fetch all tracks with votes with inital order by addition
     for (let i = 0; i < maxQueueSize; i++) {
         let sublist = [];
-        for (let user in users) {
-            let u = users[user];
+        for (let user in User.users) {
+            let u = User.users[user];
             let t = u.queue.getAt(i);
             if (t) {
                 let track = queue.get(t);
