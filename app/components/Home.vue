@@ -20,14 +20,14 @@
             </span>
         </div>
       </div>
-      <div class="current-track__user-info">
-        <div class="user-image" :style="{'background-image':'url(https://www.billboard.com/files/styles/article_main_image/public/media/jack-dorsey-twitter-headshot-2015-billboard-650.jpg)'}">
+      <div class="current-track__user-info" v-if="currentTrack.snoppify">
+        <div class="user-image" :style="{'background-image':'url('+currentTrack.snoppify.issuer.profile+')'}">
 
         </div>
         <div class="user">
           <div class="title">Added by</div>
-          <div class="name">Danne mannen dickdock</div>
-          <div class="upvotes">256 upvotes</div>
+          <div class="name">{{currentTrack.snoppify.issuer.displayName}}</div>
+          <div class="upvotes">{{currentTrack.snoppify.votes.length}} upvotes</div>
         </div>
       </div>
     </div>
@@ -46,8 +46,8 @@
             {{track.name}}
           </span>
           <div class="user">
-            <div class="user-image" :style="{'background-image':'url(https://www.billboard.com/files/styles/article_main_image/public/media/jack-dorsey-twitter-headshot-2015-billboard-650.jpg)'}"></div>
-            <div>{{track.snoppify.issuer}}</div>
+            <div class="user-image" :style="{'background-image':'url('+track.snoppify.issuer.profile+')'}"></div>
+            <div>{{track.snoppify.issuer.displayName}}</div>
           </div>
         </div>
         <div class="song-list__item__action-btn"
@@ -62,32 +62,34 @@
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
     
-    <p>You are user: {{username}}</p>
+    <p>You are user: {{user.displayName}}</p>
 
     <form action="/logout">
       <input type="submit" value="Logout" />
     </form>
-<!--     
-    <button v-on:click="play">Play</button>
-    <button v-on:click="pause">Pause</button>
-    <button v-on:click="previous">Previous</button>
-    <button v-on:click="next">Next</button>
-    <br/>
-    <button v-on:click="playPlaylist">Play playlist</button>
-    <button v-on:click="emptyPlaylist">Empty playlist</button>
-    <button v-on:click="emptyQueue">Empty queue</button>
-    
-    <form v-on:submit.prevent="search()">
-      <input v-model="searchQuery" placeholder="Search song, artist, album...">
-      <button type="submit">Search</button>
-    </form>
 
-    <ul v-if="result" id="track-list">
-      <li v-for="track in result.tracks.items" v-bind:key="track.id">
-        <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
-        <button v-on:click="queueTrack(track)">Queue</button>
-      </li>
-    </ul>-->
+    <div v-if="user.admin">     
+      <button v-on:click="play">Play</button>
+      <button v-on:click="pause">Pause</button>
+      <button v-on:click="previous">Previous</button>
+      <button v-on:click="next">Next</button>
+      <br/>
+      <button v-on:click="playPlaylist">Play playlist</button>
+      <button v-on:click="emptyPlaylist">Empty playlist</button>
+      <button v-on:click="emptyQueue">Empty queue</button>
+      
+      <form v-on:submit.prevent="search()">
+        <input v-model="searchQuery" placeholder="Search song, artist, album...">
+        <button type="submit">Search</button>
+      </form>
+
+      <ul v-if="result" id="track-list">
+        <li v-for="track in result.tracks.items" v-bind:key="track.id">
+          <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
+          <button v-on:click="queueTrack(track)">Queue</button>
+        </li>
+      </ul>
+    </div>
   </div> 
 </template>
 
@@ -114,6 +116,7 @@ export default {
       event: "Events/event",
       connected: "Spotify/connected",
       result: "Spotify/result",
+      user: "Session/user",
       username: "Session/username",
       queue: "Queue/queue",
       currentTrack: "Queue/currentTrack"

@@ -33,9 +33,13 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
     try {
         let obj = JSON.parse(data);
 
-        obj.forEach(function(track) {
+        obj.queue.forEach(function(track) {
             queue.add(track);
         });
+
+        if (obj.currentTrack) {
+            history.add(obj.currentTrack);
+        }
     } catch (e) {
         console.log(e);
         return;
@@ -78,6 +82,8 @@ states.on("playSong", function(s) {
     sendEvent(s.name, {
         track: getCurrentTrack()
     });
+
+    saveQueue();
 });
 
 states.on("waitingForNextSong", function(s) {
@@ -91,9 +97,9 @@ states.on("waitingForNextSong", function(s) {
     }
 
     saveQueue();
-    if (track.snoppify) {
-        getUserData(track.snoppify.issuer, function(err, userData) {
-            userData.remove(track.id);
+    if (track && track.snoppify) {
+        getUserData(track.snoppify.issuer.username, function(err, userData) {
+            userData.queue.remove(track.id);
             saveUsers();
         });
     }
@@ -151,7 +157,6 @@ function queueTrack(user, trackId) {
                 if (err) {
                     return reject(err);
                 }
-                console.log(userData);
 
                 if (!track) {
                     return reject({
@@ -181,7 +186,7 @@ function queueTrack(user, trackId) {
                 }
 
                 track.snoppify = {
-                    issuer: user,
+                    issuer: userData,
                     votes: [],
                     timestamp: Date.now(),
                 };
@@ -222,7 +227,7 @@ function dequeueTrack(user, trackId) {
                 return reject(err);
             }
 
-            if (!track || track.snoppify.issuer != user) {
+            if (!track || track.snoppify.issuer.username != user) {
                 return reject({
                     response: {
                         status: 404,
@@ -273,14 +278,14 @@ function vote(user, trackId) {
             });
         }
 
-        // if (track.snoppify.votes.indexOf(user) != -1) {
-        //     return reject({
-        //         response: {
-        //             status: 400,
-        //             statusText: "You have already voted"
-        //         }
-        //     });
-        // }
+        if (track.snoppify.votes.indexOf(user) != -1) {
+            return reject({
+                response: {
+                    status: 400,
+                    statusText: "You have already voted"
+                }
+            });
+        }
 
         track.snoppify.votes.push(user);
 
@@ -528,7 +533,10 @@ function rebuildQueueOrder() {
 }
 
 function saveQueue() {
-    let json = JSON.stringify(queue.queue);
+    let json = JSON.stringify({
+        currentTrack: getCurrentTrack(),
+        queue: queue.queue
+    });
     fs.writeFile(queueFile, json, 'utf8', function(err) {
         if (err) {
             console.log(err);

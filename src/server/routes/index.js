@@ -175,11 +175,7 @@ module.exports = function(passport, spotify) {
     router.get("/auth", (req, res) => {
         // if user is authenticated in the session, carry on
         if (req.isAuthenticated() && req.user) {
-            res.json({
-                id: req.user.id,
-                username: req.user.username,
-                name: req.user.name,
-            });
+            res.json(req.user);
             res.end();
         } else {
             res.sendStatus(403);

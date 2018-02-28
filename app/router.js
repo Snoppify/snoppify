@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
-import { store } from './store'
+import {
+    store
+} from './store'
 import api from "./api";
 
 // components
@@ -55,8 +57,7 @@ router.beforeEach((to, from, next) => {
 
     if (store.getters["Session/username"]) {
         return next();
-    }
-    else {
+    } else {
         api.auth.auth().then(sessData => {
             store.commit("Session/SET_SESSION", sessData);
             return next();

@@ -39,7 +39,12 @@ module.exports = function(passport) {
             // pull in our app id and secret from our auth.js file
             clientID: config.facebookAuth.clientID,
             clientSecret: config.facebookAuth.clientSecret,
-            callbackURL: config.facebookAuth.callbackURL
+            callbackURL: config.facebookAuth.callbackURL,
+            profileFields: [
+                'id',
+                'name', 'displayName',
+                'emails', 'photos'
+            ]
 
         },
 
@@ -67,7 +72,9 @@ module.exports = function(passport) {
                             id: profile.id,
                             token: token,
                             username: profile.id,
-                            name: profile.displayName, // profile.name.givenName + ' ' + profile.name.familyName;
+                            displayName: profile.displayName,
+                            name: profile.name,
+                            profile: profile.photos.length > 0 ? profile.photos[0].value : null,
                         });
 
                         // save our user to the database

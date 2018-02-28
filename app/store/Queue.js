@@ -22,6 +22,16 @@ export default {
             state.queue = queue;
         },
 
+        SOCKET_EVENT(state, data) {
+            switch (data.type) {
+                case "playSong":
+                case "playing":
+                case "paused":
+                    state.currentTrack = data.data.track;
+                    break;
+            }
+        },
+
         SOCKET_QUEUE(state, data) {
             state.queue = data.queue;
         },

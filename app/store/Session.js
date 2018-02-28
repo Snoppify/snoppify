@@ -5,25 +5,31 @@ export default {
     namespaced: true,
 
     state: {
+        user: {},
         username: "",
     },
 
     getters: {
+        user: state => state.user,
         username: state => state.username,
     },
 
     mutations: {
         SET_SESSION: (state, sessionData) => {
-            console.log("set session data:", sessionData);
-            Object.assign(state, sessionData);
+            Object.assign(state.user, sessionData);
+            state.username = sessionData.username;
         },
     },
 
     actions: {
-        CREATE_SESSION({ commit }, username) {
+        CREATE_SESSION({
+            commit
+        }, username) {
             return api.auth.newUser(username)
                 .then(resp => {
-                    commit("SET_SESSION", { username });
+                    commit("SET_SESSION", {
+                        username
+                    });
                 }, (err) => {
                     console.log(err);
                 });

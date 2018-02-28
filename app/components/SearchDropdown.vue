@@ -158,14 +158,14 @@ export default {
 .search-results {
   position: absolute;
   top: 100%;
-  left: 10px;
-  right: 10px;
+  left: 0;
+  right: 0;
 
   margin: 0;
   background: $background-light;
   z-index: 100;
   padding: 0 2em;
-  max-height: 80vh;
+  max-height: 70vh;
   overflow-y: auto;
 
   &__info {
