@@ -48,12 +48,13 @@
           <span class="title">
             {{track.name}}
           </span>
-          <div class="user">
+          <div class="user" v-if="track.snoppify">
             <div class="user-image" :style="{'background-image':'url('+track.snoppify.issuer.profile+')'}"></div>
             <div>{{track.snoppify.issuer.displayName}}</div>
           </div>
         </router-link>
         <div class="song-list__item__action-btn"
+          v-if="track.snoppify"
           v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
           v-on:click="vote(track)">
             <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
@@ -321,10 +322,13 @@ $current-track__border-radius: 4px;
     font-size: 1.2em;
     justify-content: center;
     flex-shrink: 0;
-    background: $background;
+    background: #181818;
     border-radius: 4px;
     margin-right: 10px;
     height: 2em;
+    transition-delay: 0.1s;
+    background-position: 0 2em;
+    transition: background-position 0.3s ease-out;
 
     .arrow-up {
       $size: 6px;
@@ -340,8 +344,9 @@ $current-track__border-radius: 4px;
     }
 
     &.active {
-      background: linear-gradient(hsla(323, 100%, 50%, 1), magenta);
+      background-image: linear-gradient(#ff009d, magenta);
       color: white;
+      background-position: 0 0em;
 
       .arrow-up {
         border-bottom-color: white;

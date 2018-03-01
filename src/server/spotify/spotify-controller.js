@@ -40,7 +40,8 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
         if (obj.currentTrack) {
             history.add(obj.currentTrack);
         }
-    } catch (e) {
+    }
+    catch (e) {
         console.log(e);
         return;
     }
@@ -472,7 +473,8 @@ function pollPlayerStatus() {
                 states.data.events.stoppedPlaying = true;
             }
             states.data.changedTrack = true;
-        } else {
+        }
+        else {
             // started/stopped playing
             if (states.data.player.is_playing != player.is_playing) {
                 if (player.is_playing) {
@@ -522,11 +524,13 @@ function rebuildQueueOrder() {
     let list = [];
     let maxVotes = -1;
 
+
     // fetch all tracks with votes with inital order by addition
     for (let i = 0; i < maxQueueSize; i++) {
         let sublist = [];
         for (let user in User.users) {
             let u = User.users[user];
+
             let t = u.queue.getAt(i);
             if (t) {
                 let track = queue.get(t);
