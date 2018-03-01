@@ -145,6 +145,7 @@ module.exports = {
     emptyQueue,
     getQueue,
     getCurrentTrack,
+    getTrack,
 };
 
 //////////////////
@@ -405,6 +406,31 @@ function emptyQueue() {
 
 function getQueue() {
     return queue.queue;
+}
+
+function getTrack(trackId) {
+    return new Promise((resolve, reject) => {
+        let track = queue.get(trackId);
+        Promise.all([
+                track ? new Promise(_resolve => {
+                    _resolve({
+                        body: {
+                            tracks: [track]
+                        }
+                    });
+                }) : api.getTracks([trackId]),
+                api.getAudioFeaturesForTracks([trackId])
+            ])
+            .then(data => {
+                let track = data[0].body.tracks[0];
+                track.audio_features = data[1].body.audio_features[0];
+
+                resolve(track);
+            })
+            .catch(data => {
+                reject(data);
+            });
+    });
 }
 
 /////////////////////

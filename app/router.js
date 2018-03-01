@@ -8,7 +8,7 @@ import api from "./api";
 
 // components
 import Home from './components/Home'
-import Vote from './components/Vote'
+import Track from './components/Track'
 import NewUser from "./components/NewUser"
 import Fingerprint from "./components/Fingerprint"
 import NotFound from './components/NotFound'
@@ -20,9 +20,9 @@ const routes = [{
     name: 'home',
     component: Home
 }, {
-    path: '/vote/:id',
-    name: 'vote',
-    component: Vote,
+    path: '/track/:id',
+    name: 'track',
+    component: Track,
     props: true,
 }, {
     path: "/new-user",

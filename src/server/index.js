@@ -56,6 +56,10 @@ require('express-debug')(app, {});
 var routes = require('./routes/index')(passport, spotify);
 app.use('/', routes);
 
+app.use(fallback('index.html', {
+    root: rootDir
+}));
+
 /// catch 404 and forward to error handler
 // app.use(function(req, res, next) {
 //     console.log("404 req.originalUrl:", req.originalUrl);

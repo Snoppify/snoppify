@@ -24,7 +24,7 @@
           v-bind:key="track.id"
           class="search-list__item"
           >
-          <router-link :to="{path: '/vote/' + track.id}" tag="div"
+          <router-link :to="{path: '/track/' + track.id}" tag="div"
             class="search-list__item__body"
             >
             {{ track.name }} (<b>{{ track.artists[0].name }}</b>)

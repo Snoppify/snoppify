@@ -6,4 +6,11 @@ module.exports = (axios) => ({
             }
         });
     },
+    getTrack(trackId) {
+        return axios.get("/get-track", {
+            params: {
+                trackId
+            }
+        });
+    },
 });

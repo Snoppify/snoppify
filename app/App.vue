@@ -92,6 +92,8 @@ h2 {
   transform-style: preserve-3d;
 }
 
+$page-transition-speed: .7s;
+
 .route-container {
   position: absolute;
   left: 0;
@@ -101,23 +103,33 @@ h2 {
   box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
   overflow-y: auto;
   background: $background;
-}
 
-$page-transition-speed: 0.5s;
-
-.router-container-enter-active {
   transition: all $page-transition-speed cubic-bezier(0.195, 0.945, 0.485, 1);
-  transform: translateX(0);
-  box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
 }
-.router-container-enter {
-  transform-origin: 0 0;
-  transform: translate(100%, 30%) rotate(-20deg);
+
+.route-container_overlay {
+  z-index: 200;
+}
+
+.route-container_overlay.router-container-enter-active,
+.route-container_overlay.router-container-leave-active {
+  box-shadow: 0 0 100px 0px black;
+}
+.route-container_overlay.router-container-enter,
+.route-container_overlay.router-container-leave-to {
+  transform: translate(100%, 0);
   box-shadow: none;
 }
-.router-container-leave-active {
-  transition: all $page-transition-speed;
-}
-.router-container-leave-to {
+
+button {
+  font-size: 1em;
+  background: #ddd;
+  color: #333;
+
+  margin: 0.1em 0;
+  padding: 0.2em 0.5em;
+  
+  border: none;
+  border-radius: 2px;
 }
 </style>

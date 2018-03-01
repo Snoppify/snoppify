@@ -35,7 +35,10 @@
     <h1>Queue</h1>
     <transition-group name="song-list" v-if="queue" tag="ul">
       <li v-for="(track, index) in queue" v-bind:key="track.id" class="song-list__item">
-        <div class="song-list__item__info">
+        <router-link :to="{path: '/track/' + track.id}"
+          tag="div"
+          class="song-list__item__info"
+          >
           <span class="artist">
               <span v-for="(artist, index) in track.artists" :key="index">
                 <span>{{artist.name}}</span><span v-if="index+1 < track.artists.length">, </span>
@@ -49,7 +52,7 @@
             <div class="user-image" :style="{'background-image':'url('+track.snoppify.issuer.profile+')'}"></div>
             <div>{{track.snoppify.issuer.displayName}}</div>
           </div>
-        </div>
+        </router-link>
         <div class="song-list__item__action-btn"
           v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
           v-on:click="vote(track)">

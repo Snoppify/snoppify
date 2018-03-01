@@ -50,7 +50,7 @@ module.exports = function(passport, spotify) {
     });
 
     function successHandler(res) {
-        return r => res.sendStatus(200);
+        return r => res.status(200).send(r);
     }
 
     function errorHandler(res) {
@@ -128,6 +128,10 @@ module.exports = function(passport, spotify) {
         }
     });
 
+    router.get("/get-track", (req, res) => {
+        spotify.controller.getTrack(req.query.trackId)
+            .then(successHandler(res)).catch(errorHandler(res));
+    });
 
     router.post("/play", (req, res) => {
         spotify.controller.play(req.body.playlist)
@@ -180,14 +184,6 @@ module.exports = function(passport, spotify) {
         } else {
             res.sendStatus(403);
         }
-    });
-
-    router.get('/', isAuthenticated, function(req, res) {
-        res.sendFile(path.resolve('public/index.html'));
-    });
-
-    router.get('/new-user', redirectIfAuthenticated, function(req, res) {
-        res.sendFile(path.resolve('public/index.html'));
     });
 
     /* GET login page. */
