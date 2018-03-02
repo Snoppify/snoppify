@@ -36,7 +36,8 @@ module.exports = function(passport, spotify) {
                         refreshToken = e;
                         resolve();
                     });
-            } else {
+            }
+            else {
                 resolve();
             }
         }).then(function() {
@@ -114,15 +115,27 @@ module.exports = function(passport, spotify) {
         if (extractedId) {
             spotify.api.getTracks([extractedId])
                 .then(data => {
+                    let track = data.body.tracks[0],
+                        queueTrack = spotify.controller.queue.get(track);
+
+                    if (track && queueTrack) {
+                        track = queueTrack;
+                    }
+
                     res.send({
                         tracks: {
-                            items: data.body.tracks[0] ? [data.body.tracks[0]] : []
+                            items: track ? [track] : []
                         }
                     });
                 }).catch(errorHandler(res));
-        } else {
+        }
+        else {
             spotify.api.searchTracks(query)
                 .then(data => {
+                    data.body.tracks.items = data.body.tracks.items.map(
+                        track => spotify.controller.queue.get(track) || track
+                    );
+
                     res.send(data.body);
                 }).catch(errorHandler(res));
         }
@@ -181,7 +194,8 @@ module.exports = function(passport, spotify) {
         if (req.isAuthenticated() && req.user) {
             res.json(req.user);
             res.end();
-        } else {
+        }
+        else {
             res.sendStatus(403);
         }
     });

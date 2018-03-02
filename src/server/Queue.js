@@ -59,7 +59,13 @@ module.exports = class Queue {
      * @return {mixed}      Item
      */
     get(item) {
-        return this.queue[this.indexOf(item)];
+        if (!item) {
+            return;
+        }
+
+        return this.queue.find(qItem =>
+            qItem.id === item || qItem.id === item.id
+        );
     }
 
     /**
@@ -77,7 +83,8 @@ module.exports = class Queue {
     indexOf(item) {
         if (typeof this.id != "undefined") {
             return this.queue.findIndex(i => i[this.id] == item[this.id] || i[this.id] == item);
-        } else {
+        }
+        else {
             return this.queue.indexOf(item);
         }
     }
