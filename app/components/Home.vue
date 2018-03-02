@@ -201,6 +201,7 @@ $current-track__border-radius: 4px;
   text-align: left;
   border: 1px solid hsla(0, 0%, 26%, 1);
   border-radius: $current-track__border-radius;
+  overflow: hidden;
 
   img {
     width: 100%;
