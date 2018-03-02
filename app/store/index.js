@@ -5,6 +5,7 @@ import Session from './Session';
 import Spotify from './Spotify';
 import Events from './Events';
 import Queue from './Queue';
+import Messages from './Messages';
 
 Vue.use(Vuex);
 
@@ -18,6 +19,7 @@ export const store = new Vuex.Store({
         Session,
         Events,
         Queue,
+        Messages,
     },
 
     mutations: {
@@ -27,7 +29,7 @@ export const store = new Vuex.Store({
         init(state) {
             for (let m in this._modules.root._children) {
                 let module = this._modules.root._children[m];
-                if (module._rawModule.mutations["init"]) {
+                if (module._rawModule.mutations && module._rawModule.mutations["init"]) {
                     module.context.commit("init");
                 }
             }

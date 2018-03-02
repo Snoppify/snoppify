@@ -15,9 +15,19 @@ export default {
     },
 
     mutations: {
-        SOCKET_EVENT: (state, event) => {
+        SOCKET_EVENT(state, event) {
             state.event = event;
             state.events.push(event);
+
+            switch (event.type) {
+                case "waitingForNextSong":
+                    this.dispatch("Messages/toast", {
+                        type: "deepsea",
+                        html: "Next song: <b>" + event.data.track.name + "</b>",
+                        duration: 10
+                    });
+                    break;
+            }
         },
     },
 }

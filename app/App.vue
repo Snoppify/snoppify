@@ -5,18 +5,28 @@
         <router-view></router-view>
       </transition>
     </div>
+    <messages>
+    </messages>
   </div>
 </template>
 
 <script>
 import api from "../api";
 
+// components
+import Messages from "./components/Messages";
+
 export default {
+  components: {
+    messages: Messages
+  },
+
   created() {
     this.getInfo().then(res => {
       this.$store.commit("Queue/SET_QUEUE", res.queue);
       this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
     });
+
   },
 
   methods: {
