@@ -9,12 +9,16 @@ import {
 }
 from './store'
 
+// global components
+import TrackItem from "./components/TrackItem";
+
 // Remove the ugly Facebook appended hash
 // <https://github.com/jaredhanson/passport-facebook/issues/12>
 if (window.location.hash && window.location.hash === "#_=_") {
     if (window.history && history.pushState) {
         window.history.pushState("", document.title, window.location.pathname);
-    } else {
+    }
+    else {
         // Prevent scrolling by storing the page's current scroll offset
         var _scroll = {
             top: document.body.scrollTop,
@@ -26,8 +30,6 @@ if (window.location.hash && window.location.hash === "#_=_") {
         document.body.scrollLeft = _scroll.left;
     }
 }
-
-import Fingerprint2 from "fingerprintjs2";
 
 new Vue({
     el: '#app',
@@ -41,4 +43,6 @@ new Vue({
     render: h => h(App),
     router,
     store,
-})
+});
+
+Vue.component("track-item", TrackItem);

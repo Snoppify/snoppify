@@ -15,9 +15,10 @@
           {{currentTrack.name}}
         </div>
         <div class="artist">
-            <span v-for="(artist, index) in currentTrack.artists" :key="index">
-              <span>{{artist.name}}</span><span v-if="index+1 < currentTrack.artists.length">, </span>
-            </span>
+          <span v-for="(artist, index) in currentTrack.artists" :key="index">
+            <span>{{artist.name}}</span>
+            <span v-if="index+1 < currentTrack.artists.length">, </span>
+          </span>
         </div>
       </div>
       <div class="current-track__user-info" v-if="currentTrack.snoppify">
@@ -33,46 +34,22 @@
     </div>
 
     <h1>Queue</h1>
-    <transition-group name="song-list" v-if="queue" tag="ul">
-      <li v-for="(track, index) in queue" v-bind:key="track.id" class="song-list__item">
-        <router-link :to="{path: '/track/' + track.id}"
-          tag="div"
-          class="song-list__item__info"
-          >
-          <span class="artist">
-              <span v-for="(artist, index) in track.artists" :key="index">
-                <span>{{artist.name}}</span><span v-if="index+1 < track.artists.length">, </span>
-              </span>
-          </span>
-          - 
-          <span class="title">
-            {{track.name}}
-          </span>
-          <div class="user" v-if="track.snoppify">
-            <div class="user-image" :style="{'background-image':'url('+track.snoppify.issuer.profile+')'}"></div>
-            <div>{{track.snoppify.issuer.displayName}}</div>
-          </div>
-        </router-link>
-        <div class="song-list__item__action-btn"
-          v-if="track.snoppify"
-          v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
-          v-on:click="vote(track)">
-            <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
-            <div>{{track.snoppify.votes.length}}</div>
-        </div>
+    <transition-group name="song-list" v-if="queue" tag="ul" class="song-list">
+      <li v-for="(track, index) in queue" v-bind:key="track.id">
+        <track-item :track="track"></track-item>
       </li>
     </transition-group>
-    
+
     <p v-if="connected">We're connected to the server!</p>
     <p v-else>Not connected</p>
-    
+
     <p>You are user: {{user.displayName}}</p>
 
     <form action="/logout">
       <input type="submit" value="Logout" />
     </form>
 
-    <div v-if="user.admin">     
+    <div v-if="user.admin">
       <button v-on:click="play">Play</button>
       <button v-on:click="pause">Pause</button>
       <button v-on:click="previous">Previous</button>
@@ -81,7 +58,7 @@
       <button v-on:click="playPlaylist">Play playlist</button>
       <button v-on:click="emptyPlaylist">Empty playlist</button>
       <button v-on:click="emptyQueue">Empty queue</button>
-      
+
       <form v-on:submit.prevent="search()">
         <input v-model="searchQuery" placeholder="Search song, artist, album...">
         <button type="submit">Search</button>
@@ -89,12 +66,13 @@
 
       <ul v-if="result" id="track-list">
         <li v-for="track in result.tracks.items" v-bind:key="track.id">
-          <router-link :to="{path: '/vote/' + track.id}"><b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
+          <router-link :to="{path: '/vote/' + track.id}">
+            <b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
           <button v-on:click="queueTrack(track)">Queue</button>
         </li>
       </ul>
     </div>
-  </div> 
+  </div>
 </template>
 
 <script>
@@ -103,15 +81,16 @@ import api from "../api";
 
 // components
 import SearchDropdown from "./SearchDropdown";
+import TrackItem from "./TrackItem";
 
 export default {
   components: {
-    searchDropdown: SearchDropdown
+    searchDropdown: SearchDropdown,
   },
 
   data() {
     return {
-      searchQuery: ""
+      searchQuery: "",
     };
   },
 
@@ -123,8 +102,8 @@ export default {
       user: "Session/user",
       username: "Session/username",
       queue: "Queue/queue",
-      currentTrack: "Queue/currentTrack"
-    })
+      currentTrack: "Queue/currentTrack",
+    }),
   },
 
   methods: {
@@ -133,24 +112,6 @@ export default {
     },
     queueTrack(track) {
       api.queue.queueTrack(track.id);
-    },
-    vote(track) {
-      if (track.snoppify.issuer.id === this.user.id) {
-        return;
-      }
-
-      let func, i;
-      if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
-        func = "vote";
-        track.snoppify.votes.push(this.username);
-      } else {
-        func = "unvote";
-        track.snoppify.votes.splice(i, 1);
-      }
-      // some delay, so the track does change position immediately
-      setTimeout(() => {
-        api.queue[func](track.id);
-      }, 200);
     },
     play() {
       api.queue.play();
@@ -172,8 +133,8 @@ export default {
     },
     emptyQueue() {
       api.queue.emptyQueue();
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -281,82 +242,13 @@ $current-track__border-radius: 4px;
 
 .song-list {
   border-top: 1px solid $darkgray;
+
+  .track-item {
+    background: linear-gradient($background, #272727);
+  }
 }
 
 .song-list-move {
   transition: transform 0.6s;
-}
-
-.song-list__item {
-  border-bottom: 1px solid $darkgray;
-  background: linear-gradient($background, #272727);
-  display: flex;
-  align-items: center;
-
-  &__info {
-    width: 100%;
-    padding: 10px 20px;
-  }
-
-  .title {
-    color: white;
-  }
-
-  .user {
-    display: flex;
-    align-items: center;
-    margin-top: 7px;
-    color: white;
-  }
-
-  .user-image {
-    width: 20px;
-    height: 20px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 100px;
-    margin-right: 7px;
-    flex-shrink: 0;
-    border: 1px solid white;
-  }
-
-  &__action-btn {
-    width: 3em;
-    display: flex;
-    align-items: center;
-    font-size: 1.2em;
-    justify-content: center;
-    flex-shrink: 0;
-    background: #181818;
-    border-radius: 4px;
-    margin-right: 10px;
-    height: 2em;
-    transition-delay: 0.1s;
-    background-position: 0 2em;
-    transition: background-position 0.3s ease-out;
-
-    .arrow-up {
-      $size: 6px;
-
-      width: 0;
-      height: 0;
-      border-left: $size solid transparent;
-      border-right: $size solid transparent;
-
-      border-bottom: $size solid $gray;
-
-      margin-right: 5px;
-    }
-
-    &.active {
-      background-image: linear-gradient(#ff009d, magenta);
-      color: white;
-      background-position: 0 0em;
-
-      .arrow-up {
-        border-bottom-color: white;
-      }
-    }
-  }
 }
 </style>
