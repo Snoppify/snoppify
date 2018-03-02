@@ -1,7 +1,7 @@
 <template>
-  <div id="search-dropdown" v-on:click="focusSearch()">
+  <div id="search-dropdown" v-on:click="!show && focusSearch()">
     <form v-on:submit.prevent="" class="search-input">
-      <input v-on:input="search" ref="input" placeholder="Search song, artist, album..."
+      <input v-on:input="search" v-on:focus="search" ref="input" placeholder="Type something or paste a Spotify link..."
         v-model="searchTerm"
         v-bind:class="{active:show}"
         >
@@ -12,36 +12,50 @@
       <div v-if="show" class="search-backdrop" v-on:click.stop.prevent="blurSearch"></div>
     </transition>
 
-    <div class="search-results">
-      <div v-if="show && !result" class="search-results__info">
-        <p>Search by text or paste a spotify link</p>
-      </div>
-      <div v-if="show && result && result.tracks.items.length == 0" class="search-results__info">
-        <p>Nothing here :(</p>
-      </div>
-      <ul v-if="show && result && result.tracks.items.length > 0" class="search-list">
-        <li v-for="track in result.tracks.items"
-          v-bind:key="track.id"
-          class="search-list__item"
-          >
-          <router-link :to="{path: '/track/' + track.id}" tag="div"
-            class="search-list__item__body"
+    <div class="search-results" v-if="show">
+      <div v-if="!loading">
+        <div v-if="!result" class="search-results__info">
+          <p>Search by text or paste a spotify link</p>
+        </div>
+        <div v-if="result && result.tracks.items.length == 0" class="search-results__info">
+          <p>Nothing here :(</p>
+        </div>
+        <ul v-if="result && result.tracks.items.length > 0" class="search-list">
+          <li v-for="track in result.tracks.items"
+            v-bind:key="track.id"
+            class="search-list__item"
             >
-            {{ track.name }} (<b>{{ track.artists[0].name }}</b>)
-          </router-link>
-          <div class="search-list__item__buttons">
-            <button v-on:click="queueTrack(track)">Queue</button>
-          </div>
-        </li>
-      </ul>
+            <router-link :to="{path: '/track/' + track.id}" tag="div"
+              class="search-list__item__body"
+              >
+              {{ track.name }} (<b>{{ track.artists[0].name }}</b>)
+            </router-link>
+            <div class="search-list__item__buttons">
+              <span v-if="track.snoppify">
+                <button v-if="track.snoppify.issuer.id === user.id" v-on:click="dequeueTrack(track)">De-queue</button>                  
+                 <span v-else class="snopp-vote-btn"
+                  v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
+                  v-on:click="vote(track)">
+                    <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
+                    <div>{{track.snoppify.votes.length}}</div>
+                  </span>
+              </span>
+              <button v-else v-on:click="queueTrack(track)">Queue</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div v-show="loading" class="search-results__info">
+        <img src="spinner.svg" alt="LOADING SPINER" class="search-results__spinner">
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-
 import api from "../api";
 import debounce from "../common/debounce";
+import { mapGetters } from "vuex";
 
 export default {
   props: {},
@@ -51,7 +65,15 @@ export default {
       show: false,
       searchTerm: null,
       result: null,
+      loading: false
     };
+  },
+
+  computed: {
+    ...mapGetters({
+      user: "Session/user",
+      username: "Session/username"
+    })
   },
 
   methods: {
@@ -60,29 +82,47 @@ export default {
         console.log("focus");
         this.show = true;
         this.$refs.input.focus();
-      })
+      });
     },
 
     blurSearch(event) {
       this.$nextTick(() => {
         console.log("blur");
         this.show = false;
-        this.searchTerm = null;
+        // this.searchTerm = null;
         this.result = null;
         // if (event) {
         //   event.preventDefault();
         //   event.stopPropagation();
         // }
-      })
+      });
     },
 
-    search: debounce(function(e){
+    debounceSearch: debounce(function(e) {
       console.log("ror", this);
-      api.spotify.search(e.target.value).then(r => {
-        console.log(r, this);
-        this.result = r;
-      });
+      api.spotify
+        .search(e.target.value)
+        .then(r => {
+          console.log(r, this);
+          this.result = r;
+        })
+        .catch(r => {
+          this.result = null;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     }, 200),
+
+    search(e) {
+      if (!e.target.value) {
+        this.result = null;
+        return;
+      }
+
+      this.loading = true;
+      this.debounceSearch(e);
+    },
 
     queueTrack(track) {
       api.queue.queueTrack(track.id);
@@ -90,13 +130,34 @@ export default {
         this.blurSearch();
       });
     },
-  }
-}
 
+    dequeueTrack(track) {
+      api.queue.dequeueTrack(track.id).then(() => {
+        track.snoppify = null;
+      });
+    },
+
+    vote(track) {
+      let func, i;
+      if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
+        func = "vote";
+        track.snoppify.votes.push(this.username);
+      } else {
+        func = "unvote";
+        track.snoppify.votes.splice(i, 1);
+      }
+      api.queue[func](track.id);
+    }
+  }
+};
 </script>
 
 <style scoped lang="scss">
 @import "../assets/variables.scss";
+
+.snopp-vote-btn:not(.active) {
+  background: $background;
+}
 
 #search-dropdown {
   position: relative;
@@ -118,7 +179,7 @@ export default {
     padding: 0.3em 0.8em;
     font-size: 1em;
 
-    transition: 0.6s all cubic-bezier(.09,1,.36,1);
+    transition: 0.6s all cubic-bezier(0.09, 1, 0.36, 1);
 
     &::placeholder {
       color: #222;
@@ -142,16 +203,17 @@ export default {
   right: -5px;
   height: 100vh;
 
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 50;
 }
 .search-backdrop-enter-active {
-  transition: all .5s ease;
+  transition: all 0.5s ease;
 }
 .search-backdrop-leave-active {
-  transition: all .5s ease;
+  transition: all 0.5s ease;
 }
-.search-backdrop-enter, .search-backdrop-leave-to {
+.search-backdrop-enter,
+.search-backdrop-leave-to {
   opacity: 0;
 }
 
@@ -174,10 +236,24 @@ export default {
     padding: 2em 0;
     color: #666;
   }
+
+  &__spinner {
+    @keyframes spin {
+      0% {
+        transform: rotateZ(0deg);
+      }
+      100% {
+        transform: rotateZ(2*360deg);
+      }
+    }
+
+    width: 100px;
+    animation: spin 2s infinite cubic-bezier(0.2, 0.2, 0.4, 1);
+    transform-origin: 50% 60%;
+  }
 }
 
 .search-list {
-
   &__item {
     display: flex;
     flex-direction: row;
@@ -201,11 +277,12 @@ export default {
   }
 }
 
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .5s;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
 }
-.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

@@ -25,7 +25,7 @@
 
         <div v-if="track.snoppify">
           <p>Added by <b>{{track.snoppify.issuer.displayName}}</b></p>
-          <p class="track_snoppify_row">Votes: <span class="track_snoppify_vote-btn"
+          <p class="track_snoppify_row">Votes: <span class="snopp-vote-btn"
             v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
             v-on:click="vote(track)">
               <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
@@ -69,9 +69,9 @@ import api from "../api";
 export default {
   props: ["id"],
 
-  data(){
+  data() {
     return {
-      track: null,
+      track: null
     };
   },
 
@@ -82,7 +82,7 @@ export default {
   computed: {
     ...mapGetters({
       user: "Session/user",
-      username: "Session/username",
+      username: "Session/username"
     })
   },
 
@@ -94,12 +94,16 @@ export default {
     },
 
     queueTrack(track) {
-      api.queue.queueTrack(track.id).then(()=>this.getTrack());
+      api.queue.queueTrack(track.id).then(() => this.getTrack());
     },
     dequeueTrack(track) {
-      api.queue.dequeueTrack(track.id).then(()=>this.getTrack());
+      api.queue.dequeueTrack(track.id).then(() => this.getTrack());
     },
     vote(track) {
+      if (track.snoppify.issuer.id === this.user.id) {
+        return;
+      }
+
       let func, i;
       if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
         func = "vote";
@@ -109,15 +113,14 @@ export default {
         track.snoppify.votes.splice(i, 1);
       }
       api.queue[func](track.id);
-    },
+    }
   },
 
   sockets: {
     event: (state, event) => {
       console.log(event);
-    },
-  },
-
+    }
+  }
 };
 </script>
 
@@ -208,42 +211,5 @@ export default {
     display: flex;
     align-items: flex-start;
   }
-
-  &_vote-btn {
-    display: flex;
-    align-items: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    background: $background-light;
-    border-radius: 4px;
-    margin-left: 10px;
-    padding: 0 0.7em;
-    line-height: 1.4em;
-    text-align: center;
-
-    .arrow-up {
-      $size: 6px;
-
-      width: 0;
-      height: 0;
-      border-left: $size solid transparent;
-      border-right: $size solid transparent;
-
-      border-bottom: $size solid $gray;
-
-      margin-right: 5px;
-    }
-
-    &.active {
-      background: linear-gradient(hsla(323, 100%, 50%, 1), magenta);
-      color: white;
-
-      .arrow-up {
-        border-bottom-color: white;
-      }
-    }
-  }
-
 }
-
 </style>

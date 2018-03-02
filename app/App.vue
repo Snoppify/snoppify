@@ -92,7 +92,7 @@ h2 {
   transform-style: preserve-3d;
 }
 
-$page-transition-speed: .7s;
+$page-transition-speed: 0.7s;
 
 .route-container {
   position: absolute;
@@ -128,8 +128,45 @@ button {
 
   margin: 0.1em 0;
   padding: 0.2em 0.5em;
-  
+
   border: none;
   border-radius: 2px;
+}
+
+.snopp {
+  &-vote-btn {
+    display: flex;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    background: $background-light;
+    border-radius: 4px;
+    margin-left: 10px;
+    padding: 0 0.7em;
+    line-height: 1.4em;
+    text-align: center;
+
+    .arrow-up {
+      $size: 6px;
+
+      width: 0;
+      height: 0;
+      border-left: $size solid transparent;
+      border-right: $size solid transparent;
+
+      border-bottom: $size solid $gray;
+
+      margin-right: 5px;
+    }
+
+    &.active {
+      background: linear-gradient(hsla(323, 100%, 50%, 1), magenta);
+      color: white;
+
+      .arrow-up {
+        border-bottom-color: white;
+      }
+    }
+  }
 }
 </style>

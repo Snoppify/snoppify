@@ -135,6 +135,10 @@ export default {
       api.queue.queueTrack(track.id);
     },
     vote(track) {
+      if (track.snoppify.issuer.id === this.user.id) {
+        return;
+      }
+
       let func, i;
       if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
         func = "vote";

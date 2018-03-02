@@ -59,6 +59,10 @@ module.exports = class Queue {
      * @return {mixed}      Item
      */
     get(item) {
+        if (!item) {
+            return;
+        }
+
         return this.queue.find(qItem =>
             qItem.id === item || qItem.id === item.id
         );
