@@ -247,8 +247,17 @@ export default {
       }
     }
 
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
     width: 100px;
-    animation: spin 2s infinite cubic-bezier(0.2, 0.2, 0.4, 1);
+    animation: spin 2s infinite cubic-bezier(0.2, 0.2, 0.4, 1), fadeIn 0.5s;
     transform-origin: 50% 60%;
   }
 }
