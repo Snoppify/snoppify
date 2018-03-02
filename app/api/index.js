@@ -2,7 +2,7 @@ const axios = require("axios");
 
 const _axios = axios.create({
     baseURL: 'http://' + ($PROCESS_ENV_SERVER_IP || 'snoppi.fy') + ':3000',
-    timeout: 1000,
+    timeout: 5000,
     withCredentials: true,
 });
 
