@@ -68,3 +68,8 @@ data/
 
 # Snoppify
 snoppify-config.js
+
+# editorconfigs
+.vscode
+.jsbeautifyrc
+jsconfig.json
