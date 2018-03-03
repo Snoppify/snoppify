@@ -1,16 +1,17 @@
 <template>
   <div id="messages">
     <!-- toasts -->
-    <transition name="toasts-body">
+    <transition-group name="toasts-body" tag="div" class="messages-container">
       <div v-for="toast in toasts"
         class="toasts-body"
         v-bind:class="[toast.type]"
+        v-bind:key="toast.id"
         v-on:click="dismissToast()"
         >
         <span v-if="toast.message">{{toast.message}}</span>
         <span v-if="toast.html" v-html="toast.html"></span>
       </div>
-    </transition>
+    </transition-group>
 
     <!-- popups -->
     <transition name="popups-backdrop">
@@ -20,16 +21,17 @@
         >
       </div>
     </transition>
-    <transition name="popups-body">
+    <transition-group name="popups-body" tag="div" class="messages-container">
       <div v-for="popup in popups"
         class="popups-body"
         v-bind:class="[popup.type]"
+        v-bind:key="popup.id"
         v-on:click="dismissPopup()"
         >
         <span v-if="popup.message">{{popup.message}}</span>
         <span v-if="popup.html" v-html="popup.html"></span>
       </div>
-    </transition>
+    </transition-group>
   </div>
 
 </template>
@@ -66,7 +68,8 @@ export default {
 
 $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
 
-#messages {
+#messages,
+.messages-container {
   pointer-events: none;
   position: fixed;
   left: 0;

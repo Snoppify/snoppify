@@ -4,8 +4,10 @@ const socketio = require('socket.io');
 // ------------------------------------
 
 const SOCKET_KEY = Symbol("socket.io");
+const SOCKET_SOCKETS_KEY = Symbol("socket.io-sockets");
 
 global[SOCKET_KEY] = null;
+global[SOCKET_SOCKETS_KEY] = {};
 
 // define the singleton API
 // ------------------------
@@ -18,6 +20,12 @@ var singleton = function socket(http) {
 Object.defineProperty(singleton, "io", {
     get: function() {
         return global[SOCKET_KEY];
+    }
+});
+
+Object.defineProperty(singleton, "sockets", {
+    get: function() {
+        return global[SOCKET_SOCKETS_KEY];
     }
 });
 

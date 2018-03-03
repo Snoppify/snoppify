@@ -1,5 +1,7 @@
 import Vue from "vue";
 
+let ID = 1;
+
 export default {
     namespaced: true,
 
@@ -23,6 +25,7 @@ export default {
          * }
          */
         toast: (context, data) => {
+            data.id = (ID++);
             context.state.toasts.push(data);
             if (data.duration) {
                 setTimeout(() => {
@@ -44,6 +47,7 @@ export default {
          * }
          */
         popup: (context, data) => {
+            data.id = (ID++);
             context.state.popups.push(data);
             if (data.duration) {
                 setTimeout(() => {

@@ -40,10 +40,7 @@
       </li>
     </transition-group>
 
-    <p v-if="connected">We're connected to the server!</p>
-    <p v-else>Not connected</p>
-
-    <p>You are user: {{user.displayName}}</p>
+    <p>Logged in as <b>{{user.displayName}}</b></p>
 
     <form action="/logout">
       <input type="submit" value="Logout" class="snopp-btn" />

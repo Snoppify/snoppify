@@ -89,8 +89,7 @@ function getAccessToken() {
         let time = (Date.now() - refreshTime) / 1000;
         if (time < expireTime) {
             resolve(accessToken);
-        }
-        else {
+        } else {
             axios({
                     method: "post",
                     url: "https://accounts.spotify.com/api/token",
@@ -105,6 +104,7 @@ function getAccessToken() {
                     },
                 })
                 .then(function(r) {
+                    //console.log("access_token", r.data.access_token);
                     accessToken = r.data.access_token;
                     resolve(accessToken);
                 })
@@ -133,6 +133,7 @@ function getRefreshToken(code) {
                 },
             })
             .then(function(r) {
+                console.log("refresh_token", r.data.refresh_token);
                 resolve(r.data.refresh_token);
             })
             .catch(function(r) {

@@ -4,6 +4,7 @@ const express = require('express'),
     app = express(),
     session = require("express-session"),
     FileStore = require('session-file-store')(session),
+    sharedsession = require('express-socket.io-session'),
     bodyParser = require("body-parser"),
     cookieParser = require("cookie-parser");
 const fs = require('fs');
@@ -14,6 +15,7 @@ const http = require('http').Server(app);
 // the socket is initialized here
 const socket = require('./socket')(http);
 const io = socket.io;
+const sockets = socket.sockets;
 
 const spotify = require('./spotify');
 
@@ -24,14 +26,16 @@ const passport = require('passport');
 // consts
 const rootDir = __dirname + '/../../public';
 
+const cookieparser = cookieParser();
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true,
 }));
-app.use(cookieParser());
+app.use(cookieparser);
 app.use(express.static(rootDir));
 
-app.use(session({
+let mysession = session({
     secret: 'spotify är sh1t, snoppify är bra!',
     resave: false,
     saveUninitialized: true,
@@ -41,10 +45,13 @@ app.use(session({
     store: (sessionStore = new FileStore({
         ttl: 3600 * 24,
     })),
-}));
+});
+app.use(mysession);
 app.use(passport.initialize());
-app.use(passport.session());
+let passportsession = passport.session();
+app.use(passportsession);
 
+io.use(sharedsession(mysession));
 // old session
 //auth.init(app, session, FileStore);
 
@@ -72,7 +79,9 @@ app.use(fallback('index.html', {
 ///////////
 
 io.on("connection", (socket) => {
-    console.log("we got a live one" /*, socket*/ );
+    console.log("we got a live one", socket.id, socket.handshake.session.passport);
+
+    sockets[socket.handshake.session.passport.user] = socket;
 
     socket.on("search", (string) => {
         const extractedId = extractId(string);

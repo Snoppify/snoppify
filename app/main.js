@@ -17,8 +17,7 @@ import TrackItem from "./components/TrackItem";
 if (window.location.hash && window.location.hash === "#_=_") {
     if (window.history && history.pushState) {
         window.history.pushState("", document.title, window.location.pathname);
-    }
-    else {
+    } else {
         // Prevent scrolling by storing the page's current scroll offset
         var _scroll = {
             top: document.body.scrollTop,

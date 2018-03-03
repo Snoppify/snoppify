@@ -40,8 +40,7 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
         if (obj.currentTrack) {
             history.add(obj.currentTrack);
         }
-    }
-    catch (e) {
+    } catch (e) {
         console.log(e);
         return;
     }
@@ -80,8 +79,23 @@ states.on("playing", function(s) {
 
 states.on("playSong", function(s) {
     console.log(s.name);
+
+    let track = getCurrentTrack();
+
+    if (track && track.snoppify) {
+        let sock = socket.sockets[track.snoppify.issuer.username];
+        if (sock) {
+            sock.emit("event", {
+                type: "playMySong",
+                data: {
+                    track
+                }
+            });
+        }
+    }
+
     sendEvent(s.name, {
-        track: getCurrentTrack()
+        track: track
     });
 
     saveQueue();
@@ -183,6 +197,15 @@ function queueTrack(user, trackId) {
                         response: {
                             status: 400,
                             statusText: 'You have already added this track'
+                        }
+                    });
+                }
+
+                if (userData.queue.size == maxQueueSize) {
+                    return reject({
+                        response: {
+                            status: 400,
+                            statusText: 'You cannot add more than ' + maxQueueSize + ' tracks'
                         }
                     });
                 }
@@ -473,8 +496,7 @@ function pollPlayerStatus() {
                 states.data.events.stoppedPlaying = true;
             }
             states.data.changedTrack = true;
-        }
-        else {
+        } else {
             // started/stopped playing
             if (states.data.player.is_playing != player.is_playing) {
                 if (player.is_playing) {
@@ -526,7 +548,9 @@ function rebuildQueueOrder() {
 
 
     // fetch all tracks with votes with inital order by addition
-    for (let i = 0; i < maxQueueSize; i++) {
+    let tracks = true;
+    let tracksCount = queue.size;
+    for (let i = 0; i < queue.size; i++) {
         let sublist = [];
         for (let user in User.users) {
             let u = User.users[user];
@@ -538,10 +562,16 @@ function rebuildQueueOrder() {
                 sublist.push(track);
 
                 maxVotes = Math.max(maxVotes, track.snoppify ? track.snoppify.votes.length : 0);
+
+                tracksCount--;
             }
         }
         sublist.sort(orderByTimestamp);
         list = list.concat(sublist);
+
+        if (tracksCount <= 0) {
+            break;
+        }
     }
 
     // sort list by votes

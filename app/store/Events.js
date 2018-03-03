@@ -27,6 +27,14 @@ export default {
                         duration: 10
                     });
                     break;
+                case "playMySong":
+                    this.dispatch("Messages/popup", {
+                        type: "deepsea",
+                        html: "<p>Playing your song:</p>" +
+                            "<p><b>" + event.data.track.name + "</b></p>" +
+                            "<p>(" + event.data.track.artists[0].name + ")</p>",
+                    });
+                    break;
             }
         },
     },

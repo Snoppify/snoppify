@@ -1,4 +1,7 @@
 const axios = require("axios");
+import {
+    store
+} from '../store';
 
 const _axios = axios.create({
     baseURL: 'http://' + ($PROCESS_ENV_SERVER_IP || 'snoppi.fy') + ':3000',
@@ -8,7 +11,16 @@ const _axios = axios.create({
 
 _axios.interceptors.response.use(
     response => response.data,
-    err => Promise.reject(err)
+    err => {
+        if (err && err.response && err.response.data && err.response.data.error) {
+            store.dispatch("Messages/toast", {
+                type: "alert",
+                message: err.response.data.error,
+                duration: 2,
+            });
+        }
+        return Promise.reject(err);
+    }
 );
 
 export default {
