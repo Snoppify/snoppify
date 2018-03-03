@@ -116,6 +116,20 @@ export default {
     margin-top: 7px;
     color: white;
     font-size: 0.9em;
+    height: 22px;
+    animation: enter 0.3s ease-out;
+
+    @keyframes enter {
+      0% {
+        opacity: 0;
+        height: 0;
+      }
+
+      100% {
+        opacity: 1;
+        height: 22px;
+      }
+    }
   }
 
   .user-image {
