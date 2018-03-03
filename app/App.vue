@@ -22,13 +22,14 @@ export default {
   methods: {
     getInfo() {
       return api.misc.info();
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style lang="scss">
 @import "../assets/variables.scss";
+@import "../assets/styles.scss";
 
 body {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
@@ -58,8 +59,12 @@ header {
 
   .title {
     text-align: center;
-
     color: $text;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-style: italic;
+    font-weight: bold;
   }
 }
 

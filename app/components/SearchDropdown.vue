@@ -1,10 +1,7 @@
 <template>
   <div id="search-dropdown" v-on:click="!show && focusSearch()">
     <form v-on:submit.prevent="" class="search-input">
-      <input v-on:input="search" v-on:focus="search" ref="input" placeholder="Type something or paste a Spotify link..."
-        v-model="searchTerm"
-        v-bind:class="{active:show}"
-        >
+      <input v-on:input="search" v-on:focus="search" ref="input" placeholder="Type something or paste a Spotify link..." v-model="searchTerm" v-bind:class="{active:show}">
       <!-- <button type="submit">Search</button> -->
     </form>
 
@@ -21,27 +18,8 @@
           <p>Nothing here :(</p>
         </div>
         <ul v-if="result && result.tracks.items.length > 0" class="search-list">
-          <li v-for="track in result.tracks.items"
-            v-bind:key="track.id"
-            class="search-list__item"
-            >
-            <router-link :to="{path: '/track/' + track.id}" tag="div"
-              class="search-list__item__body"
-              >
-              {{ track.name }} (<b>{{ track.artists[0].name }}</b>)
-            </router-link>
-            <div class="search-list__item__buttons">
-              <span v-if="track.snoppify">
-                <button v-if="track.snoppify.issuer.id === user.id" v-on:click="dequeueTrack(track)">De-queue</button>                  
-                 <span v-else class="snopp-vote-btn"
-                  v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}"
-                  v-on:click="vote(track)">
-                    <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
-                    <div>{{track.snoppify.votes.length}}</div>
-                  </span>
-              </span>
-              <button v-else v-on:click="queueTrack(track)">Queue</button>
-            </div>
+          <li v-for="track in result.tracks.items" :key="track.id">
+            <track-item :track="track"></track-item>
           </li>
         </ul>
       </div>
@@ -65,21 +43,20 @@ export default {
       show: false,
       searchTerm: null,
       result: null,
-      loading: false
+      loading: false,
     };
   },
 
   computed: {
     ...mapGetters({
       user: "Session/user",
-      username: "Session/username"
-    })
+      username: "Session/username",
+    }),
   },
 
   methods: {
     focusSearch() {
       this.$nextTick(() => {
-        console.log("focus");
         this.show = true;
         this.$refs.input.focus();
       });
@@ -87,19 +64,12 @@ export default {
 
     blurSearch(event) {
       this.$nextTick(() => {
-        console.log("blur");
         this.show = false;
-        // this.searchTerm = null;
         this.result = null;
-        // if (event) {
-        //   event.preventDefault();
-        //   event.stopPropagation();
-        // }
       });
     },
 
     debounceSearch: debounce(function(e) {
-      console.log("ror", this);
       api.spotify
         .search(e.target.value)
         .then(r => {
@@ -125,39 +95,16 @@ export default {
     },
 
     queueTrack(track) {
-      api.queue.queueTrack(track.id);
       this.$nextTick(() => {
         this.blurSearch();
       });
     },
-
-    dequeueTrack(track) {
-      api.queue.dequeueTrack(track.id).then(() => {
-        track.snoppify = null;
-      });
-    },
-
-    vote(track) {
-      let func, i;
-      if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
-        func = "vote";
-        track.snoppify.votes.push(this.username);
-      } else {
-        func = "unvote";
-        track.snoppify.votes.splice(i, 1);
-      }
-      api.queue[func](track.id);
-    }
-  }
+  },
 };
 </script>
 
 <style scoped lang="scss">
 @import "../assets/variables.scss";
-
-.snopp-vote-btn:not(.active) {
-  background: $background;
-}
 
 #search-dropdown {
   position: relative;
@@ -226,7 +173,6 @@ export default {
   margin: 0;
   background: $background-light;
   z-index: 100;
-  padding: 0 2em;
   max-height: 70vh;
   overflow-y: auto;
 
@@ -262,30 +208,6 @@ export default {
   }
 }
 
-.search-list {
-  &__item {
-    display: flex;
-    flex-direction: row;
-
-    &__body {
-      flex: 1;
-
-      user-select: none;
-      cursor: pointer;
-
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1.8em;
-      font-size: 1.2em;
-    }
-
-    &__buttons {
-      flex-grow: 0;
-    }
-  }
-}
-
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s;
@@ -293,5 +215,11 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+</style>
+
+<style lang="scss">
+.search-list .track-item__info {
+  font-size: 0.8em;
 }
 </style>

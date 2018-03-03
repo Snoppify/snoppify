@@ -2,7 +2,7 @@
   <div id="home" class="route-container">
     <header>
       <div class="title">
-        Snoppify
+        — Snoppify —
       </div>
       <search-dropdown :options="{'search': 'Search term'}"></search-dropdown>
     </header>
@@ -46,7 +46,7 @@
     <p>You are user: {{user.displayName}}</p>
 
     <form action="/logout">
-      <input type="submit" value="Logout" />
+      <input type="submit" value="Logout" class="snopp-btn" />
     </form>
 
     <div v-if="user.admin">
