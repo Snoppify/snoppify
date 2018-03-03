@@ -7,7 +7,9 @@
       <search-dropdown :options="{'search': 'Search term'}"></search-dropdown>
     </header>
 
-    <h1>Now playing</h1>
+    <h1 v-if="player.isPlaying">Now playing</h1>
+    <h1 v-else>Paused</h1>
+
     <div class="current-track" v-if="currentTrack">
       <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt="">
       <div class="current-track__track-info">
@@ -33,10 +35,22 @@
       </div>
     </div>
 
+    <div class="progress" v-if="player.status">
+      <div class="progress_inner">
+        <div class="progress_inner_bar"
+          v-bind:style="{width: (100*player.status.fraction)+'%'}">
+        </div>
+      </div>
+      <div class="progress_status">
+        <span>{{player.status.progress}}</span>
+        <span>{{player.status.duration}}</span>
+      </div>
+    </div>
+
     <h1>Queue</h1>
     <transition-group name="song-list" v-if="queue" tag="ul" class="song-list">
       <li v-for="(track, index) in queue" v-bind:key="track.id">
-        <track-item :track="track"></track-item>
+        <track-item :track="track" :index="index+1"></track-item>
       </li>
     </transition-group>
 
@@ -49,25 +63,23 @@
     <div v-if="user.admin">
       <button v-on:click="play">Play</button>
       <button v-on:click="pause">Pause</button>
-      <button v-on:click="previous">Previous</button>
-      <button v-on:click="next">Next</button>
+      <button v-on:click="playNext">Next track</button>
       <br/>
       <button v-on:click="playPlaylist">Play playlist</button>
       <button v-on:click="emptyPlaylist">Empty playlist</button>
       <button v-on:click="emptyQueue">Empty queue</button>
 
-      <form v-on:submit.prevent="search()">
-        <input v-model="searchQuery" placeholder="Search song, artist, album...">
-        <button type="submit">Search</button>
-      </form>
+      <br/>
+      <button v-on:click="playSound('honk')">Play 'honk'</button>
 
-      <ul v-if="result" id="track-list">
-        <li v-for="track in result.tracks.items" v-bind:key="track.id">
-          <router-link :to="{path: '/vote/' + track.id}">
-            <b>{{ track.type }}:</b> {{ track.name }} ({{ track.artists[0].name }})</router-link>
-          <button v-on:click="queueTrack(track)">Queue</button>
-        </li>
-      </ul>
+      <form v-on:submit.prevent="setBackupPlaylist(backupUrl)">
+        <input v-model="backupUrl" placeholder="Paste a playlist uri">
+        <button type="submit">Set</button>
+      </form>
+      <p>Backup playlist:
+        <span v-if="backupPlaylist"><b>{{backupPlaylist.name}}</b> ({{backupPlaylist.owner.display_name}})</span>
+        <span v-else>(not set)</span>
+      </p>
     </div>
   </div>
 </template>
@@ -96,16 +108,21 @@ export default {
       event: "Events/event",
       connected: "Spotify/connected",
       result: "Spotify/result",
+      player: "Spotify/player",
       user: "Session/user",
       username: "Session/username",
       queue: "Queue/queue",
       currentTrack: "Queue/currentTrack",
+      backupPlaylist: "Queue/backupPlaylist",
     }),
   },
 
   methods: {
     search() {
       this.$store.dispatch("Spotify/search", this.searchQuery);
+    },
+    setBackupPlaylist(uri) {
+      api.queue.setBackupPlaylist(uri);
     },
     queueTrack(track) {
       api.queue.queueTrack(track.id);
@@ -119,8 +136,8 @@ export default {
     previous() {
       api.queue.previous();
     },
-    next() {
-      api.queue.next();
+    playNext() {
+      api.queue.playNext();
     },
     playPlaylist() {
       api.queue.play(true);
@@ -130,6 +147,10 @@ export default {
     },
     emptyQueue() {
       api.queue.emptyQueue();
+    },
+
+    playSound(sound) {
+      api.misc.playSound(sound);
     },
   },
 };
@@ -154,7 +175,7 @@ $current-track__border-radius: 4px;
   position: relative;
   width: 300px;
   margin: auto;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
   height: 300px;
   text-align: left;
   border: 1px solid hsla(0, 0%, 26%, 1);
@@ -247,5 +268,39 @@ $current-track__border-radius: 4px;
 
 .song-list-move {
   transition: transform 0.6s;
+}
+
+/* progress */
+.progress {
+  $progress_width: 300px;
+
+  display: block;
+  padding: 0.5em 1em;
+
+  &_inner {
+    border-radius: 99px;
+    background: #444;
+    height: 0.5em;
+    overflow: hidden;
+
+    max-width: $progress_width;
+    margin: 0 auto;
+
+    &_bar {
+      display: block;
+      height: 100%;
+      transition: all 0.6s;
+      background: #24cf5f;
+    }
+  }
+
+  &_status {
+    font-size: 0.8em;
+    display: flex;
+    justify-content: space-between;
+
+    max-width: $progress_width;
+    margin: 3px auto;
+  }
 }
 </style>

@@ -16,6 +16,11 @@ let queue = new Queue({
 let history = new Queue({
     id: "id",
 });
+let backupQueue = new Queue({
+    id: "id",
+});
+
+let backupPlaylist = null;
 
 const pollTimeout = 2000;
 const maxQueueSize = 5;
@@ -40,6 +45,10 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
         if (obj.currentTrack) {
             history.add(obj.currentTrack);
         }
+
+        if (obj.backupPlaylist) {
+            backupPlaylist = obj.backupPlaylist;
+        }
     } catch (e) {
         console.log(e);
         return;
@@ -48,6 +57,10 @@ fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
 
 api.onload.then(function(data) {
     reloadPlaylist();
+
+    if (backupPlaylist) {
+        setBackupPlaylist(backupPlaylist.owner.id, backupPlaylist.id);
+    }
 
     if (api.config.refresh_token) {
         setInterval(function() {
@@ -104,38 +117,7 @@ states.on("playSong", function(s) {
 states.on("waitingForNextSong", function(s) {
     console.log(s.name);
 
-    let track = queue.next();
-    addToPlaylist(track);
-    // save issuer for later
-    if (track) {
-        history.add(track);
-    }
-
-    saveQueue();
-    if (track && track.snoppify) {
-        getUserData(track.snoppify.issuer.username, function(err, userData) {
-            userData.queue.remove(track.id);
-            saveUsers();
-        });
-    }
-
-    sendEvent(s.name, {
-        track: track
-    });
-
-    if (track) {
-        socket.io.local.emit("queue", {
-            queue: queue.queue,
-            addedTracks: [],
-            removedTracks: [track],
-        });
-    }
-
-    if (states.data.playlist && states.data.playlist.tracks.items.length == 0) {
-        // BUG: cant start a playlist that havent been intereacted with from a spotify client,
-        // for example after emptying the playlist
-        //play(true);
-    }
+    playNextTrack();
 });
 
 states.start();
@@ -161,6 +143,8 @@ module.exports = {
     getQueue,
     getCurrentTrack,
     getTrack,
+    getBackupPlaylist,
+    setBackupPlaylist,
 };
 
 //////////////////
@@ -376,8 +360,110 @@ function unvote(user, trackId) {
     });
 }
 
+function getBackupPlaylist() {
+    console.log(backupPlaylist);
+    return backupPlaylist;
+}
+
+function setBackupPlaylist(user, id) {
+    return new Promise((resolve, reject) => {
+        api.getPlaylist(user, id)
+            .then(data => {
+                backupQueue = new Queue({
+                    id: 'id',
+                    queue: data.body.tracks.items.map(track => {
+                        track.track.snoppify = {
+                            issuer: {
+                                id: "1337",
+                                username: "1337",
+                                displayName: "Snoppify Bot",
+                                profile: "https://f29682d3f174928942ed-2ffcea2cbcb9e3aa51fd8a91e66dd2e9.ssl.cf2.rackcdn.com/1410771548.09_avatar.png",
+                            },
+                            votes: [],
+                        };
+                        return track.track;
+                    }),
+                });
+
+                delete data.body.tracks;
+                console.log("set");
+                backupPlaylist = data.body;
+
+                saveQueue();
+
+                sendEvent("backupPlaylist", {
+                    playlist: backupPlaylist
+                });
+
+                resolve();
+            }).catch(r => {
+                console.log(r);
+                reject(r);
+            });
+    });
+}
+
 function playNext() {
-    // TODO: play track
+    return new Promise((resolve, reject) => {
+        playNextTrack().then(function() {
+            next();
+            resolve();
+        });
+    });
+}
+
+function playNextTrack() {
+    return new Promise((resolve, reject) => {
+        let track = queue.next();
+
+        if (!track) {
+            if (backupPlaylist) {
+                track = backupQueue.nextRandomCursor();
+            } else {
+                track = getCurrentTrack();
+            }
+        }
+        addToPlaylist(track)
+            .then(r => {
+                if (track) {
+                    // save issuer for later
+                    history.add(track);
+                }
+
+                saveQueue();
+                if (track && track.snoppify) {
+                    getUserData(track.snoppify.issuer.username, function(err, userData) {
+                        if (userData) {
+                            userData.queue.remove(track.id);
+                            saveUsers();
+                        }
+                    });
+                }
+
+                sendEvent("waitingForNextSong", {
+                    track: track
+                });
+
+                if (track) {
+                    socket.io.local.emit("queue", {
+                        queue: queue.queue,
+                        addedTracks: [],
+                        removedTracks: [track],
+                    });
+                }
+
+                if (states.data.playlist && states.data.playlist.tracks.items.length == 0) {
+                    // BUG: cant start a playlist that havent been intereacted with from a spotify client,
+                    // for example after emptying the playlist
+                    //play(true);
+                }
+
+                resolve(r);
+            })
+            .catch(r => {
+                reject(r);
+            });
+    });
 }
 
 function play(playPlaylist = false) {
@@ -474,12 +560,20 @@ function reloadPlaylist() {
 }
 
 function addToPlaylist(track) {
-    if (track) {
-        let uri = typeof track == "string" ? "spotify:track:" + track : track.uri;
-        playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(function() {
-            reloadPlaylist();
-        });
-    }
+    return new Promise((resolve, reject) => {
+        if (track) {
+            let uri = typeof track == "string" ? "spotify:track:" + track : track.uri;
+            playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(function() {
+                reloadPlaylist();
+                resolve();
+            }).catch(function(r) {
+                console.log(r.response.data);
+                reject(r);
+            });
+        } else {
+            reject();
+        }
+    });
 }
 
 function pollPlayerStatus() {
@@ -514,8 +608,40 @@ function pollPlayerStatus() {
 
         states.data.player = r.data;
 
+        if (player) {
+            let status = {
+                progress: getTimeString(player.progress_ms),
+                duration: "",
+                fraction: 0,
+            };
+            if (player.item) {
+                status.duration = getTimeString(player.item.duration_ms);
+                status.fraction = player.progress_ms / player.item.duration_ms;
+            }
+            sendEvent("player", {
+                isPlaying: player.is_playing,
+                track: player.item,
+                status: status,
+            });
+        }
+
         states.update();
     });
+}
+
+function getTimeString(ms) {
+    let s = Math.floor(ms / 1000);
+    let m = Math.floor(s / 60);
+    s -= m * 60;
+    return toNumberString(m) + ":" + toNumberString(s);
+}
+
+function toNumberString(n) {
+    let s = "" + n;
+    if (s.length == 1) {
+        s = "0" + s;
+    }
+    return s;
 }
 
 function sendEvent(type, data) {
@@ -595,7 +721,8 @@ function rebuildQueueOrder() {
 function saveQueue() {
     let json = JSON.stringify({
         currentTrack: getCurrentTrack(),
-        queue: queue.queue
+        queue: queue.queue,
+        backupPlaylist,
     });
     fs.writeFile(queueFile, json, 'utf8', function(err) {
         if (err) {

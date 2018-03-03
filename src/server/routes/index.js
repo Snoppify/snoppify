@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 
+const socket = require('../socket');
+
 const isAuthenticated = function(req, res, next) {
     // if user is authenticated in the session, call the next() to call the next request handler 
     // Passport adds this method to request object. A middleware is allowed to add properties to
@@ -36,8 +38,7 @@ module.exports = function(passport, spotify) {
                         refreshToken = e;
                         resolve();
                     });
-            }
-            else {
+            } else {
                 resolve();
             }
         }).then(function() {
@@ -75,6 +76,22 @@ module.exports = function(passport, spotify) {
         );
 
         return id;
+    }
+
+    function extractPlaylistId(string) {
+        let user, id;
+
+        [/spotify:user:(.+):playlist:(.+)/, /.?open.spotify.com\/user\/(.+)\/playlist\/(.+)/].find(
+            pattern => string.match(pattern) && (user = string.match(pattern)[1]) && (id = string.match(pattern)[2])
+        );
+
+        if (user && id) {
+            return {
+                user,
+                id
+            };
+        }
+        return null;
     }
 
     router.post("/queue-track", (req, res) => {
@@ -128,8 +145,7 @@ module.exports = function(passport, spotify) {
                         }
                     });
                 }).catch(errorHandler(res));
-        }
-        else {
+        } else {
             spotify.api.searchTracks(query)
                 .then(data => {
                     data.body.tracks.items = data.body.tracks.items.map(
@@ -139,6 +155,21 @@ module.exports = function(passport, spotify) {
                     res.send(data.body);
                 }).catch(errorHandler(res));
         }
+    });
+
+    router.post("/set-backup-playlist", (req, res) => {
+        if (!req.user.admin) {
+            res.status(401).end();
+        }
+
+        const playlist = extractPlaylistId(req.body.uri);
+
+        if (!playlist) {
+            res.status(400).end();
+        }
+
+        spotify.controller.setBackupPlaylist(playlist.user, playlist.id)
+            .then(successHandler(res)).catch(errorHandler(res));
     });
 
     router.get("/get-track", (req, res) => {
@@ -156,13 +187,8 @@ module.exports = function(passport, spotify) {
             .then(successHandler(res)).catch(errorHandler(res));
     });
 
-    router.post("/next", (req, res) => {
-        spotify.controller.next()
-            .then(successHandler(res)).catch(errorHandler(res));
-    });
-
-    router.post("/previous", (req, res) => {
-        spotify.controller.previous()
+    router.post("/play-next", (req, res) => {
+        spotify.controller.playNext()
             .then(successHandler(res)).catch(errorHandler(res));
     });
 
@@ -186,7 +212,18 @@ module.exports = function(passport, spotify) {
         res.json({
             queue: spotify.controller.getQueue(),
             currentTrack: spotify.controller.getCurrentTrack(),
+            backupPlaylist: spotify.controller.getBackupPlaylist(),
         })
+    });
+
+    router.post("/play-sound", (req, res) => {
+        socket.io.local.emit("event", {
+            type: "playSound",
+            data: {
+                sound: req.body.sound,
+            },
+        });
+        res.status(200).end();
     });
 
     router.get("/auth", (req, res) => {
@@ -194,8 +231,7 @@ module.exports = function(passport, spotify) {
         if (req.isAuthenticated() && req.user) {
             res.json(req.user);
             res.end();
-        }
-        else {
+        } else {
             res.sendStatus(403);
         }
     });

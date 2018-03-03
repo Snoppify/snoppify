@@ -1,6 +1,23 @@
 import Vue from "vue";
 import api from "../api";
 
+import {
+    Howler,
+    Howl
+} from 'howler';
+
+Howler.volume(1);
+
+var sounds = {
+    'honk': ['sounds/honk.wav'],
+};
+let howls = {};
+for (let k in sounds) {
+    howls[k] = new Howl({
+        src: sounds[k]
+    });
+}
+
 export default {
     namespaced: true,
 
@@ -33,7 +50,14 @@ export default {
                         html: "<p>Playing your song:</p>" +
                             "<p><b>" + event.data.track.name + "</b></p>" +
                             "<p>(" + event.data.track.artists[0].name + ")</p>",
+                        duration: 10,
                     });
+                    break;
+                case "playSound":
+                    let sound = howls[event.data.sound];
+                    if (sound) {
+                        sound.play();
+                    }
                     break;
             }
         },

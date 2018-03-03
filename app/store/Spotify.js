@@ -9,12 +9,14 @@ export default {
         tracks: {},
         currentTrack: {},
         queue: [],
+        player: {},
     },
 
     getters: {
         connected: state => state.isConnected,
         result: state => state.storedResult,
         track: state => id => state.tracks[id],
+        player: state => state.player,
     },
 
     mutations: {
@@ -29,6 +31,14 @@ export default {
         SOCKET_GETTRACK(state, message) {
             var track = JSON.parse(message);
             Vue.set(state.tracks, track.id, track);
+        },
+
+        SOCKET_EVENT(state, event) {
+            switch (event.type) {
+                case "player":
+                    state.player = event.data;
+                    break;
+            }
         },
     },
 

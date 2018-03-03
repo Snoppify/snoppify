@@ -25,6 +25,7 @@ export default {
     this.getInfo().then(res => {
       this.$store.commit("Queue/SET_QUEUE", res.queue);
       this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
+      this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);
     });
 
   },
@@ -40,6 +41,11 @@ export default {
 <style lang="scss">
 @import "../assets/variables.scss";
 @import "../assets/styles.scss";
+
+div, span, button {
+  user-select: none;
+  outline: none;
+}
 
 body {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
@@ -107,7 +113,7 @@ h2 {
   transform-style: preserve-3d;
 }
 
-$page-transition-speed: 0.7s;
+$page-transition-speed: 0.4s;
 
 .route-container {
   position: absolute;
@@ -116,6 +122,7 @@ $page-transition-speed: 0.7s;
   width: 100%;
   height: 100%;
   box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
+  overflow-x: hidden;
   overflow-y: auto;
   background: $background;
 
@@ -146,6 +153,10 @@ button {
 
   border: none;
   border-radius: 2px;
+
+  &:active {
+    background: #999;
+  }
 }
 
 .snopp {

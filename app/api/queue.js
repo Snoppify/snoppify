@@ -1,4 +1,9 @@
 module.exports = (axios) => ({
+    setBackupPlaylist: function(uri) {
+        return axios.post("/set-backup-playlist", {
+            uri
+        });
+    },
     queueTrack: function(trackId) {
         return axios.post("/queue-track", {
             trackId
@@ -31,8 +36,8 @@ module.exports = (axios) => ({
     previous: function() {
         return axios.post("/previous");
     },
-    next: function() {
-        return axios.post("/next");
+    playNext: function() {
+        return axios.post("/play-next");
     },
     emptyPlaylist: function() {
         return axios.post("/empty-playlist");

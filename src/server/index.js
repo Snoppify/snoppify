@@ -81,7 +81,9 @@ app.use(fallback('index.html', {
 io.on("connection", (socket) => {
     console.log("we got a live one", socket.id, socket.handshake.session.passport);
 
-    sockets[socket.handshake.session.passport.user] = socket;
+    if (socket.handshake.session.passport) {
+        sockets[socket.handshake.session.passport.user] = socket;
+    }
 
     socket.on("search", (string) => {
         const extractedId = extractId(string);
