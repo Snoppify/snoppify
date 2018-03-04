@@ -61,7 +61,7 @@
       <input type="submit" value="Logout" class="snopp-btn" />
     </form>
 
-    <button v-for="sound in ['honk', 'applause','orgasm','whistle','yeah','wilhelm','airhorn']" v-on:click="playSound(sound)" class="snopp-btn">Play '{{sound}}'</button>
+    <button v-for="sound in ['honk', 'applause', 'orgasm', 'whistle', 'yeah', 'wilhelm', 'airhorn', 'brrrap', 'rastafari']" v-on:click="playSound(sound)" class="snopp-btn">Play '{{sound}}'</button>
 
     <div v-if="user.admin">
       <button v-on:click="play">Play</button>

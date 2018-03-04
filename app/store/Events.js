@@ -17,6 +17,8 @@ var sounds = {
     'yeah': ["sounds/yeah.wav"],
     'wilhelm': ["sounds/wilhelm.wav"],
     'airhorn': ["sounds/airhorn.wav"],
+    'brrrap': ["sounds/brrrap.wav"],
+    'rastafari': ["sounds/rastafari.wav"],
 
 };
 let howls = {};
