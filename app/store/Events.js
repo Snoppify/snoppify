@@ -4,12 +4,20 @@ import api from "../api";
 import {
     Howler,
     Howl
-} from 'howler';
+}
+from 'howler';
 
 Howler.volume(1);
 
 var sounds = {
     'honk': ['sounds/honk.wav'],
+    'applause': ["sounds/applause.wav"],
+    'orgasm': ["sounds/orgasm.wav"],
+    'whistle': ["sounds/whistle.wav"],
+    'yeah': ["sounds/yeah.wav"],
+    'wilhelm': ["sounds/wilhelm.wav"],
+    'airhorn': ["sounds/airhorn.wav"],
+
 };
 let howls = {};
 for (let k in sounds) {

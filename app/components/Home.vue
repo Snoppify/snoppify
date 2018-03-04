@@ -37,8 +37,7 @@
 
     <div class="progress" v-if="player.status">
       <div class="progress_inner">
-        <div class="progress_inner_bar"
-          v-bind:style="{width: (100*player.status.fraction)+'%'}">
+        <div class="progress_inner_bar" v-bind:style="{width: (100*player.status.fraction)+'%'}">
         </div>
       </div>
       <div class="progress_status">
@@ -54,11 +53,15 @@
       </li>
     </transition-group>
 
-    <p>Logged in as <b>{{user.displayName}}</b></p>
+    <p>Logged in as
+      <b>{{user.displayName}}</b>
+    </p>
 
     <form action="/logout">
       <input type="submit" value="Logout" class="snopp-btn" />
     </form>
+
+    <button v-for="sound in ['honk', 'applause','orgasm','whistle','yeah','wilhelm','airhorn']" v-on:click="playSound(sound)" class="snopp-btn">Play '{{sound}}'</button>
 
     <div v-if="user.admin">
       <button v-on:click="play">Play</button>
@@ -70,14 +73,14 @@
       <button v-on:click="emptyQueue">Empty queue</button>
 
       <br/>
-      <button v-on:click="playSound('honk')">Play 'honk'</button>
 
       <form v-on:submit.prevent="setBackupPlaylist(backupUrl)">
         <input v-model="backupUrl" placeholder="Paste a playlist uri">
         <button type="submit">Set</button>
       </form>
       <p>Backup playlist:
-        <span v-if="backupPlaylist"><b>{{backupPlaylist.name}}</b> ({{backupPlaylist.owner.display_name}})</span>
+        <span v-if="backupPlaylist">
+          <b>{{backupPlaylist.name}}</b> ({{backupPlaylist.owner.display_name}})</span>
         <span v-else>(not set)</span>
       </p>
     </div>
