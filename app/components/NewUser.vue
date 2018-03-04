@@ -1,15 +1,16 @@
 <template>
-<div id="new-user" class="route-container">
-	<h1>SNOPPIFY</h1>
-	<!-- <p>sign up, BIIGGHHHCC</p>
+  <div id="new-user" class="route-container">
+    <img src="./snopp-logo.png" alt="Snoppify logo" class="logo">
+    <!-- <h1>SNOPPIFY</h1> -->
+    <!-- <p>sign up, BIIGGHHHCC</p>
 	<form v-on:submit.prevent="createUser">
 		<input type="text" v-model="username">
 		<button>GO!</button>
 	</form> -->
-  <form action="/auth/facebook" class="facebook-auth">
-    <input type="submit" value="Login with Facebook" />
-  </form>
-</div>
+    <form action="/auth/facebook" class="facebook-auth">
+      <input type="submit" value="Login with Facebook" />
+    </form>
+  </div>
 </template>
 
 <script>
@@ -17,7 +18,7 @@ import api from "../api";
 
 export default {
   data: () => ({
-    username: ""
+    username: "",
   }),
 
   methods: {
@@ -29,16 +30,22 @@ export default {
           this.$router.push("/");
         })
         .catch(err => console.log(err));
-    }
+    },
   },
 
   created() {},
 
-  computed: {}
+  computed: {},
 };
 </script>
 
 <style lang="scss">
+.logo {
+  width: 75%;
+  display: block;
+  margin: 3em auto;
+}
+
 .vote-hr {
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   margin: 1em;
