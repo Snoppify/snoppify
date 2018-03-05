@@ -12,6 +12,9 @@ from './store'
 // global components
 import TrackItem from "./components/TrackItem";
 
+import VueD3 from 'vue-d3'
+Vue.use(VueD3)
+
 // Remove the ugly Facebook appended hash
 // <https://github.com/jaredhanson/passport-facebook/issues/12>
 if (window.location.hash && window.location.hash === "#_=_") {

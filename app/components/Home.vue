@@ -54,6 +54,14 @@
       </li>
     </transition-group>
 
+    <div class="navigation-buttons">
+      <router-link to="stats" tag="button"
+        class="snopp-btn snopp-btn--light snopp-btn--block"
+        >Stats</router-link>
+    </div>
+
+    <hr/>
+
     <p>Logged in as <b>{{user.displayName}}</b></p>
 
     <form action="/logout">
@@ -301,6 +309,16 @@ $current-track__border-radius: 4px;
 
     max-width: $progress_width;
     margin: 3px auto;
+  }
+}
+
+.navigation-buttons {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5em 1em;
+
+  .snopp-btn.snopp-btn--block {
+      display: block;
   }
 }
 </style>

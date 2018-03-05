@@ -10,6 +10,7 @@ import api from "./api";
 import Home from './components/Home'
 import Track from './components/Track'
 import NewUser from "./components/NewUser"
+import Stats from './components/Stats'
 import Fingerprint from "./components/Fingerprint"
 import NotFound from './components/NotFound'
 
@@ -36,6 +37,11 @@ const routes = [{
             next();
         })
     }
+}, {
+    path: '/stats',
+    name: 'stats',
+    component: Stats,
+    props: true,
 }, {
     path: "/fp",
     name: "fingerprint",
