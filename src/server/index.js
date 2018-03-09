@@ -8,7 +8,6 @@ const express = require('express'),
     bodyParser = require("body-parser"),
     cookieParser = require("cookie-parser");
 const fs = require('fs');
-const auth = require("./auth");
 
 const http = require('http').Server(app);
 
@@ -27,6 +26,18 @@ const passport = require('passport');
 const rootDir = __dirname + '/../../public';
 
 const cookieparser = cookieParser();
+
+
+// save this, don't know if it can be useful in teh future
+// app.use(function(req, res, next) {
+//     let ip = require('ip').address();
+
+//     res.header("Access-Control-Allow-Origin", `http://${ip}:3000`);
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//     res.header("Access-Control-Allow-Credentials", "true");
+//     next();
+// });
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -52,11 +63,8 @@ let passportsession = passport.session();
 app.use(passportsession);
 
 io.use(sharedsession(mysession));
-// old session
-//auth.init(app, session, FileStore);
 
 require('./auth/passport')(passport);
-//require('./auth/routes')(app, passport);
 
 require('express-debug')(app, {});
 
@@ -95,7 +103,8 @@ io.on("connection", (socket) => {
                         items: data.body.tracks[0] ? [data.body.tracks[0]] : []
                     }
                 })));
-        } else {
+        }
+        else {
             spotify.api.searchTracks(string)
                 .then(data => socket.emit("search", JSON.stringify(data.body)));
         }
@@ -131,7 +140,8 @@ http.listen(3000, () => {
     hostile.set(domain, 'snoppi.fy', function(err) {
         if (err) {
             console.log(err);
-        } else {
+        }
+        else {
             console.log('added: ' + domain);
         }
     });
