@@ -7,8 +7,12 @@
 		<input type="text" v-model="username">
 		<button>GO!</button>
 	</form> -->
-    <form action="/auth/facebook" class="facebook-auth">
-      <input type="submit" value="Login with Facebook" />
+    <h1>Sign in with</h1>
+    <form action="/auth/facebook" class="auth auth--facebook">
+      <input type="submit" value="Facebook" />
+    </form>
+    <form action="/auth/spotify" class="auth auth--spotify">
+      <input type="submit" value="Spotify" />
     </form>
   </div>
 </template>
@@ -40,6 +44,8 @@ export default {
 </script>
 
 <style lang="scss">
+@import "../assets/variables.scss";
+
 .logo {
   width: 75%;
   display: block;
@@ -71,19 +77,28 @@ export default {
   }
 }
 
-.facebook-auth {
-  padding: 2em 0;
+.auth {
+  padding: 1em 0 0;
   text-align: center;
 
   input {
-    background: #4266b2;
-    color: white;
     border: none;
     border-radius: 4px;
     padding: 1em 1.4em;
     font-size: 1.3em;
     font-weight: bold;
     cursor: pointer;
+    width: 80%;
+  }
+
+  &--facebook input {
+    background: #4266b2;
+    color: white;
+  }
+
+  &--spotify input {
+    background: #1db954;
+    color: white;
   }
 }
 

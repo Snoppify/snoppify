@@ -38,8 +38,7 @@ module.exports = function(passport, spotify) {
                         refreshToken = e;
                         resolve();
                     });
-            }
-            else {
+            } else {
                 resolve();
             }
         }).then(function() {
@@ -146,8 +145,7 @@ module.exports = function(passport, spotify) {
                         }
                     });
                 }).catch(errorHandler(res));
-        }
-        else {
+        } else {
             spotify.api.searchTracks(query)
                 .then(data => {
                     data.body.tracks.items = data.body.tracks.items.map(
@@ -233,8 +231,7 @@ module.exports = function(passport, spotify) {
         if (req.isAuthenticated() && req.user) {
             res.json(req.user);
             res.end();
-        }
-        else {
+        } else {
             res.sendStatus(403);
         }
     });
@@ -266,6 +263,22 @@ module.exports = function(passport, spotify) {
     // handle the callback after facebook has authenticated the user
     router.get('/auth/facebook/callback',
         passport.authenticate('facebook', {
+            successRedirect: '/',
+            failureRedirect: '/new-user'
+        })
+    );
+
+    // route for spotify authentication and login
+    // different scopes while logging in
+    router.get('/auth/spotify',
+        passport.authenticate('spotify', {
+            scope: ['user-read-email', 'user-read-private']
+        })
+    );
+
+    // handle the callback after spotify has authenticated the user
+    router.get('/auth/spotify/callback',
+        passport.authenticate('spotify', {
             successRedirect: '/',
             failureRedirect: '/new-user'
         })
