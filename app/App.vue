@@ -18,7 +18,7 @@ import Messages from "./components/Messages";
 
 export default {
   components: {
-    messages: Messages
+    messages: Messages,
   },
 
   created() {
@@ -27,7 +27,6 @@ export default {
       this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
       this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);
     });
-
   },
 
   methods: {
@@ -42,7 +41,9 @@ export default {
 @import "../assets/variables.scss";
 @import "../assets/styles.scss";
 
-div, span, button {
+div,
+span,
+button {
   user-select: none;
   outline: none;
 }
@@ -103,6 +104,9 @@ h2 {
   flex-direction: column;
   width: 100%;
   height: 100%;
+  max-width: 500px;
+  margin: auto;
+  box-shadow: 0 0 30px 7px black;
 }
 
 .app-body {
