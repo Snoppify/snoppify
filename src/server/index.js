@@ -103,8 +103,7 @@ io.on("connection", (socket) => {
                         items: data.body.tracks[0] ? [data.body.tracks[0]] : []
                     }
                 })));
-        }
-        else {
+        } else {
             spotify.api.searchTracks(string)
                 .then(data => socket.emit("search", JSON.stringify(data.body)));
         }
@@ -131,19 +130,8 @@ io.on("connection", (socket) => {
 http.listen(3000, () => {
 
     let ip = require('ip').address();
-    const hostile = require('hostile');
 
     console.log(`Serving http://${ip}:3000`);
     console.log(`(Remember to set the environment variable 'export SERVER_IP=${ip}'\n`);
-
-    let domain = ip;
-    hostile.set(domain, 'snoppi.fy', function(err) {
-        if (err) {
-            console.log(err);
-        }
-        else {
-            console.log('added: ' + domain);
-        }
-    });
 
 })
