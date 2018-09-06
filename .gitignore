@@ -19,3 +19,23 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
+
+# dotenv environment variables file
+.env
+
+# client serve directory
+public/
+
+# server sessions
+sessions/
+
+# queues etc.
+data/
+
+# Snoppify
+snoppify-config.js
+
+# editorconfigs
+.vscode
+.jsbeautifyrc
+jsconfig.json
