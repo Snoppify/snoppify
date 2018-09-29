@@ -23,7 +23,7 @@ const fallback = require('express-history-api-fallback');
 const passport = require('passport');
 
 // consts
-const rootDir = __dirname + '/../../public';
+const rootDir = require("app-root-path") + "/dist";
 
 const cookieparser = cookieParser();
 

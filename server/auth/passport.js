@@ -3,24 +3,26 @@ const SpotifyStrategy = require('passport-spotify').Strategy;
 
 const User = require('../models/user');
 
+const appRoot = require("app-root-path");
+
 // load the auth variables
 let config = {};
 try {
-    config = require("../../../snoppify-config.js");
+    config = require(appRoot + "/snoppify-config.js");
 } catch (ex) {
     console.log("No snoppify config file");
 }
 
-module.exports = function(passport) {
+module.exports = function (passport) {
 
     // used to serialize the user for the session
-    passport.serializeUser(function(user, done) {
+    passport.serializeUser(function (user, done) {
         done(null, user.id);
     });
 
     // used to deserialize the user
-    passport.deserializeUser(function(id, done) {
-        User.find(id, function(err, user) {
+    passport.deserializeUser(function (id, done) {
+        User.find(id, function (err, user) {
             done(err, user);
         });
     });
@@ -50,7 +52,7 @@ module.exports = function(passport) {
         },
 
         // facebook will send back the token and profile
-        function(token, refreshToken, profile, done) {
+        function (token, refreshToken, profile, done) {
 
             // asynchronous
             process.nextTick(() => {
@@ -78,7 +80,7 @@ module.exports = function(passport) {
             callbackURL: config.spotifyAuth.callbackURL,
         },
 
-        function(accessToken, refreshToken, expires_in, profile, done) {
+        function (accessToken, refreshToken, expires_in, profile, done) {
             findOrCreateUser({
                 id: profile.id,
                 token: accessToken,
@@ -95,7 +97,7 @@ module.exports = function(passport) {
 
 function findOrCreateUser(data, done) {
     // find the user in the database based on their facebook id
-    User.find(data.id, function(err, user) {
+    User.find(data.id, function (err, user) {
 
         // if there is an error, stop everything and return that
         // ie an error connecting to the database
@@ -111,7 +113,7 @@ function findOrCreateUser(data, done) {
             var newUser = new User(data);
 
             // save our user to the database
-            newUser.save(function(err) {
+            newUser.save(function (err) {
                 if (err) {
                     throw err;
                 }

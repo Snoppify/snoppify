@@ -1,9 +1,10 @@
 const SpotifyWebApi = require("spotify-web-api-node");
+const appRoot = require("app-root-path");
 
 let config = {};
 
 try {
-    config = require("../../../snoppify-config.js");
+    config = require(appRoot + "/snoppify-config.js");
 
     if (config.client_id && config.client_secret) {
         config.auth_token = new Buffer(config.client_id + ":" + config.client_secret).toString('base64');
@@ -13,23 +14,23 @@ try {
 }
 
 const api = new SpotifyWebApi({
-    redirectUri: "http://192.168.57.201:3000/refresh-token",
+    redirectUri: "http://localhost:3000/refresh-token",
     clientId: config.client_id,
     clientSecret: config.client_secret,
 });
 
 api.config = config;
 
-api.onload = new Promise(function(resolve, reject) {
+api.onload = new Promise(function (resolve, reject) {
 
-    api.clientCredentialsGrant().then(function(data) {
+    api.clientCredentialsGrant().then(function (data) {
         // Save the access token so that it's used in future calls
         api.setAccessToken(data.body['access_token']);
 
         refreshAccessToken();
 
         resolve();
-    }, function(err) {
+    }, function (err) {
         console.log('Something went wrong when retrieving an access token', err);
 
         reject();
@@ -38,12 +39,12 @@ api.onload = new Promise(function(resolve, reject) {
 });
 
 function refreshAccessToken() {
-    setInterval(function() {
-        api.clientCredentialsGrant().then(function(data) {
+    setInterval(function () {
+        api.clientCredentialsGrant().then(function (data) {
             console.log("Updated access_token:", data.body.access_token);
             // Save the access token so that it's used in future calls
             api.setAccessToken(data.body.access_token);
-        }, function(err) {
+        }, function (err) {
             console.log('Something went wrong when retrieving an access token', err);
         });
     }, 3000 * 1000);
