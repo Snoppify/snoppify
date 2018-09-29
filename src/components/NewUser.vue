@@ -8,10 +8,10 @@
 		<button>GO!</button>
 	</form> -->
     <h1>Sign in with</h1>
-    <form action="/auth/facebook" class="auth auth--facebook">
+    <form v-bind:action="authUrls.facebook" class="auth auth--facebook">
       <input type="submit" value="Facebook" />
     </form>
-    <form action="/auth/spotify" class="auth auth--spotify">
+    <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
       <input type="submit" value="Spotify" />
     </form>
   </div>
@@ -22,7 +22,11 @@ import api from "../api";
 
 export default {
   data: () => ({
-    username: ""
+    username: "",
+    authUrls: {
+      facebook: api.axios.defaults.baseURL + "/auth/facebook",
+      spotify: api.axios.defaults.baseURL + "/auth/spotify"
+    }
   }),
 
   methods: {

@@ -30,4 +30,5 @@ export default {
     queue: queue(_axios),
     misc: misc(_axios),
     spotify: spotify(_axios),
+    axios: _axios,
 };
