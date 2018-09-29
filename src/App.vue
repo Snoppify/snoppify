@@ -128,6 +128,7 @@ $page-transition-speed: 0.4s;
   box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
   overflow-x: hidden;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: $background;
 
   transition: all $page-transition-speed cubic-bezier(0.195, 0.945, 0.485, 1);
