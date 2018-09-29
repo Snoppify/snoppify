@@ -5,7 +5,15 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "server": "node server/",
+    "watch-server": "npm-watch server"
+  },
+  "watch": {
+    "server": {
+      "patterns": ["server", "snoppify-config.js", ".env"]
+    },
+    "quiet": false
   },
   "dependencies": {
     "app-root-path": "^2.1.0",
@@ -25,7 +33,7 @@
     "passport-spotify": "^1.0.1",
     "session-file-store": "^1.2.0",
     "socket.io": "^2.1.1",
-    "spotify-web-api-node": "^4.0.0",
+    "spotify-web-api-node": "^2.5.0",
     "vue": "^2.5.17",
     "vue-router": "^3.0.1",
     "vue-socket.io": "^2.1.1-b",
@@ -36,6 +44,7 @@
     "@vue/cli-plugin-eslint": "^3.0.4",
     "@vue/cli-service": "^3.0.4",
     "node-sass": "^4.9.0",
+    "npm-watch": "^0.4.0",
     "sass-loader": "^7.0.1",
     "vue-template-compiler": "^2.5.17"
   }
