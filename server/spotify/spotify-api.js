@@ -3,6 +3,8 @@ const appRoot = require("app-root-path");
 
 let config = {};
 
+console.log("get me an api!");
+
 try {
     config = require(appRoot + "/snoppify-config.js");
 
@@ -10,7 +12,7 @@ try {
         config.auth_token = new Buffer(config.client_id + ":" + config.client_secret).toString('base64');
     }
 } catch (ex) {
-    console.log("No snoppify config file");
+    throw new Error("No snoppify config file");
 }
 
 const api = new SpotifyWebApi({
@@ -19,24 +21,26 @@ const api = new SpotifyWebApi({
     clientSecret: config.client_secret,
 });
 
-api.config = config;
+api.init = () => {
+    api.config = config;
 
-api.onload = new Promise(function (resolve, reject) {
+    api.onload = new Promise(function (resolve, reject) {
 
-    api.clientCredentialsGrant().then(function (data) {
-        // Save the access token so that it's used in future calls
-        api.setAccessToken(data.body['access_token']);
+        api.clientCredentialsGrant().then(function (data) {
+            // Save the access token so that it's used in future calls
+            api.setAccessToken(data.body['access_token']);
 
-        refreshAccessToken();
+            refreshAccessToken();
 
-        resolve();
-    }, function (err) {
-        console.log('Something went wrong when retrieving an access token', err);
+            resolve();
+        }, function (err) {
+            console.log('Something went wrong when retrieving an access token', err);
 
-        reject();
+            reject();
+        });
+
     });
-
-});
+};
 
 function refreshAccessToken() {
     setInterval(function () {

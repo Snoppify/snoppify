@@ -35,6 +35,8 @@ module.exports = function (passport) {
         return;
     }
 
+    console.log("(passport.js): Faebook auth:", config.facebookAuth);
+
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
@@ -48,7 +50,6 @@ module.exports = function (passport) {
                 'name', 'displayName',
                 'emails', 'photos'
             ]
-
         },
 
         // facebook will send back the token and profile

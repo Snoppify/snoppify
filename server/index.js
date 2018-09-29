@@ -18,9 +18,7 @@ const io = socket.io;
 const sockets = socket.sockets;
 
 const spotify = require('./spotify');
-
 const fallback = require('express-history-api-fallback');
-
 const passport = require('passport');
 
 // consts
@@ -66,11 +64,26 @@ app.use(passportsession);
 io.use(sharedsession(mysession));
 
 require('./auth/passport')(passport);
-
 require('express-debug')(app, {});
 
 var routes = require('./routes/index')(passport, spotify);
 app.use('/', routes);
+
+const startHosting = (() => {
+    let isHosting = false;
+
+    return () => {
+        if (isHosting) {
+            return;
+        }
+        
+        spotify.init();
+    };
+})();
+app.use("/start-host", (_, res) => {
+    startHosting();
+    res.send("Host started");
+});
 
 app.use(fallback('index.html', {
     root: rootDir
@@ -125,15 +138,12 @@ io.on("connection", (socket) => {
                 socket.emit("getTrack", null);
             });
     });
-
 });
 
 const port = args.p || 3000;
 http.listen(port, () => {
-
     let ip = require('ip').address();
 
     console.log(`Serving http://${ip}:${port}`);
     console.log(`(Remember to set the environment variable 'export SERVER_IP=${ip}'\n`);
-
-})
+});
