@@ -8,6 +8,7 @@ const express = require('express'),
     bodyParser = require("body-parser"),
     cookieParser = require("cookie-parser");
 const fs = require('fs');
+const args = require('minimist')(process.argv);
 
 const http = require('http').Server(app);
 
@@ -32,7 +33,7 @@ const cookieparser = cookieParser();
 // app.use(function(req, res, next) {
 //     let ip = require('ip').address();
 
-//     res.header("Access-Control-Allow-Origin", `http://${ip}:3000`);
+//     res.header("Access-Control-Allow-Origin", `http://localhost:8080`);
 //     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 //     res.header("Access-Control-Allow-Credentials", "true");
 //     next();
@@ -127,11 +128,12 @@ io.on("connection", (socket) => {
 
 });
 
-http.listen(3000, () => {
+const port = args.p || 3000;
+http.listen(port, () => {
 
     let ip = require('ip').address();
 
-    console.log(`Serving http://${ip}:3000`);
+    console.log(`Serving http://${ip}:${port}`);
     console.log(`(Remember to set the environment variable 'export SERVER_IP=${ip}'\n`);
 
 })

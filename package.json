@@ -11,7 +11,11 @@
   },
   "watch": {
     "server": {
-      "patterns": ["server", "snoppify-config.js", ".env"]
+      "patterns": [
+        "server",
+        "snoppify-config.js",
+        ".env"
+      ]
     },
     "quiet": false
   },
@@ -43,6 +47,7 @@
     "@vue/cli-plugin-babel": "^3.0.4",
     "@vue/cli-plugin-eslint": "^3.0.4",
     "@vue/cli-service": "^3.0.4",
+    "minimist": "^1.2.0",
     "node-sass": "^4.9.0",
     "npm-watch": "^0.4.0",
     "sass-loader": "^7.0.1",
