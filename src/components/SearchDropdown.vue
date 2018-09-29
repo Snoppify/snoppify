@@ -24,7 +24,7 @@
         </ul>
       </div>
       <div v-show="loading" class="search-results__info">
-        <img src="spinner.svg" alt="LOADING SPINER" class="search-results__spinner">
+        <img src="@/assets/spinner.svg" alt="LOADING SPINER" class="search-results__spinner">
       </div>
     </div>
   </div>
