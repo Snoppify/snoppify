@@ -3,32 +3,58 @@ import auth from "./auth";
 import queue from "./queue";
 import misc from "./misc";
 import spotify from "./spotify";
-import { store } from '@/store';
+import {
+    store
+} from '@/store';
+import storage from "@/common/device-storage";
 
-const _axios = axios.create({
-    baseURL: 'http://' + (process.env.VUE_APP_SERVER_IP || 'snoppi.fy') + ':3000',
-    timeout: 5000,
-    withCredentials: true,
-});
+const api = {
+    auth: null,
+    queue: null,
+    misc: null,
+    spotify: null,
+    axios: null,
+    initialized: false,
+    init,
+}
 
-_axios.interceptors.response.use(
-    response => response.data,
-    err => {
-        if (err && err.response && err.response.data && err.response.data.error) {
-            store.dispatch("Messages/toast", {
-                type: "alert",
-                message: err.response.data.error,
-                duration: 2,
-            });
+const serverIP = storage.get("serverIP");
+if (serverIP) {
+    console.log("Got server ip from localstorage: ", serverIP);
+    api.init(serverIP);
+}
+
+function init(serverIP) {
+    storage.set("serverIP", serverIP);
+
+    const _axios = axios.create({
+        baseURL: 'http://' + serverIP + ':3000',
+        timeout: 5000,
+        withCredentials: true,
+    });
+
+    _axios.interceptors.response.use(
+        response => response.data,
+        err => {
+            if (err && err.response && err.response.data && err.response.data.error) {
+                store.dispatch("Messages/toast", {
+                    type: "alert",
+                    message: err.response.data.error,
+                    duration: 2,
+                });
+            }
+            return Promise.reject(err);
         }
-        return Promise.reject(err);
-    }
-);
+    );
 
-export default {
-    auth: auth(_axios),
-    queue: queue(_axios),
-    misc: misc(_axios),
-    spotify: spotify(_axios),
-    axios: _axios,
+    Object.assign(api, {
+        auth: auth(_axios),
+        queue: queue(_axios),
+        misc: misc(_axios),
+        spotify: spotify(_axios),
+        axios: _axios,
+        initialized: true,
+    });
 };
+
+export default api;

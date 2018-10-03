@@ -16,50 +16,24 @@ import Welcome from './components/Welcome'
 
 Vue.use(VueRouter)
 
-const routes = [{
-    path: "/welcome",
-    name: "welcome",
-    component: Welcome,
-}, {
-    path: '/',
-    name: 'home',
-    component: Home
-}, {
-    path: '/track/:id',
-    name: 'track',
-    component: Track,
-    props: true,
-}, {
-    path: "/new-user",
-    name: "newUser",
-    component: NewUser,
-    beforeEnter: (to, from, next) => {
+/**
+ * Only allows pages to be visited if the user can not be authed.
+ * Otherwise redirects to "/"
+ */
+const nonauthGuard = (to, from, next) => {
+    if (api.initialized) {
         api.auth.auth().then(sessData => {
             store.commit("Session/SET_SESSION", sessData);
             next("/");
         }).catch(() => {
             next();
         })
+    } else {
+        next();
     }
-}, {
-    path: "/fp",
-    name: "fingerprint",
-    component: Fingerprint,
-}, {
-    path: '*',
-    component: NotFound
-}]
+};
 
-const router = new VueRouter({
-    routes,
-    mode: 'history',
-});
-
-router.beforeEach((to, from, next) => {
-    if (to.name === "newUser" || to.name === "welcome") {
-        return next();
-    }
-
+const authGuard = (to, from, next) => {
     if (store.getters["Session/username"]) {
         return next();
     } else {
@@ -67,9 +41,46 @@ router.beforeEach((to, from, next) => {
             store.commit("Session/SET_SESSION", sessData);
             return next();
         }).catch(() => {
-            return next("/new-user");
+            return next("/welcome");
         })
     }
+};
+
+const routes = [{
+    path: "/welcome",
+    name: "welcome",
+    component: Welcome,
+    beforeEnter: nonauthGuard,
+}, {
+    path: '/',
+    name: 'home',
+    beforeEnter: authGuard,
+    component: Home,
+}, {
+    path: '/track/:id',
+    name: 'track',
+    component: Track,
+    beforeEnter: authGuard,
+    props: true,
+}, {
+    path: "/new-user",
+    name: "newUser",
+    component: NewUser,
+    beforeEnter: nonauthGuard
+}, {
+    path: "/fp",
+    name: "fingerprint",
+    beforeEnter: authGuard,
+    component: Fingerprint,
+}, {
+    path: '*',
+    beforeEnter: authGuard,
+    component: NotFound,
+}]
+
+const router = new VueRouter({
+    routes,
+    mode: 'history',
 });
 
 export default router;

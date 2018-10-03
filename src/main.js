@@ -8,6 +8,8 @@ import {
     store
 }
 from './store'
+import api from "./api";
+import storage from "./common/device-storage";
 
 // global components
 import TrackItem from "./components/TrackItem";
@@ -31,21 +33,21 @@ if (window.location.hash && window.location.hash === "#_=_") {
 }
 
 // Redirect in case of auth
-const href = window.location.href;
-if (href.includes("?authcallback")) {
-    const params = new URLSearchParams(href.substr(href.indexOf("?") + 1));
-    const newParams = new URLSearchParams();
+// const href = window.location.href;
+// if (href.includes("?authcallback")) {
+//     const params = new URLSearchParams(href.substr(href.indexOf("?") + 1));
+//     const newParams = new URLSearchParams();
 
-    switch (params.get("type")) {
-        case "facebook":
+//     switch (params.get("type")) {
+//         case "facebook":
 
-            break;
-    }
+//             break;
+//     }
 
-    console.log(params);
+//     console.log(params);
 
-    window.location.href="http://"+PROCESS.env
-}
+//     window.location.href = "http://" + PROCESS.env
+// }
 
 new Vue({
     el: '#app',
@@ -54,6 +56,7 @@ new Vue({
     },
     beforeCreate() {
         store.commit('init');
+        // TODO: Move to after the server has been found
         store.commit('setSocket', this.$socket);
     },
     render: h => h(App),
@@ -63,4 +66,5 @@ new Vue({
 
 Vue.component("track-item", TrackItem);
 
-socket.init();
+// TODO: Move to after the server has been found
+socket.init("localhost");

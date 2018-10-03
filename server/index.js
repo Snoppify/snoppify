@@ -28,14 +28,14 @@ const cookieparser = cookieParser();
 
 
 // save this, don't know if it can be useful in teh future
-// app.use(function(req, res, next) {
-//     let ip = require('ip').address();
+app.use(function (req, res, next) {
+    let ip = require('ip').address();
 
-//     res.header("Access-Control-Allow-Origin", `http://localhost:8080`);
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     res.header("Access-Control-Allow-Credentials", "true");
-//     next();
-// });
+    res.header("Access-Control-Allow-Origin", `http://localhost:3000`);
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Credentials", "true");
+    next();
+});
 
 
 app.use(bodyParser.json());
@@ -68,21 +68,28 @@ require('express-debug')(app, {});
 
 var routes = require('./routes/index')(passport, spotify);
 app.use('/', routes);
+let isHosting = false;
 
 const startHosting = (() => {
-    let isHosting = false;
-
     return () => {
         if (isHosting) {
             return;
         }
-        
+
+        isHosting = true;
         spotify.init();
     };
 })();
 app.use("/start-host", (_, res) => {
     startHosting();
     res.send("Host started");
+
+});
+
+app.use("/ping", (_, res) => {
+    res.json({
+        isHost: isHosting
+    });
 });
 
 app.use(fallback('index.html', {

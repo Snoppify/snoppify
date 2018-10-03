@@ -6,7 +6,7 @@ import {
 } from './store';
 
 export default {
-    init: () => {
-        // Vue.use(VueSocketio, 'http://' + (process.env.VUE_APP_SERVER_IP || 'snoppi.fy') + ':3000', store);
+    init: (serverIP) => {
+        Vue.use(VueSocketio, 'http://' + serverIP + ':3000', store);
     }
 }

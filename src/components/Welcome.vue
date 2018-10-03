@@ -26,7 +26,8 @@
 
 <script>
 import getIP from "@/common/get-ip";
-import io from "socket.io-client";
+import api from "@/api";
+import storage from "@/common/device-storage";
 
 export default {
   data: () => ({
@@ -47,7 +48,7 @@ export default {
       const totalStart = Date.now();
 
       getIP().then(ip => {
-        console.log("got ip:", ip, io);
+        console.log("got ip:", ip);
         var _ip = ip.substr(0, ip.lastIndexOf(".") + 1);
 
         this.timeSpentScanning = ((Date.now() - totalStart) / 1000).toFixed(1);
@@ -58,48 +59,62 @@ export default {
         }, 191);
 
         let attempts = 0;
+        const port = "3000";
+        const controller = new AbortController();
 
-        const doSocket = index => {
-          const port = "3000";
-          if (_ip + index === ip && window.location.port === port) {
-            // alert(`skip our own ip: ${_ip} , trying ${_ip + index}`);
-            attempts++;
-            return;
+        const onFail = () => {
+          attempts++;
+          if (attempts === 255) {
+            !this.foundHost && alert("no hosts found you suck");
+            clearInterval(count);
           }
+        };
 
-          const _url = "http://" + _ip + index + ":"+port;
+        const doRequest = index => {
+          const _url = "http://" + _ip + index + ":" + port + "/ping";
           let start = Date.now();
 
-          let socket = io(_url, {
-            forceNew: true,
-            reconnectionAttempts: 0,
-            timeout: 20000 //default but safe to keep
-          });
+          fetch(_url, {
+            method: "get",
+            signal: controller.signal
+          })
+            .then(res => {
+              try {
+                res.json().then(json => {
+                  console.log(json);
+                  if (!json.isHost) {
+                    return onFail();
+                  }
 
-          console.log("attempt: ", _url);
-          socket.on("connect_error", () => {
-            attempts++;
-            console.log("Faied:", _url);
-            console.log("fail:", _url, Date.now() - start, "ms");
-            socket.close();
-            if (attempts === 255) {
-              !this.foundHost && alert("no hosts found you suck");
-              clearInterval(count);
-            }
-          });
-          socket.on("connect", () => {
-            attempts++;
-            console.log("GOT CONNECTION!", _url, Date.now() - start, "ms");
-            this.foundHost = true;
-            alert("you are connected my friend");
-          });
+                  attempts++;
+                  this.foundHost = true;
+                  controller.abort();
+                  alert("you are connected my friend");
+
+                  // store sever ip while authing
+                  storage.set("temporaryServerIP", _ip + index);
+
+                  this.$router.push({ name: "newUser" });
+
+                  clearInterval(count);
+                  clearTimeout(timeout);
+                });
+              } catch (e) {
+                onFail();
+              }
+            })
+            .catch(() => {
+              onFail();
+            });
         };
 
         for (let index = 0; index < 256; index++) {
-          setTimeout(() => {
-            doSocket(index);
-          }, 5);
+          doRequest(index);
         }
+
+        const timeout = setTimeout(() => {
+          controller.abort();
+        }, 20000);
       });
     }
   }
@@ -121,7 +136,7 @@ export default {
 }
 
 .logo {
-  width: 75%;
+  width: 50%;
   display: block;
   margin: 3em auto;
 }
