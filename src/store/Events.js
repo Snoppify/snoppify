@@ -59,6 +59,7 @@ export default {
             }
 
             event.forEach(_event => {
+                console.log("(Events.js) Socket event: ",_event);
                 state.event = _event;
                 state.events.push(_event);
     

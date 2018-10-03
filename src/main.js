@@ -30,6 +30,23 @@ if (window.location.hash && window.location.hash === "#_=_") {
     }
 }
 
+// Redirect in case of auth
+const href = window.location.href;
+if (href.includes("?authcallback")) {
+    const params = new URLSearchParams(href.substr(href.indexOf("?") + 1));
+    const newParams = new URLSearchParams();
+
+    switch (params.get("type")) {
+        case "facebook":
+
+            break;
+    }
+
+    console.log(params);
+
+    window.location.href="http://"+PROCESS.env
+}
+
 new Vue({
     el: '#app',
     data: {

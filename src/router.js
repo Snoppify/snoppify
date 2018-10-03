@@ -12,10 +12,15 @@ import Track from './components/Track'
 import NewUser from "./components/NewUser"
 import Fingerprint from "./components/Fingerprint"
 import NotFound from './components/NotFound'
+import Welcome from './components/Welcome'
 
 Vue.use(VueRouter)
 
 const routes = [{
+    path: "/welcome",
+    name: "welcome",
+    component: Welcome,
+}, {
     path: '/',
     name: 'home',
     component: Home
@@ -51,7 +56,7 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-    if (to.name === "newUser") {
+    if (to.name === "newUser" || to.name === "welcome") {
         return next();
     }
 
