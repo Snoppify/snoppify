@@ -1,10 +1,10 @@
 # snoppify
 
 ## Requirements
-`npm` and `brunch`.
+`npm`
 
 ## Installation and running
-Serve the dev client with `brunch watch --server` which is then available at [http://localhost:3000](http://localhost:3000).
+Serve the server with `node server/` which is then available at [http://localhost:3000](http://localhost:3000).
 
 ### Configuration
 A `snoppify-config.js` config file is required for the server to communicate with the spotify api, on the form
@@ -26,4 +26,4 @@ module.exports = {
 
 The refresh token can be retrieved by going to [http://localhost:3000/refresh-token](http://localhost:3000/refresh-token) and following the instructions. Your spotify app must define `http://localhost:3000/refresh-token` in the 'Redirect URIs' option.
 
-The environment variable `SERVER_IP` also needs to be set, with the local IP address of the serving computer.
+The environment variable `SERVER_IP` also needs to be set, with the local IP address of the serving computer (maybe).
