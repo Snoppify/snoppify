@@ -19,16 +19,16 @@
     },
     "quiet": false
   },
- "repository": {
-        "type": "git",
-        "url": "git+https://github.com/mold/snoppify.git"
-    },
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/mold/snoppify/issues"
-    },
-    "homepage": "https://github.com/mold/snoppify#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mold/snoppify.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mold/snoppify/issues"
+  },
+  "homepage": "https://github.com/mold/snoppify#readme",
   "dependencies": {
     "app-root-path": "^2.1.0",
     "axios": "^0.18.0",
