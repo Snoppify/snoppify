@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 /dist
+/server-dist
+.commitmsg
 
 # local env files
 .env.local

@@ -45,6 +45,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieparser);
 app.use(express.static(rootDir));
 
+let sessionStore;
 let mysession = session({
     secret: 'spotify är sh1t, snoppify är bra!',
     resave: false,
@@ -114,27 +115,28 @@ io.on("connection", (socket) => {
         sockets[socket.handshake.session.passport.user] = socket;
     }
 
-    socket.on("search", (string) => {
-        const extractedId = extractId(string);
+    // comment this since it doesnt work anyways
+    // socket.on("search", (string) => {
+    //     const extractedId = extractId(string);
 
-        if (extractedId) {
-            spotify.api.getTracks([extractedId])
-                .then(data => socket.emit("search", JSON.stringify({
-                    tracks: {
-                        items: data.body.tracks[0] ? [data.body.tracks[0]] : []
-                    }
-                })));
-        } else {
-            spotify.api.searchTracks(string)
-                .then(data => socket.emit("search", JSON.stringify(data.body)));
-        }
-    });
+    //     if (extractedId) {
+    //         spotify.api.getTracks([extractedId])
+    //             .then(data => socket.emit("search", JSON.stringify({
+    //                 tracks: {
+    //                     items: data.body.tracks[0] ? [data.body.tracks[0]] : []
+    //                 }
+    //             })));
+    //     } else {
+    //         spotify.api.searchTracks(string)
+    //             .then(data => socket.emit("search", JSON.stringify(data.body)));
+    //     }
+    // });
 
     socket.on("getTrack", (id) => {
         Promise.all([
-                spotify.api.getTracks([id]),
-                spotify.api.getAudioFeaturesForTracks([id])
-            ])
+            spotify.api.getTracks([id]),
+            spotify.api.getAudioFeaturesForTracks([id])
+        ])
             .then(data => {
                 var track = data[0].body.tracks[0];
                 track.audio_features = data[1].body.audio_features[0];
