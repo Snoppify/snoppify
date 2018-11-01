@@ -92,7 +92,8 @@ export default {
                   alert("you are connected my friend");
 
                   // store sever ip while authing
-                  storage.set("temporaryServerIP", _ip + index);
+                  storage.set("serverIP", _ip + index);
+                  api.init(_ip + index);
 
                   this.$router.push({ name: "newUser" });
 
