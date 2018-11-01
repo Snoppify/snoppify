@@ -37,12 +37,14 @@ const authGuard = (to, from, next) => {
     if (store.getters["Session/username"]) {
         return next();
     } else {
-        api.auth.auth().then(sessData => {
+        api.initialized && api.auth.auth().then(sessData => {
             store.commit("Session/SET_SESSION", sessData);
             return next();
         }).catch(() => {
             return next("/welcome");
         })
+
+        return next("/welcome");
     }
 };
 
