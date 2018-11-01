@@ -1,8 +1,11 @@
 require('dotenv').config();
 
-const express = require('express'),
-    app = express(),
-    session = require("express-session"),
+import express from "express";
+import SocketIO from "socket.io";
+
+const app = express();
+
+const session = require("express-session"),
     FileStore = require('session-file-store')(session),
     sharedsession = require('express-socket.io-session'),
     bodyParser = require("body-parser"),
@@ -13,9 +16,8 @@ const args = require('minimist')(process.argv);
 const http = require('http').Server(app);
 
 // the socket is initialized here
-const socket = require('./socket')(http);
-const io = socket.io;
-const sockets = socket.sockets;
+const io = SocketIO(http);
+const sockets = io.sockets.sockets;   
 
 const spotify = require('./spotify');
 const fallback = require('express-history-api-fallback');
@@ -30,13 +32,11 @@ const cookieparser = cookieParser();
 // save this, don't know if it can be useful in teh future
 app.use(function (req, res, next) {
     let ip = require('ip').address();
-
     res.header("Access-Control-Allow-Origin", `http://localhost:3000`);
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header("Access-Control-Allow-Credentials", "true");
     next();
 });
-
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
@@ -109,10 +109,12 @@ app.use(fallback('index.html', {
 ///////////
 
 io.on("connection", (socket) => {
-    console.log("we got a live one", socket.id, socket.handshake.session.passport);
+    console.log("we got a live one", socket.id, (socket.handshake as any).session.passport);
 
-    if (socket.handshake.session.passport) {
-        sockets[socket.handshake.session.passport.user] = socket;
+    // need to do " as any" since handshake.session is added by
+    // express-socket.io or passport or something
+    if ((socket.handshake as any).session.passport) {
+        sockets[(socket.handshake as any).session.passport.user] = socket;
     }
 
     // comment this since it doesnt work anyways

@@ -57,6 +57,7 @@
   "devDependencies": {
     "@types/express": "^4.16.0",
     "@types/passport": "^0.4.6",
+    "@types/socket.io": "^1.4.38",
     "@vue/cli-plugin-babel": "^3.0.4",
     "@vue/cli-plugin-eslint": "^3.0.4",
     "@vue/cli-service": "^3.0.4",
