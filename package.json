@@ -8,7 +8,8 @@
     "lint": "vue-cli-service lint",
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node server-dist/",
-    "watch-server": "npm-watch server"
+    "watch-server": "npm-watch server",
+    "start-server":"concurrently \"npm run build-server -- --watch\" \"npm run watch-server\""
   },
   "watch": {
     "server": {
@@ -61,6 +62,7 @@
     "@vue/cli-plugin-babel": "^3.0.4",
     "@vue/cli-plugin-eslint": "^3.0.4",
     "@vue/cli-service": "^3.0.4",
+    "concurrently": "^4.1.0",
     "minimist": "^1.2.0",
     "node-sass": "^4.9.0",
     "npm-watch": "^0.4.0",
