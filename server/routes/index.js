@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require("fs");
+const ip = require("ip");
 
 const socket = require('../socket');
 
-const isAuthenticated = function (req, res, next) {
+const isAuthenticated = function(req, res, next) {
     // if user is authenticated in the session, call the next() to call the next request handler 
     // Passport adds this method to request object. A middleware is allowed to add properties to
     // request and response objects
@@ -15,25 +16,29 @@ const isAuthenticated = function (req, res, next) {
     res.redirect('/new-user');
 }
 
-const redirectIfAuthenticated = function (req, res, next) {
+const redirectIfAuthenticated = function(req, res, next) {
     if (req.isAuthenticated())
         return res.redirect('/');
     next();
 }
 
-module.exports = function (passport, spotify) {
+const getPassportState = (req) => {
+    return ip.address() + ":" + req.connection.localPort;
+};
+
+module.exports = function(passport, spotify) {
 
     // Spotify refresh token end point
     router.get("/refresh-token", (req, res) => {
         let refreshToken = "";
-        let p = new Promise(function (resolve, reject) {
+        let p = new Promise(function(resolve, reject) {
             if (req.query.code && req.query.state == "auth") {
                 spotify.playbackAPI.getRefreshToken(req.query.code)
-                    .then(function (token) {
+                    .then(function(token) {
                         refreshToken = token;
                         resolve();
                     })
-                    .catch(function (r) {
+                    .catch(function(r) {
                         let e = [r.response.status, "(" + r.response.data.error + ")", r.response.data.error_description].join(" ");
                         console.log(e);
                         refreshToken = e;
@@ -42,7 +47,7 @@ module.exports = function (passport, spotify) {
             } else {
                 resolve();
             }
-        }).then(function () {
+        }).then(function() {
             fs.readFile(__dirname + "/refresh-token.html", 'utf8', (err, data) => {
                 let authUrl = spotify.playbackAPI.getAuthUrl();
                 data = data.replace(/{authUrl}/g, authUrl);
@@ -232,7 +237,7 @@ module.exports = function (passport, spotify) {
 
         console.log(req.isAuthenticated());
         console.log(req.user);
-        
+
         if (req.isAuthenticated() && req.user) {
             res.json(req.user);
             res.end();
@@ -247,7 +252,7 @@ module.exports = function (passport, spotify) {
     // });
 
     /* Handle Logout */
-    router.get('/logout', function (req, res) {
+    router.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
         // req.session.destroy(function(err) {
@@ -259,16 +264,24 @@ module.exports = function (passport, spotify) {
 
     // route for facebook authentication and login
     // different scopes while logging in
-    router.get('/auth/facebook',
+    router.get('/auth/facebook', (req, res) =>
         passport.authenticate('facebook', {
-            scope: ['public_profile', 'email']
-        })
+            scope: ['public_profile', 'email'],
+            state: getPassportState(req),
+        })(req, res)
     );
 
     // handle the callback after facebook has authenticated the user
-    router.get('/auth/facebook/callback', function (req, res, next) {
+    router.get('/auth/facebook/callback', function(req, res, next) {
             console.log("well here we got facebook auth callback:", req.method, req.params, req.query);
-            next();
+
+            // TODO: remove this when only using static/public server for auth
+            if (req.query.state) {
+                res.redirect(`http://${req.query.state}/auth/facebook/callback?code=${req.query.code}`);
+            } else {
+                next();
+            }
+
         },
         passport.authenticate('facebook', {
             successRedirect: '/',
@@ -279,9 +292,10 @@ module.exports = function (passport, spotify) {
     // route for spotify authentication and login
     // different scopes while logging in
     router.get('/auth/spotify',
-        passport.authenticate('spotify', {
-            scope: ['user-read-email', 'user-read-private']
-        })
+        (req, res) => passport.authenticate('spotify', {
+            scope: ['user-read-email', 'user-read-private'],
+            state: getPassportState(req),
+        })(req, res)
     );
 
     // handle the callback after spotify has authenticated the user
