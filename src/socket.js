@@ -7,6 +7,6 @@ import {
 
 export default {
     init: (serverIP) => {
-        Vue.use(VueSocketio, 'http://' + serverIP + ':3000', store);
+        Vue.use(VueSocketio, window.location.protocol + '//' + serverIP + ':3000', store);
     }
 }

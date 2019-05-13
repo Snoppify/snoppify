@@ -12,16 +12,27 @@ const session = require("express-session"),
 const fs = require('fs');
 const args = require('minimist')(process.argv);
 
-const http = require('http').Server(app);
+// consts
+const rootDir = require("app-root-path") + "/dist";
 
-const socket = require('./socket')(http);
+const useHttps = false;
+let httpServer;
+if (useHttps) {
+    httpServer = require("https").createServer({
+        key: fs.readFileSync(require("app-root-path") + "/ssl/privatekey.key"),
+        cert: fs.readFileSync(require("app-root-path") + "/ssl/certificate.crt")
+    }, app);
+} else {
+    httpServer = require('http').Server(app);
+}
+
+
+const socket = require('./socket')(httpServer);
 
 const spotify = require('./spotify');
 const fallback = require('express-history-api-fallback');
 const passport = require('passport');
 
-// consts
-const rootDir = require("app-root-path") + "/dist";
 
 const cookieparser = cookieParser();
 
@@ -159,8 +170,8 @@ socket.io.on("connection", (sock: any) => {
 });
 
 const port = args.p || 3000;
-http.listen(port, () => {
+httpServer.listen(port, () => {
     let ip = require('ip').address();
 
-    console.log(`Serving http://${ip}:${port}`);
+    console.log(`Serving http${useHttps ? "s" : ""}://${ip}:${port}`);
 });

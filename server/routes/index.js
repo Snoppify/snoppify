@@ -274,16 +274,9 @@ module.exports = function(passport, spotify) {
 
     // handle the callback after facebook has authenticated the user
     router.get('/auth/facebook/callback', function(req, res, next) {
-        console.log("well here we got facebook auth callback:", req.method, req.params, req.query);
-
-        // TODO: remove this when only using static/public server for auth
-        if (req.query.state) {
-            res.redirect(`http://${req.query.state}/auth/facebook/callback?code=${req.query.code}`);
-        } else {
+            console.log("well here we got facebook auth callback:", req.method, req.params, req.query);
             next();
-        }
-
-    },
+        },
         passport.authenticate('facebook', {
             successRedirect: '/',
             failureRedirect: '/new-user'

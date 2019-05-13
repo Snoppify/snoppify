@@ -3,24 +3,23 @@
     <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo">
 
     <div class="container">
-        <div v-if="showServerForm && !foundHost">
-            <p>Scanning for a host (this may take a while)...</p>
-            <p>Has been scanning for: {{timeSpentScanning}}</p>
-        </div>
+      <div v-if="showServerForm && !foundHost">
+        <p>Scanning for a host (this may take a while)...</p>
+        <p>Has been scanning for: {{timeSpentScanning}}</p>
+      </div>
 
-        <div v-else-if="showServerForm">
-          <p>Found a host!</p>
-        </div>
-        
-        <div v-else>
-            <h1>Welcome to Snoppify!</h1>
+      <div v-else-if="showServerForm">
+        <p>Found a host!</p>
+      </div>
 
-            <button class="start-btn start-btn__join" @click="onJoinClick()">Join</button>
+      <div v-else>
+        <h1>Welcome to Snoppify!</h1>
 
-            <button class="start-btn start-btn__host">Host</button>
-        </div>
+        <button class="start-btn start-btn__join" @click="onJoinClick()">Join</button>
+
+        <button class="start-btn start-btn__host">Host</button>
+      </div>
     </div>
-
   </div>
 </template>
 
@@ -71,7 +70,7 @@ export default {
         };
 
         const doRequest = index => {
-          const _url = "http://" + _ip + index + ":" + port + "/ping";
+          const _url = window.location.protocol + "//" + _ip + index + ":" + port + "/ping";
           let start = Date.now();
 
           fetch(_url, {
