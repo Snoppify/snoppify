@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 import express from "express";
-import SocketIO from "socket.io";
 
 const app = express();
 
@@ -15,9 +14,7 @@ const args = require('minimist')(process.argv);
 
 const http = require('http').Server(app);
 
-// the socket is initialized here
-const io = SocketIO(http);
-const sockets = io.sockets.sockets;   
+const socket = require('./socket')(http);
 
 const spotify = require('./spotify');
 const fallback = require('express-history-api-fallback');
@@ -28,11 +25,21 @@ const rootDir = require("app-root-path") + "/dist";
 
 const cookieparser = cookieParser();
 
-
 // save this, don't know if it can be useful in teh future
 app.use(function (req, res, next) {
     let ip = require('ip').address();
-    res.header("Access-Control-Allow-Origin", `http://localhost:3000`);
+    var localhost = ip + ":3000";
+    var remotehost = "http://snoppify.com";
+    var host = req.get("origin") || req.get("host");
+    switch (host) {
+        case localhost:
+        case remotehost:
+            res.header("Access-Control-Allow-Origin", host);
+            break;
+        default:
+            console.log("Rejected origin " + host);
+            break;
+    }
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header("Access-Control-Allow-Credentials", "true");
     next();
@@ -62,7 +69,7 @@ app.use(passport.initialize());
 let passportsession = passport.session();
 app.use(passportsession);
 
-io.use(sharedsession(mysession));
+socket.io.use(sharedsession(mysession));
 
 require('./auth/passport')(passport);
 require('express-debug')(app, {});
@@ -108,33 +115,33 @@ app.use(fallback('index.html', {
 
 ///////////
 
-io.on("connection", (socket) => {
-    console.log("we got a live one", socket.id, (socket.handshake as any).session.passport);
+socket.io.on("connection", (sock: any) => {
+    console.log("we got a live one", sock.id, (sock.handshake as any).session.passport);
 
     // need to do " as any" since handshake.session is added by
     // express-socket.io or passport or something
-    if ((socket.handshake as any).session.passport) {
-        sockets[(socket.handshake as any).session.passport.user] = socket;
-    }
+    // if ((sock.handshake as any).session.passport) {
+    //     sockets[(sock.handshake as any).session.passport.user] = sock;
+    // }
 
     // comment this since it doesnt work anyways
-    // socket.on("search", (string) => {
+    // sock.on("search", (string) => {
     //     const extractedId = extractId(string);
 
     //     if (extractedId) {
     //         spotify.api.getTracks([extractedId])
-    //             .then(data => socket.emit("search", JSON.stringify({
+    //             .then(data => sock.emit("search", JSON.stringify({
     //                 tracks: {
     //                     items: data.body.tracks[0] ? [data.body.tracks[0]] : []
     //                 }
     //             })));
     //     } else {
     //         spotify.api.searchTracks(string)
-    //             .then(data => socket.emit("search", JSON.stringify(data.body)));
+    //             .then(data => sock.emit("search", JSON.stringify(data.body)));
     //     }
     // });
 
-    socket.on("getTrack", (id) => {
+    sock.on("getTrack", (id: any) => {
         Promise.all([
             spotify.api.getTracks([id]),
             spotify.api.getAudioFeaturesForTracks([id])
@@ -143,10 +150,10 @@ io.on("connection", (socket) => {
                 var track = data[0].body.tracks[0];
                 track.audio_features = data[1].body.audio_features[0];
 
-                socket.emit("getTrack", JSON.stringify(track));
+                sock.emit("getTrack", JSON.stringify(track));
             })
             .catch(data => {
-                socket.emit("getTrack", null);
+                sock.emit("getTrack", null);
             });
     });
 });
@@ -156,5 +163,4 @@ http.listen(port, () => {
     let ip = require('ip').address();
 
     console.log(`Serving http://${ip}:${port}`);
-    console.log(`(Remember to set the environment variable 'export SERVER_IP=${ip}'\n`);
 });

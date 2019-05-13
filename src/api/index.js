@@ -21,6 +21,7 @@ const api = {
 const serverIP = storage.get("serverIP");
 if (serverIP) {
     console.log("Got server ip from localstorage: ", serverIP);
+    api.ip = serverIP;
     api.init(serverIP);
 }
 

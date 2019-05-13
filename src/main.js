@@ -7,7 +7,7 @@ import socket from './socket'
 import {
     store
 }
-from './store'
+    from './store'
 import api from "./api";
 import storage from "./common/device-storage";
 
@@ -67,4 +67,4 @@ new Vue({
 Vue.component("track-item", TrackItem);
 
 // TODO: Move to after the server has been found
-socket.init("localhost");
+socket.init(api.ip);
