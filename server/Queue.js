@@ -1,5 +1,4 @@
 module.exports = class Queue {
-
     /**
      * @param  {mixed}  id Item identifier
      */
@@ -97,8 +96,8 @@ module.exports = class Queue {
             return;
         }
 
-        return this.queue.find(qItem =>
-            qItem.id === item || qItem.id === item.id
+        return this.queue.find(
+            qItem => qItem.id === item || qItem.id === item.id,
         );
     }
 
@@ -116,7 +115,9 @@ module.exports = class Queue {
      */
     indexOf(item) {
         if (typeof this.id != "undefined") {
-            return this.queue.findIndex(i => i[this.id] == item[this.id] || i[this.id] == item);
+            return this.queue.findIndex(
+                i => i[this.id] == item[this.id] || i[this.id] == item,
+            );
         } else {
             return this.queue.indexOf(item);
         }
@@ -134,5 +135,4 @@ module.exports = class Queue {
     toString() {
         return JSON.stringify(this.queue);
     }
-
-}
+};

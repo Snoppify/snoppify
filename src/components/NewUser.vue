@@ -1,6 +1,6 @@
 <template>
   <div id="new-user" class="route-container">
-    <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo">
+    <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo" />
     <!-- <h1>SNOPPIFY</h1> -->
     <!-- <p>sign up, BIIGGHHHCC</p>
 	<form v-on:submit.prevent="createUser">
@@ -27,8 +27,8 @@ export default {
     username: "",
     authUrls: {
       facebook: api.axios.defaults.baseURL + "/auth/facebook",
-      spotify: api.axios.defaults.baseURL + "/auth/spotify"
-    }
+      spotify: api.axios.defaults.baseURL + "/auth/spotify",
+    },
   }),
 
   methods: {
@@ -40,12 +40,12 @@ export default {
           this.$router.push("/");
         })
         .catch(err => console.log(err));
-    }
+    },
   },
 
   created() {},
 
-  computed: {}
+  computed: {},
 };
 </script>
 

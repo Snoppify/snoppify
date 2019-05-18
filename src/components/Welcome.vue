@@ -1,11 +1,11 @@
 <template>
   <div id="welcome" class="route-container">
-    <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo">
+    <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo" />
 
     <div class="container">
       <div v-if="showServerForm && !foundHost">
         <p>Scanning for a host (this may take a while)...</p>
-        <p>Has been scanning for: {{timeSpentScanning}}</p>
+        <p>Has been scanning for: {{ timeSpentScanning }}</p>
       </div>
 
       <div v-else-if="showServerForm">
@@ -15,7 +15,9 @@
       <div v-else>
         <h1>Welcome to Snoppify!</h1>
 
-        <button class="start-btn start-btn__join" @click="onJoinClick()">Join</button>
+        <button class="start-btn start-btn__join" @click="onJoinClick()">
+          Join
+        </button>
 
         <button class="start-btn start-btn__host">Host</button>
       </div>
@@ -33,7 +35,7 @@ export default {
     showServerForm: false,
     isScanning: false,
     timeSpentScanning: 0,
-    foundHost: false
+    foundHost: false,
   }),
 
   methods: {
@@ -53,7 +55,7 @@ export default {
         this.timeSpentScanning = ((Date.now() - totalStart) / 1000).toFixed(1);
         const count = setInterval(() => {
           this.timeSpentScanning = ((Date.now() - totalStart) / 1000).toFixed(
-            1
+            1,
           );
         }, 191);
 
@@ -70,12 +72,19 @@ export default {
         };
 
         const doRequest = index => {
-          const _url = window.location.protocol + "//" + _ip + index + ":" + port + "/ping";
+          const _url =
+            window.location.protocol +
+            "//" +
+            _ip +
+            index +
+            ":" +
+            port +
+            "/ping";
           let start = Date.now();
 
           fetch(_url, {
             method: "get",
-            signal: controller.signal
+            signal: controller.signal,
           })
             .then(res => {
               try {
@@ -116,11 +125,10 @@ export default {
           controller.abort();
         }, 20000);
       });
-    }
-  }
+    },
+  },
 };
 </script>
-
 
 <style lang="scss">
 @import "../assets/variables.scss";

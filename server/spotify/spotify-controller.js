@@ -1,12 +1,12 @@
-const socket = require('../socket');
+const socket = require("../socket");
 const api = require("./spotify-api");
 const playbackAPI = require("./spotify-playback-api");
-const states = require('./spotify-states.js');
+const states = require("./spotify-states.js");
 const fs = require("fs");
-const mkdirp = require('mkdirp');
+const mkdirp = require("mkdirp");
 
-const User = require('../models/user');
-const Queue = require('../Queue');
+const User = require("../models/user");
+const Queue = require("../Queue");
 
 /////////////////////
 
@@ -29,11 +29,11 @@ let playlist = null;
 let queueFile = "";
 
 const init = () => {
-    mkdirp('data');
-    queueFile = 'data/snoppify-queue.json';
+    mkdirp("data");
+    queueFile = "data/snoppify-queue.json";
 
     // load saved queue
-    fs.readFile(queueFile, 'utf8', function readFileCallback(err, data) {
+    fs.readFile(queueFile, "utf8", function readFileCallback(err, data) {
         if (err) {
             return;
         }
@@ -81,14 +81,14 @@ const init = () => {
     states.on("paused", function(s) {
         console.log(s.name);
         sendEvent(s.name, {
-            track: getCurrentTrack()
+            track: getCurrentTrack(),
         });
     });
 
     states.on("playing", function(s) {
         console.log(s.name);
         sendEvent(s.name, {
-            track: getCurrentTrack()
+            track: getCurrentTrack(),
         });
     });
 
@@ -103,14 +103,14 @@ const init = () => {
                 sock.emit("event", {
                     type: "playMySong",
                     data: {
-                        track
-                    }
+                        track,
+                    },
                 });
             }
         }
 
         sendEvent(s.name, {
-            track: track
+            track: track,
         });
 
         saveQueue();
@@ -155,79 +155,84 @@ module.exports = {
 
 function queueTrack(user, trackId) {
     return new Promise(function(resolve, reject) {
-        api.getTracks([trackId]).then(r => {
-            let track = r.body.tracks[0];
-            getUserData(user, function(err, userData) {
-                if (err) {
-                    return reject(err);
-                }
+        api.getTracks([trackId])
+            .then(r => {
+                let track = r.body.tracks[0];
+                getUserData(user, function(err, userData) {
+                    if (err) {
+                        return reject(err);
+                    }
 
-                if (!track) {
-                    return reject({
-                        response: {
-                            status: 404,
-                            statusText: 'Track not found'
-                        }
+                    if (!track) {
+                        return reject({
+                            response: {
+                                status: 404,
+                                statusText: "Track not found",
+                            },
+                        });
+                    }
+
+                    if (queue.get(trackId)) {
+                        return reject({
+                            response: {
+                                status: 400,
+                                statusText: "Track already added",
+                            },
+                        });
+                    }
+
+                    if (userData.queue.get(trackId)) {
+                        return reject({
+                            response: {
+                                status: 400,
+                                statusText: "You have already added this track",
+                            },
+                        });
+                    }
+
+                    if (userData.queue.size == maxQueueSize) {
+                        return reject({
+                            response: {
+                                status: 400,
+                                statusText:
+                                    "You cannot add more than " +
+                                    maxQueueSize +
+                                    " tracks",
+                            },
+                        });
+                    }
+
+                    track.snoppify = {
+                        issuer: userData,
+                        votes: [],
+                        timestamp: Date.now(),
+                    };
+
+                    // TODO: check if queue is empty and if track should be playing?
+                    queue.add(track);
+                    userData.queue.add({
+                        id: track.id,
                     });
-                }
 
-                if (queue.get(trackId)) {
-                    return reject({
-                        response: {
-                            status: 400,
-                            statusText: 'Track already added'
-                        }
+                    rebuildQueueOrder();
+
+                    states.data.events.queuedTrack = true;
+
+                    states.update();
+
+                    socket.io.local.emit("queue", {
+                        queue: queue.queue,
+                        addedTracks: [track],
+                        removedTracks: [],
                     });
-                }
 
-                if (userData.queue.get(trackId)) {
-                    return reject({
-                        response: {
-                            status: 400,
-                            statusText: 'You have already added this track'
-                        }
-                    });
-                }
+                    saveQueue();
+                    saveUsers();
 
-                if (userData.queue.size == maxQueueSize) {
-                    return reject({
-                        response: {
-                            status: 400,
-                            statusText: 'You cannot add more than ' + maxQueueSize + ' tracks'
-                        }
-                    });
-                }
-
-                track.snoppify = {
-                    issuer: userData,
-                    votes: [],
-                    timestamp: Date.now(),
-                };
-
-                // TODO: check if queue is empty and if track should be playing?
-                queue.add(track);
-                userData.queue.add({
-                    id: track.id,
+                    resolve(track);
                 });
-
-                rebuildQueueOrder();
-
-                states.data.events.queuedTrack = true;
-
-                states.update();
-
-                socket.io.local.emit("queue", {
-                    queue: queue.queue,
-                    addedTracks: [track],
-                    removedTracks: [],
-                });
-
-                saveQueue();
-                saveUsers();
-
-                resolve(track);
-            });
-        }).catch(reject);
+            })
+            .catch(reject);
     });
 }
 
@@ -244,8 +249,8 @@ function dequeueTrack(user, trackId) {
                 return reject({
                     response: {
                         status: 404,
-                        statusText: 'Track not found'
-                    }
+                        statusText: "Track not found",
+                    },
                 });
             }
 
@@ -253,8 +258,8 @@ function dequeueTrack(user, trackId) {
                 return reject({
                     response: {
                         status: 500,
-                        statusText: 'Track could not be removed'
-                    }
+                        statusText: "Track could not be removed",
+                    },
                 });
             }
 
@@ -286,8 +291,8 @@ function vote(user, trackId) {
             return reject({
                 response: {
                     status: 404,
-                    statusText: "No such track"
-                }
+                    statusText: "No such track",
+                },
             });
         }
 
@@ -295,8 +300,8 @@ function vote(user, trackId) {
             return reject({
                 response: {
                     status: 400,
-                    statusText: "You have already voted"
-                }
+                    statusText: "You have already voted",
+                },
             });
         }
 
@@ -332,8 +337,8 @@ function unvote(user, trackId) {
             return reject({
                 response: {
                     status: 404,
-                    statusText: "No such track"
-                }
+                    statusText: "No such track",
+                },
             });
         }
 
@@ -374,14 +379,15 @@ function setBackupPlaylist(user, id) {
         api.getPlaylist(user, id)
             .then(data => {
                 backupQueue = new Queue({
-                    id: 'id',
+                    id: "id",
                     queue: data.body.tracks.items.map(track => {
                         track.track.snoppify = {
                             issuer: {
                                 id: "1337",
                                 username: "1337",
                                 displayName: "Snoppify Bot",
-                                profile: "https://f29682d3f174928942ed-2ffcea2cbcb9e3aa51fd8a91e66dd2e9.ssl.cf2.rackcdn.com/1410771548.09_avatar.png",
+                                profile:
+                                    "https://f29682d3f174928942ed-2ffcea2cbcb9e3aa51fd8a91e66dd2e9.ssl.cf2.rackcdn.com/1410771548.09_avatar.png",
                             },
                             votes: [],
                         };
@@ -396,11 +402,12 @@ function setBackupPlaylist(user, id) {
                 saveQueue();
 
                 sendEvent("backupPlaylist", {
-                    playlist: backupPlaylist
+                    playlist: backupPlaylist,
                 });
 
                 resolve();
-            }).catch(r => {
+            })
+            .catch(r => {
                 console.log(r);
                 reject(r);
             });
@@ -436,7 +443,10 @@ function playNextTrack() {
 
                 saveQueue();
                 if (track && track.snoppify) {
-                    getUserData(track.snoppify.issuer.username, function(err, userData) {
+                    getUserData(track.snoppify.issuer.username, function(
+                        err,
+                        userData,
+                    ) {
                         if (userData) {
                             userData.queue.remove(track.id);
                             saveUsers();
@@ -445,7 +455,7 @@ function playNextTrack() {
                 }
 
                 sendEvent("waitingForNextSong", {
-                    track: track
+                    track: track,
                 });
 
                 if (track) {
@@ -456,7 +466,10 @@ function playNextTrack() {
                     });
                 }
 
-                if (states.data.playlist && states.data.playlist.tracks.items.length == 0) {
+                if (
+                    states.data.playlist &&
+                    states.data.playlist.tracks.items.length == 0
+                ) {
                     // BUG: cant start a playlist that havent been intereacted with from a spotify client,
                     // for example after emptying the playlist
                     //play(true);
@@ -493,8 +506,15 @@ function previous() {
 function emptyPlaylist() {
     let promises = [];
     for (let i = 0; i < playlist.tracks.items.length; i += 100) {
-        let positions = playlist.tracks.items.slice(i, i + 100).map((track, _i) => i + _i);
-        let p = playbackAPI.removePositionsFromPlaylist(api.config.owner, playlist.id, positions, playlist.snapshot_id);
+        let positions = playlist.tracks.items
+            .slice(i, i + 100)
+            .map((track, _i) => i + _i);
+        let p = playbackAPI.removePositionsFromPlaylist(
+            api.config.owner,
+            playlist.id,
+            positions,
+            playlist.snapshot_id,
+        );
         promises.push(p);
     }
     return Promise.all(promises).then(function() {
@@ -526,14 +546,16 @@ function getTrack(trackId) {
     return new Promise((resolve, reject) => {
         let track = queue.get(trackId);
         Promise.all([
-            track ? new Promise(_resolve => {
-                _resolve({
-                    body: {
-                        tracks: [track]
-                    }
-                });
-            }) : api.getTracks([trackId]),
-            api.getAudioFeaturesForTracks([trackId])
+            track
+                ? new Promise(_resolve => {
+                      _resolve({
+                          body: {
+                              tracks: [track],
+                          },
+                      });
+                  })
+                : api.getTracks([trackId]),
+            api.getAudioFeaturesForTracks([trackId]),
         ])
             .then(data => {
                 let track = data[0].body.tracks[0];
@@ -550,30 +572,35 @@ function getTrack(trackId) {
 /////////////////////
 
 function reloadPlaylist() {
-    api.getPlaylist(api.config.owner, api.config.playlist)
-        .then(function(data) {
+    api.getPlaylist(api.config.owner, api.config.playlist).then(
+        function(data) {
             playlist = data.body;
 
             states.data.playlist = playlist;
 
             states.update();
-
-        }, function(err) {
-            console.log('Playlist not found');
-        });
+        },
+        function(err) {
+            console.log("Playlist not found");
+        },
+    );
 }
 
 function addToPlaylist(track) {
     return new Promise((resolve, reject) => {
         if (track) {
-            let uri = typeof track == "string" ? "spotify:track:" + track : track.uri;
-            playbackAPI.addToPlaylist(api.config.owner, playlist.id, [uri]).then(function() {
-                reloadPlaylist();
-                resolve();
-            }).catch(function(r) {
-                console.log(r.response.data);
-                reject(r);
-            });
+            let uri =
+                typeof track == "string" ? "spotify:track:" + track : track.uri;
+            playbackAPI
+                .addToPlaylist(api.config.owner, playlist.id, [uri])
+                .then(function() {
+                    reloadPlaylist();
+                    resolve();
+                })
+                .catch(function(r) {
+                    console.log(r.response.data);
+                    reject(r);
+                });
         } else {
             reject();
         }
@@ -605,7 +632,11 @@ function pollPlayerStatus() {
                 }
             }
             // changed track
-            if (player.item && (!states.data.player.item || states.data.player.item.id != player.item.id)) {
+            if (
+                player.item &&
+                (!states.data.player.item ||
+                    states.data.player.item.id != player.item.id)
+            ) {
                 states.data.events.changedTrack = true;
             }
         }
@@ -680,7 +711,6 @@ function rebuildQueueOrder() {
     let list = [];
     let maxVotes = -1;
 
-
     // fetch all tracks with votes with inital order by addition
     let tracks = true;
     let tracksCount = queue.size;
@@ -696,7 +726,10 @@ function rebuildQueueOrder() {
                 if (track) {
                     sublist.push(track);
 
-                    maxVotes = Math.max(maxVotes, track.snoppify ? track.snoppify.votes.length : 0);
+                    maxVotes = Math.max(
+                        maxVotes,
+                        track.snoppify ? track.snoppify.votes.length : 0,
+                    );
 
                     tracksCount--;
                 }
@@ -734,7 +767,7 @@ function saveQueue() {
         queue: queue.queue,
         backupPlaylist,
     });
-    fs.writeFile(queueFile, json, 'utf8', function(err) {
+    fs.writeFile(queueFile, json, "utf8", function(err) {
         if (err) {
             console.log(err);
         }

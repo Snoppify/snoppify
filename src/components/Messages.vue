@@ -2,42 +2,42 @@
   <div id="messages">
     <!-- toasts -->
     <transition-group name="toasts-body" tag="div" class="messages-container">
-      <div v-for="toast in toasts"
+      <div
+        v-for="toast in toasts"
         class="toasts-body"
         v-bind:class="[toast.type]"
         v-bind:key="toast.id"
         v-on:click="dismissToast()"
-        >
-        <span v-if="toast.message">{{toast.message}}</span>
+      >
+        <span v-if="toast.message">{{ toast.message }}</span>
         <span v-if="toast.html" v-html="toast.html"></span>
       </div>
     </transition-group>
 
     <!-- popups -->
     <transition name="popups-backdrop">
-      <div v-if="popups.length > 0"
+      <div
+        v-if="popups.length > 0"
         class="popups-backdrop"
         v-on:click="dismissPopup()"
-        >
-      </div>
+      ></div>
     </transition>
     <transition-group name="popups-body" tag="div" class="messages-container">
-      <div v-for="popup in popups"
+      <div
+        v-for="popup in popups"
         class="popups-body"
         v-bind:class="[popup.type]"
         v-bind:key="popup.id"
         v-on:click="dismissPopup()"
-        >
-        <span v-if="popup.message">{{popup.message}}</span>
+      >
+        <span v-if="popup.message">{{ popup.message }}</span>
         <span v-if="popup.html" v-html="popup.html"></span>
       </div>
     </transition-group>
   </div>
-
 </template>
 
 <script>
-
 import { mapGetters } from "vuex";
 
 export default {
@@ -58,12 +58,10 @@ export default {
       this.$store.dispatch("Messages/dismissPopup");
     },
   },
-}
-
+};
 </script>
 
 <style scoped lang="scss">
-
 @import "../assets/variables.scss";
 
 $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
@@ -98,19 +96,32 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
   }
 
   &.peach {
-    background: linear-gradient(to right, transparent, #e8c71f), linear-gradient(to right, rgba(255, 0, 108, 0.3), rgba(228, 38, 71, 0.2)), linear-gradient(to top right, #ec9222, transparent), radial-gradient(closest-corner at 20% 80%, #39866a, #ff08f7);
+    background: linear-gradient(to right, transparent, #e8c71f),
+      linear-gradient(to right, rgba(255, 0, 108, 0.3), rgba(228, 38, 71, 0.2)),
+      linear-gradient(to top right, #ec9222, transparent),
+      radial-gradient(closest-corner at 20% 80%, #39866a, #ff08f7);
     background-attachment: fixed;
     color: white;
   }
 
   &.moss {
-    background: linear-gradient(to right, rgba(0,0,0,0), teal), linear-gradient(to right, rgba(255,0,100,.3), rgba(255,100,127,.2)), linear-gradient(to top right, yellow, rgba(0,0,0,0)), radial-gradient(closest-corner at 20% 80%, yellow, red);
+    background: linear-gradient(to right, rgba(0, 0, 0, 0), teal),
+      linear-gradient(
+        to right,
+        rgba(255, 0, 100, 0.3),
+        rgba(255, 100, 127, 0.2)
+      ),
+      linear-gradient(to top right, yellow, rgba(0, 0, 0, 0)),
+      radial-gradient(closest-corner at 20% 80%, yellow, red);
     background-attachment: fixed;
     color: white;
   }
 
   &.deepsea {
-    background: linear-gradient(to right, transparent, #1f9eb3), linear-gradient(to right, rgba(183, 63, 175, 0.3), rgba(57, 15, 84, 0.75)), linear-gradient(to top right, #701cbd, transparent), radial-gradient(closest-corner at 20% 80%, #51983f, #263238);
+    background: linear-gradient(to right, transparent, #1f9eb3),
+      linear-gradient(to right, rgba(183, 63, 175, 0.3), rgba(57, 15, 84, 0.75)),
+      linear-gradient(to top right, #701cbd, transparent),
+      radial-gradient(closest-corner at 20% 80%, #51983f, #263238);
     background-attachment: fixed;
     color: white;
   }
@@ -140,7 +151,7 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
 
 .toasts-body-enter-active,
 .toasts-body-leave-active {
-  transition: all .5s $smooth-transition;
+  transition: all 0.5s $smooth-transition;
 }
 .toasts-body-enter,
 .toasts-body-leave-to {
@@ -155,7 +166,7 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
   right: 0;
   top: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .popups-body {
@@ -176,7 +187,7 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
 
 .popups-backdrop-enter-active,
 .popups-backdrop-leave-active {
-  transition: opacity .8s;
+  transition: opacity 0.8s;
 }
 .popups-backdrop-enter,
 .popups-backdrop-leave-to {
@@ -185,7 +196,7 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
 
 .popups-body-enter-active,
 .popups-body-leave-active {
-  transition: all .5s $smooth-transition;
+  transition: all 0.5s $smooth-transition;
 }
 .popups-body-enter {
   transform: translate(0, -100%);
@@ -195,5 +206,4 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
   transform: translate(0, 100%);
   opacity: 0;
 }
-
 </style>

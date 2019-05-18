@@ -22,24 +22,27 @@ export default {
     },
 
     actions: {
-        CREATE_SESSION({
-            commit
-        }, username) {
-            return api.auth.newUser(username)
-                .then(resp => {
+        CREATE_SESSION({ commit }, username) {
+            return api.auth.newUser(username).then(
+                resp => {
                     commit("SET_SESSION", {
-                        username
+                        username,
                     });
-                }, (err) => {
+                },
+                err => {
                     console.log(err);
-                });
+                },
+            );
         },
         AUTH(context) {
-            return api.auth.auth().then(sessionData => {
-                context.commit("SET_SESSION", sessionData);
-            }, err => {
-                console.log(err);
-            })
-        }
-    }
-}
+            return api.auth.auth().then(
+                sessionData => {
+                    context.commit("SET_SESSION", sessionData);
+                },
+                err => {
+                    console.log(err);
+                },
+            );
+        },
+    },
+};

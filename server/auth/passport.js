@@ -1,7 +1,7 @@
-const FacebookStrategy = require('passport-facebook').Strategy;
-const SpotifyStrategy = require('passport-spotify').Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
+const SpotifyStrategy = require("passport-spotify").Strategy;
 
-const User = require('../models/user');
+const User = require("../models/user");
 
 const appRoot = require("app-root-path");
 
@@ -13,16 +13,15 @@ try {
     console.log("No snoppify config file");
 }
 
-module.exports = function (passport) {
-
+module.exports = function(passport) {
     // used to serialize the user for the session
-    passport.serializeUser(function (user, done) {
+    passport.serializeUser(function(user, done) {
         done(null, user.id);
     });
 
     // used to deserialize the user
-    passport.deserializeUser(function (id, done) {
-        User.find(id, function (err, user) {
+    passport.deserializeUser(function(id, done) {
+        User.find(id, function(err, user) {
             done(err, user);
         });
     });
@@ -40,66 +39,82 @@ module.exports = function (passport) {
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
-    passport.use(new FacebookStrategy({
-            // pull in our app id and secret from our auth.js file
-            clientID: config.facebookAuth.clientID,
-            clientSecret: config.facebookAuth.clientSecret,
-            callbackURL: config.facebookAuth.callbackURL,
-            profileFields: [
-                'id',
-                'name', 'displayName',
-                'emails', 'photos'
-            ]
-        },
+    passport.use(
+        new FacebookStrategy(
+            {
+                // pull in our app id and secret from our auth.js file
+                clientID: config.facebookAuth.clientID,
+                clientSecret: config.facebookAuth.clientSecret,
+                callbackURL: config.facebookAuth.callbackURL,
+                profileFields: [
+                    "id",
+                    "name",
+                    "displayName",
+                    "emails",
+                    "photos",
+                ],
+            },
 
-        // facebook will send back the token and profile
-        function (token, refreshToken, profile, done) {
-
-            // asynchronous
-            process.nextTick(() => {
-                findOrCreateUser({
-                    id: profile.id,
-                    token: token,
-                    username: profile.id,
-                    displayName: profile.displayName,
-                    name: profile.name,
-                    profile: profile.photos.length > 0 ? profile.photos[0].value : null,
-                }, done);
-            });
-
-        }));
-
+            // facebook will send back the token and profile
+            function(token, refreshToken, profile, done) {
+                // asynchronous
+                process.nextTick(() => {
+                    findOrCreateUser(
+                        {
+                            id: profile.id,
+                            token: token,
+                            username: profile.id,
+                            displayName: profile.displayName,
+                            name: profile.name,
+                            profile:
+                                profile.photos.length > 0
+                                    ? profile.photos[0].value
+                                    : null,
+                        },
+                        done,
+                    );
+                });
+            },
+        ),
+    );
 
     // =========================================================================
     // SPOTIFY =================================================================
     // =========================================================================
 
+    passport.use(
+        new SpotifyStrategy(
+            {
+                clientID: config.spotifyAuth.clientID,
+                clientSecret: config.spotifyAuth.clientSecret,
+                callbackURL: config.spotifyAuth.callbackURL,
+            },
 
-    passport.use(new SpotifyStrategy({
-            clientID: config.spotifyAuth.clientID,
-            clientSecret: config.spotifyAuth.clientSecret,
-            callbackURL: config.spotifyAuth.callbackURL,
-        },
-
-        function (accessToken, refreshToken, expires_in, profile, done) {
-            findOrCreateUser({
-                id: profile.id,
-                token: accessToken,
-                username: profile.id,
-                displayName: profile.displayName || profile.id,
-                name: profile.name,
-                profile: profile.photos.length > 0 ? profile.photos[0].value : null,
-            }, done);
-        }
-    ));
+            function(accessToken, refreshToken, expires_in, profile, done) {
+                findOrCreateUser(
+                    {
+                        id: profile.id,
+                        token: accessToken,
+                        username: profile.id,
+                        displayName: profile.displayName || profile.id,
+                        name: profile.name,
+                        profile:
+                            profile.photos.length > 0
+                                ? profile.photos[0].value
+                                : null,
+                    },
+                    done,
+                );
+            },
+        ),
+    );
 };
 
 // private functions
 
 function findOrCreateUser(data, done) {
     // find the user in the database based on their facebook id
-    User.find(data.id, function (err, user) {
-
+    User.find(data.id, function(err, user) {
         // if there is an error, stop everything and return that
         // ie an error connecting to the database
         if (err) {
@@ -114,7 +129,7 @@ function findOrCreateUser(data, done) {
             var newUser = new User(data);
 
             // save our user to the database
-            newUser.save(function (err) {
+            newUser.save(function(err) {
                 if (err) {
                     throw err;
                 }
@@ -124,4 +139,4 @@ function findOrCreateUser(data, done) {
             });
         }
     });
-};
+}

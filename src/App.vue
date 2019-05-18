@@ -5,8 +5,7 @@
         <router-view></router-view>
       </transition>
     </div>
-    <messages>
-    </messages>
+    <messages> </messages>
   </div>
 </template>
 
@@ -22,11 +21,12 @@ export default {
   },
 
   created() {
-    api.initialized && this.getInfo().then(res => {
-      this.$store.commit("Queue/SET_QUEUE", res.queue);
-      this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
-      this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);
-    });
+    api.initialized &&
+      this.getInfo().then(res => {
+        this.$store.commit("Queue/SET_QUEUE", res.queue);
+        this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
+        this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);
+      });
   },
 
   methods: {

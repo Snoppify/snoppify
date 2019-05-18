@@ -1,33 +1,53 @@
 <template>
   <span class="track-item">
-    <router-link :to="{path: '/track/' + track.id}" tag="div" class="track-item__info">
+    <router-link
+      :to="{ path: '/track/' + track.id }"
+      tag="div"
+      class="track-item__info"
+    >
       <div class="track-item__title">
-        <span v-if="index">{{index}}. </span>{{track.name}}
+        <span v-if="index">{{ index }}. </span>{{ track.name }}
       </div>
       <span class="artist">
         <span v-for="(artist, index) in track.artists" :key="index">
-          <span>{{artist.name}}{{(index+1
-            < track.artists.length)? ", ": ""}}</span>
-          </span>
+          <span
+            >{{ artist.name
+            }}{{ index + 1 < track.artists.length ? ", " : "" }}</span
+          >
         </span>
-        <div class="track-item__user" v-if="track.snoppify">
-          <div class="user-image" :style="{'background-image':'url('+track.snoppify.issuer.profile+')'}"></div>
-          <div>{{track.snoppify.issuer.displayName}}</div>
-        </div>
+      </span>
+      <div class="track-item__user" v-if="track.snoppify">
+        <div
+          class="user-image"
+          :style="{
+            'background-image': 'url(' + track.snoppify.issuer.profile + ')',
+          }"
+        ></div>
+        <div>{{ track.snoppify.issuer.displayName }}</div>
+      </div>
     </router-link>
     <span v-if="track.snoppify && track.snoppify.votes">
-      <button :disabled="track.snoppify.issuer.id == user.id" class="snopp-btn snopp-btn--medium snopp-btn--vote" v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}" v-on:click="vote(track)">
+      <button
+        :disabled="track.snoppify.issuer.id == user.id"
+        class="snopp-btn snopp-btn--medium snopp-btn--vote"
+        v-bind:class="{ active: track.snoppify.votes.indexOf(username) != -1 }"
+        v-on:click="vote(track)"
+      >
         <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
-        <div>{{track.snoppify.votes.length}}</div>
+        <div>{{ track.snoppify.votes.length }}</div>
       </button>
       <!-- <button v-else class="snopp-btn snopp-btn--medium" v-on:click="dequeueTrack(track)">
         Dequeue
       </button> -->
     </span>
-    <button v-else class="snopp-btn snopp-btn--medium" v-on:click="queueTrack(track)">
+    <button
+      v-else
+      class="snopp-btn snopp-btn--medium"
+      v-on:click="queueTrack(track)"
+    >
       Queue
     </button>
-    </span>
+  </span>
 </template>
 
 <script>
@@ -92,7 +112,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped lang="scss">
 @import "../assets/variables.scss";

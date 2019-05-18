@@ -1,51 +1,51 @@
-export default (axios) => ({
-    setBackupPlaylist: function (uri) {
+export default axios => ({
+    setBackupPlaylist: function(uri) {
         return axios.post("/set-backup-playlist", {
-            uri
+            uri,
         });
     },
-    queueTrack: function (trackId) {
+    queueTrack: function(trackId) {
         return axios.post("/queue-track", {
-            trackId
+            trackId,
         });
     },
-    dequeueTrack: function (trackId) {
+    dequeueTrack: function(trackId) {
         return axios.post("/dequeue-track", {
-            trackId
+            trackId,
         });
     },
-    vote: function (trackId) {
+    vote: function(trackId) {
         return axios.post("/vote", {
-            trackId
+            trackId,
         });
     },
-    unvote: function (trackId) {
+    unvote: function(trackId) {
         return axios.post("/unvote", {
-            trackId
+            trackId,
         });
     },
-    play: function (playlist = false) {
+    play: function(playlist = false) {
         let data = {
             playlist: playlist,
         };
         return axios.post("/play", data);
     },
-    pause: function () {
+    pause: function() {
         return axios.post("/pause");
     },
-    previous: function () {
+    previous: function() {
         return axios.post("/previous");
     },
-    playNext: function () {
+    playNext: function() {
         return axios.post("/play-next");
     },
-    emptyPlaylist: function () {
+    emptyPlaylist: function() {
         return axios.post("/empty-playlist");
     },
-    emptyQueue: function () {
+    emptyQueue: function() {
         return axios.post("/empty-queue");
     },
-    get: function () {
+    get: function() {
         return axios.get("/get-queue");
-    }
+    },
 });

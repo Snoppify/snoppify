@@ -3,9 +3,7 @@ import auth from "./auth";
 import queue from "./queue";
 import misc from "./misc";
 import spotify from "./spotify";
-import {
-    store
-} from '@/store';
+import { store } from "@/store";
 import storage from "@/common/device-storage";
 
 const api = {
@@ -16,7 +14,7 @@ const api = {
     axios: null,
     initialized: false,
     init,
-}
+};
 
 const serverIP = storage.get("serverIP");
 if (serverIP) {
@@ -29,7 +27,7 @@ function init(serverIP) {
     storage.set("serverIP", serverIP);
 
     const _axios = axios.create({
-        baseURL: window.location.protocol + '//' + serverIP + ':3000',
+        baseURL: window.location.protocol + "//" + serverIP + ":3000",
         timeout: 5000,
         withCredentials: true,
     });
@@ -37,7 +35,12 @@ function init(serverIP) {
     _axios.interceptors.response.use(
         response => response.data,
         err => {
-            if (err && err.response && err.response.data && err.response.data.error) {
+            if (
+                err &&
+                err.response &&
+                err.response.data &&
+                err.response.data.error
+            ) {
                 store.dispatch("Messages/toast", {
                     type: "alert",
                     message: err.response.data.error,
@@ -45,7 +48,7 @@ function init(serverIP) {
                 });
             }
             return Promise.reject(err);
-        }
+        },
     );
 
     Object.assign(api, {
@@ -56,6 +59,6 @@ function init(serverIP) {
         axios: _axios,
         initialized: true,
     });
-};
+}
 
 export default api;

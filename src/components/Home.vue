@@ -4,83 +4,117 @@
       <div class="title">
         — Snoppify —
       </div>
-      <search-dropdown :options="{'search': 'Search term'}"></search-dropdown>
+      <search-dropdown :options="{ search: 'Search term' }"></search-dropdown>
     </header>
 
     <h1 v-if="player.isPlaying">Now playing</h1>
     <h1 v-else>Paused</h1>
 
     <div class="current-track" v-if="currentTrack">
-      <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt="">
+      <img
+        v-if="currentTrack.album"
+        :src="currentTrack.album.images[1].url"
+        alt=""
+      />
       <div class="current-track__track-info">
         <div class="title">
-          {{currentTrack.name}}
+          {{ currentTrack.name }}
         </div>
         <div class="artist">
           <span v-for="(artist, index) in currentTrack.artists" :key="index">
-            <span>{{artist.name}}</span>
-            <span v-if="index+1 < currentTrack.artists.length">, </span>
+            <span>{{ artist.name }}</span>
+            <span v-if="index + 1 < currentTrack.artists.length">, </span>
           </span>
         </div>
       </div>
       <div class="current-track__user-info" v-if="currentTrack.snoppify">
-        <div class="user-image" :style="{'background-image':'url('+currentTrack.snoppify.issuer.profile+')'}">
-
-        </div>
+        <div
+          class="user-image"
+          :style="{
+            'background-image':
+              'url(' + currentTrack.snoppify.issuer.profile + ')',
+          }"
+        ></div>
         <div class="user">
           <div class="title">Added by</div>
-          <div class="name">{{currentTrack.snoppify.issuer.displayName}}</div>
-          <div class="upvotes">{{currentTrack.snoppify.votes.length}} upvotes</div>
+          <div class="name">{{ currentTrack.snoppify.issuer.displayName }}</div>
+          <div class="upvotes">
+            {{ currentTrack.snoppify.votes.length }} upvotes
+          </div>
         </div>
       </div>
     </div>
 
     <div class="progress" v-if="player.status">
       <div class="progress_inner">
-        <div class="progress_inner_bar" v-bind:style="{width: (100*player.status.fraction)+'%'}">
-        </div>
+        <div
+          class="progress_inner_bar"
+          v-bind:style="{ width: 100 * player.status.fraction + '%' }"
+        ></div>
       </div>
       <div class="progress_status">
-        <span>{{player.status.progress}}</span>
-        <span>{{player.status.duration}}</span>
+        <span>{{ player.status.progress }}</span>
+        <span>{{ player.status.duration }}</span>
       </div>
     </div>
 
     <h1>Queue</h1>
     <transition-group name="song-list" v-if="queue" tag="ul" class="song-list">
       <li v-for="(track, index) in queue" v-bind:key="track.id">
-        <track-item :track="track" :index="index+1"></track-item>
+        <track-item :track="track" :index="index + 1"></track-item>
       </li>
     </transition-group>
 
-    <p>Logged in as
-      <b>{{user.displayName}}</b>
+    <p>
+      Logged in as
+      <b>{{ user.displayName }}</b>
     </p>
 
     <form action="/logout">
       <input type="submit" value="Logout" class="snopp-btn" />
     </form>
 
-    <button v-for="sound in ['honk', 'applause', 'orgasm', 'whistle', 'yeah', 'wilhelm', 'airhorn', 'brrrap', 'rastafari']" v-on:click="playSound(sound)" class="snopp-btn">Play '{{sound}}'</button>
+    <button
+      v-for="sound in [
+        'honk',
+        'applause',
+        'orgasm',
+        'whistle',
+        'yeah',
+        'wilhelm',
+        'airhorn',
+        'brrrap',
+        'rastafari',
+      ]"
+      v-bind:key="sound"
+      v-on:click="playSound(sound)"
+      class="snopp-btn"
+    >
+      Play '{{ sound }}'
+    </button>
 
     <div v-if="user.admin">
       <button v-on:click="play">Play</button>
       <button v-on:click="pause">Pause</button>
       <button v-on:click="playNext">Next track</button>
-      <br/>
+      <br />
       <button v-on:click="playPlaylist">Play playlist</button>
       <button v-on:click="emptyPlaylist">Empty playlist</button>
       <button v-on:click="emptyQueue">Empty queue</button>
 
-      <br/>
+      <br />
 
       <form v-on:submit.prevent="setBackupPlaylist(backupUrl)">
-        <input v-model="backupUrl" placeholder="Paste a playlist uri">
+        <input v-model="backupUrl" placeholder="Paste a playlist uri" />
         <button type="submit">Set</button>
       </form>
-      <p>Backup playlist:
+      <p>
+        Backup playlist:
         <span v-if="backupPlaylist">
-          <b>{{backupPlaylist.name}}</b> ({{backupPlaylist.owner.display_name}})</span>
+          <b>{{ backupPlaylist.name }}</b> ({{
+            backupPlaylist.owner.display_name
+          }})</span
+        >
         <span v-else>(not set)</span>
       </p>
     </div>

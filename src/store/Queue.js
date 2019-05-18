@@ -46,7 +46,4 @@ export default {
             state.queue = data.queue;
         },
     },
-
-
-
-}
+};

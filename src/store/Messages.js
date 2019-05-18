@@ -25,7 +25,7 @@ export default {
          * }
          */
         toast: (context, data) => {
-            data.id = (ID++);
+            data.id = ID++;
             context.state.toasts.push(data);
             if (data.duration) {
                 setTimeout(() => {
@@ -34,7 +34,7 @@ export default {
             }
         },
 
-        dismissToast: (context) => {
+        dismissToast: context => {
             context.state.toasts.pop();
         },
 
@@ -47,7 +47,7 @@ export default {
          * }
          */
         popup: (context, data) => {
-            data.id = (ID++);
+            data.id = ID++;
             context.state.popups.push(data);
             if (data.duration) {
                 setTimeout(() => {
@@ -56,8 +56,8 @@ export default {
             }
         },
 
-        dismissPopup: (context) => {
+        dismissPopup: context => {
             context.state.popups.pop();
         },
     },
-}
+};

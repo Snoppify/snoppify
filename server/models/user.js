@@ -1,14 +1,13 @@
 const fs = require("fs");
-const Queue = require('../Queue');
+const Queue = require("../Queue");
 
 class User {
-
     constructor(data) {
         for (let key in data) {
             this[key] = data[key];
         }
         this.queue = new Queue({
-            id: 'id',
+            id: "id",
             queue: data.queue,
         });
     }
@@ -56,15 +55,13 @@ class User {
                     if (index == -1) {
                         // add user
                         User.users.push(user);
-                    }
-                    else {
+                    } else {
                         // update user in case the reference was lost somewhere
                         User.users[index] = user;
                     }
                     return User.saveToFile(callback);
                 });
-            }
-            else {
+            } else {
                 return User.saveToFile(callback || function() {});
             }
         });
@@ -75,15 +72,17 @@ class User {
             return callback();
         }
         // load saved user data
-        fs.readFile(User.usersFile, 'utf8', function readFileCallback(err, data) {
+        fs.readFile(User.usersFile, "utf8", function readFileCallback(
+            err,
+            data,
+        ) {
             try {
                 let users = JSON.parse(data);
                 if (!users.users) {
                     throw "Invalid format";
                 }
                 User.users = users.users.map(user => new User(user));
-            }
-            catch (e) {
+            } catch (e) {
                 User.users = [];
             }
             return callback(null);
@@ -98,22 +97,20 @@ class User {
             _users.push(_user);
         });
         let json = JSON.stringify({
-            users: _users
+            users: _users,
         });
 
-        return fs.writeFile(User.usersFile, json, 'utf8', function(err) {
+        return fs.writeFile(User.usersFile, json, "utf8", function(err) {
             if (err) {
                 return callback(err);
-
             }
             return callback(null);
         });
     }
-
 }
 
 //User.users = [];
-User.usersFile = 'data/snoppify-users.json';
+User.usersFile = "data/snoppify-users.json";
 
 // define the actual singleton instance
 // ------------------------------------

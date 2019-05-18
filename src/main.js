@@ -1,13 +1,10 @@
 // import 'vueify/lib/insert-css';
-import Vue from 'vue'
+import Vue from "vue";
 // import Vuex from 'vuex'
-import App from './App'
-import router from './router'
-import socket from './socket'
-import {
-    store
-}
-    from './store'
+import App from "./App";
+import router from "./router";
+import socket from "./socket";
+import { store } from "./store";
 import api from "./api";
 import storage from "./common/device-storage";
 
@@ -23,7 +20,7 @@ if (window.location.hash && window.location.hash === "#_=_") {
         // Prevent scrolling by storing the page's current scroll offset
         var _scroll = {
             top: document.body.scrollTop,
-            left: document.body.scrollLeft
+            left: document.body.scrollLeft,
         };
         window.location.hash = "";
         // Restore the scroll offset, should be flicker free
@@ -50,14 +47,14 @@ if (window.location.hash && window.location.hash === "#_=_") {
 // }
 
 new Vue({
-    el: '#app',
+    el: "#app",
     data: {
-        currentRoute: window.location.pathname
+        currentRoute: window.location.pathname,
     },
     beforeCreate() {
-        store.commit('init');
+        store.commit("init");
         // TODO: Move to after the server has been found
-        store.commit('setSocket', this.$socket);
+        store.commit("setSocket", this.$socket);
     },
     render: h => h(App),
     router,

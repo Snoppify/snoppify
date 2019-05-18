@@ -1,12 +1,23 @@
 <template>
   <div id="search-dropdown" v-on:click="!show && focusSearch()">
     <form v-on:submit.prevent="" class="search-input">
-      <input v-on:input="search" v-on:focus="search" ref="input" placeholder="Type something or paste a Spotify link..." v-model="searchTerm" v-bind:class="{active:show}">
+      <input
+        v-on:input="search"
+        v-on:focus="search"
+        ref="input"
+        placeholder="Type something or paste a Spotify link..."
+        v-model="searchTerm"
+        v-bind:class="{ active: show }"
+      />
       <!-- <button type="submit">Search</button> -->
     </form>
 
     <transition name="search-backdrop">
-      <div v-if="show" class="search-backdrop" v-on:click.stop.prevent="blurSearch"></div>
+      <div
+        v-if="show"
+        class="search-backdrop"
+        v-on:click.stop.prevent="blurSearch"
+      ></div>
     </transition>
 
     <div class="search-results" v-if="show">
@@ -14,7 +25,10 @@
         <div v-if="!result" class="search-results__info">
           <p>Search by text or paste a spotify link</p>
         </div>
-        <div v-if="result && result.tracks.items.length == 0" class="search-results__info">
+        <div
+          v-if="result && result.tracks.items.length == 0"
+          class="search-results__info"
+        >
           <p>Nothing here :(</p>
         </div>
         <ul v-if="result && result.tracks.items.length > 0" class="search-list">
@@ -24,7 +38,11 @@
         </ul>
       </div>
       <div v-show="loading" class="search-results__info">
-        <img src="@/assets/spinner.svg" alt="LOADING SPINER" class="search-results__spinner">
+        <img
+          src="@/assets/spinner.svg"
+          alt="LOADING SPINER"
+          class="search-results__spinner"
+        />
       </div>
     </div>
   </div>
@@ -189,7 +207,7 @@ export default {
         transform: rotateZ(0deg);
       }
       100% {
-        transform: rotateZ(2*360deg);
+        transform: rotateZ(2 * 360deg);
       }
     }
 

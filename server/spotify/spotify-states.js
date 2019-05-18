@@ -1,4 +1,4 @@
-const StateMachine = require('../StateMachine');
+const StateMachine = require("../StateMachine");
 
 const nextTrackThreshold = 10;
 
@@ -16,15 +16,20 @@ const stateMachine = new StateMachine({
             userVoted: false,
         },
     },
-    states: [{
-        name: "paused",
-    }, {
-        name: "playing"
-    }, {
-        name: "playSong"
-    }, {
-        name: "waitingForNextSong"
-    }],
+    states: [
+        {
+            name: "paused",
+        },
+        {
+            name: "playing",
+        },
+        {
+            name: "playSong",
+        },
+        {
+            name: "waitingForNextSong",
+        },
+    ],
     transitions: [
         // paused
         {
@@ -32,19 +37,25 @@ const stateMachine = new StateMachine({
             target: "playSong",
             value: function(d) {
                 return d.events.changedTrack;
-            }
-        }, {
+            },
+        },
+        {
             source: "paused",
             target: "playing",
             value: function(d) {
                 return d.isPlaying && !d.events.changedTrack;
-            }
-        }, {
+            },
+        },
+        {
             source: "paused",
             target: "waitingForNextSong",
             value: function(d) {
-                return d.events.queuedTrack && d.playlist && d.playlist.tracks.items.length == 0;
-            }
+                return (
+                    d.events.queuedTrack &&
+                    d.playlist &&
+                    d.playlist.tracks.items.length == 0
+                );
+            },
         },
         // playing
         {
@@ -52,21 +63,26 @@ const stateMachine = new StateMachine({
             target: "paused",
             value: function(d) {
                 return d.events.stoppedPlaying;
-            }
-        }, {
+            },
+        },
+        {
             source: "playing",
             target: "playSong",
             value: function(d) {
                 return d.events.changedTrack;
-            }
-        }, {
+            },
+        },
+        {
             source: "playing",
             target: "waitingForNextSong",
             value: function(d) {
-                return d.player.is_playing && d.player.item && (
-                    (d.player.item.duration_ms - d.player.progress_ms) / 1000 < nextTrackThreshold
+                return (
+                    d.player.is_playing &&
+                    d.player.item &&
+                    (d.player.item.duration_ms - d.player.progress_ms) / 1000 <
+                        nextTrackThreshold
                 );
-            }
+            },
         },
         // playSong
         {
@@ -74,7 +90,7 @@ const stateMachine = new StateMachine({
             target: "playing",
             value: function(d) {
                 return d.isPlaying;
-            }
+            },
         },
         // waitingForNextSong
         {
@@ -82,14 +98,15 @@ const stateMachine = new StateMachine({
             target: "playSong",
             value: function(d) {
                 return d.events.changedTrack;
-            }
-        }, {
+            },
+        },
+        {
             source: "waitingForNextSong",
             target: "paused",
             value: function(d) {
                 return !d.isPlaying;
-            }
-        }
+            },
+        },
     ],
     initialState: "paused",
     //finalState: "waitingForNextSong",

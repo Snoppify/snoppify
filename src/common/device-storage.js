@@ -1,4 +1,4 @@
-const prefix = (key) => "Snoppify_" + key;
+const prefix = key => "Snoppify_" + key;
 
 const storage = window.localStorage;
 
@@ -11,5 +11,5 @@ export default {
     get(key) {
         const val = storage.getItem(prefix(key));
         return val && JSON.parse(val);
-    }
-}
+    },
+};

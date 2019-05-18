@@ -1,0 +1,13 @@
+{
+  "tabWidth": 4,
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": ["*.html", "*.vue", "*.json", ".prettierrc"],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ],
+  "semi": true
+}

@@ -1,7 +1,9 @@
 <template>
   <div id="fingerprint" class="route-container">
-      <p>Your fingerprint:</p>
-      <p><b>{{fingerprint}}</b></p>
+    <p>Your fingerprint:</p>
+    <p>
+      <b>{{ fingerprint }}</b>
+    </p>
   </div>
 </template>
 
@@ -10,7 +12,7 @@ import Fingerprint2 from "fingerprintjs2";
 
 export default {
   data: () => ({
-    fingerprint: ""
+    fingerprint: "",
   }),
 
   created() {
@@ -18,7 +20,6 @@ export default {
       this.fingerprint = res;
       console.log(components);
     });
-  }
+  },
 };
 </script>
-

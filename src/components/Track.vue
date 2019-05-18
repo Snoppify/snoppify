@@ -1,59 +1,83 @@
 <template>
   <div id="track" class="route-container route-container_overlay">
     <div v-if="track">
-
       <div class="track_title">
         <div class="track_title_back-button">
           <router-link to="/" tag="div">&lt;</router-link>
         </div>
 
-        <h1 class="track_title_name">{{track.name}}</h1>
+        <h1 class="track_title_name">{{ track.name }}</h1>
       </div>
 
       <div class="track-hr"></div>
 
       <div class="track_image">
-        <img v-if="track.album" :src="track.album.images[1].url" alt="">
+        <img v-if="track.album" :src="track.album.images[1].url" alt="" />
       </div>
 
       <div class="track_info">
-
         <div class="track_snoppify">
           <div v-if="!track.snoppify">
-            <button v-on:click="queueTrack(track)" class="snopp-btn snopp-btn--light">Queue track</button>
+            <button
+              v-on:click="queueTrack(track)"
+              class="snopp-btn snopp-btn--light"
+            >
+              Queue track
+            </button>
           </div>
 
           <div v-if="track.snoppify">
-            <p>Added by
-              <b>{{track.snoppify.issuer.displayName}}</b>
+            <p>
+              Added by
+              <b>{{ track.snoppify.issuer.displayName }}</b>
             </p>
-            <p class="track_snoppify_row">Votes:
-              <span class="snopp-vote-btn" v-bind:class="{active:track.snoppify.votes.indexOf(username) != -1}" v-on:click="vote(track)">
-                <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
-                <div>{{track.snoppify.votes.length}}</div>
+            <p class="track_snoppify_row">
+              Votes:
+              <span
+                class="snopp-vote-btn"
+                v-bind:class="{
+                  active: track.snoppify.votes.indexOf(username) != -1,
+                }"
+                v-on:click="vote(track)"
+              >
+                <div
+                  class="arrow-up"
+                  v-if="track.snoppify.votes.length > 0"
+                ></div>
+                <div>{{ track.snoppify.votes.length }}</div>
               </span>
             </p>
-            <button v-if="track.snoppify && track.snoppify.issuer.username==username" v-on:click="dequeueTrack(track)" class="snopp-btn snopp-btn--light">Dequeue track</button>
+            <button
+              v-if="
+                track.snoppify && track.snoppify.issuer.username == username
+              "
+              v-on:click="dequeueTrack(track)"
+              class="snopp-btn snopp-btn--light"
+            >
+              Dequeue track
+            </button>
           </div>
 
-          <hr/>
+          <hr />
         </div>
 
-        <h3>Artist
+        <h3>
+          Artist
           <span v-if="track.artists.length > 1">s</span>
         </h3>
         <p>
           <span v-for="(artist, index) in track.artists" :key="index">
-            <span>{{artist.name}}</span>
-            <span v-if="index+1 < track.artists.length">, </span>
+            <span>{{ artist.name }}</span>
+            <span v-if="index + 1 < track.artists.length">, </span>
           </span>
         </p>
         <h3>Album</h3>
-        <p>{{track.album.name}}</p>
+        <p>{{ track.album.name }}</p>
         <h3>Audio features</h3>
         <ul>
           <li v-for="(val, key) in track.audio_features" :key="key">
-            <i>{{key}}</i>: {{val}}
+            <i>{{ key }}</i
+            >: {{ val }}
           </li>
         </ul>
       </div>

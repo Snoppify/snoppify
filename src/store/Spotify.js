@@ -1,11 +1,11 @@
-import Vue from 'vue'
+import Vue from "vue";
 
 export default {
     namespaced: true,
 
     state: {
         isConnected: false,
-        storedResult: '',
+        storedResult: "",
         tracks: {},
         currentTrack: {},
         queue: [],
@@ -20,9 +20,9 @@ export default {
     },
 
     mutations: {
-        SOCKET_CONNECT: state => state.isConnected = true,
+        SOCKET_CONNECT: state => (state.isConnected = true),
 
-        SOCKET_DISCONNECT: state => state.isConnected = false,
+        SOCKET_DISCONNECT: state => (state.isConnected = false),
 
         SOCKET_SEARCH(state, message) {
             state.storedResult = JSON.parse(message);
@@ -50,6 +50,5 @@ export default {
         getTrack(context, id) {
             context.rootState.io.emit("getTrack", id);
         },
-    }
-
-}
+    },
+};

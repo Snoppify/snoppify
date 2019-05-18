@@ -18,7 +18,7 @@ const scopes = [
     "user-read-recently-played",
     "user-read-currently-playing",
     "user-read-playback-state",
-    "user-modify-playback-state"
+    "user-modify-playback-state",
 ];
 
 let accessToken = null;
@@ -66,16 +66,25 @@ function previous() {
 }
 
 function addToPlaylist(owner, playlist, tracks) {
-    return request("post", "users/" + owner + "/playlists/" + playlist + "/tracks", null, {
-        uris: tracks.toString()
-    });
+    return request(
+        "post",
+        "users/" + owner + "/playlists/" + playlist + "/tracks",
+        null,
+        {
+            uris: tracks.toString(),
+        },
+    );
 }
 
 function removePositionsFromPlaylist(owner, playlist, positions, snapshot) {
-    return request("delete", "users/" + owner + "/playlists/" + playlist + "/tracks", {
-        positions: positions,
-        snapshot_id: snapshot,
-    });
+    return request(
+        "delete",
+        "users/" + owner + "/playlists/" + playlist + "/tracks",
+        {
+            positions: positions,
+            snapshot_id: snapshot,
+        },
+    );
 }
 
 function currentlyPlaying() {
@@ -91,25 +100,29 @@ function getAccessToken() {
             resolve(accessToken);
         } else {
             axios({
-                    method: "post",
-                    url: "https://accounts.spotify.com/api/token",
-                    params: {
-                        grant_type: 'refresh_token', // client_credentials, authorization_code or refresh_token
-                        refresh_token: api.config.refresh_token,
-                        redirect_uri: 'http://localhost:3000',
-                    },
-                    headers: {
-                        'Authorization': 'Basic ' + api.config.auth_token,
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                })
+                method: "post",
+                url: "https://accounts.spotify.com/api/token",
+                params: {
+                    grant_type: "refresh_token", // client_credentials, authorization_code or refresh_token
+                    refresh_token: api.config.refresh_token,
+                    redirect_uri: "http://localhost:3000",
+                },
+                headers: {
+                    Authorization: "Basic " + api.config.auth_token,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            })
                 .then(function(r) {
                     //console.log("access_token", r.data.access_token);
                     accessToken = r.data.access_token;
                     resolve(accessToken);
                 })
                 .catch(function(r) {
-                    let e = [r.response.status, "(" + r.response.data.error + ")", r.response.data.error_description].join(" ");
+                    let e = [
+                        r.response.status,
+                        "(" + r.response.data.error + ")",
+                        r.response.data.error_description,
+                    ].join(" ");
                     console.log(e);
                     reject(r);
                 });
@@ -120,18 +133,18 @@ function getAccessToken() {
 function getRefreshToken(code) {
     return new Promise(function(resolve, reject) {
         axios({
-                method: "post",
-                url: "https://accounts.spotify.com/api/token",
-                params: {
-                    grant_type: 'authorization_code', // client_credentials, authorization_code or refresh_token
-                    code: code,
-                    redirect_uri: 'http://localhost:3000/refresh-token',
-                },
-                headers: {
-                    'Authorization': 'Basic ' + api.config.auth_token,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            })
+            method: "post",
+            url: "https://accounts.spotify.com/api/token",
+            params: {
+                grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
+                code: code,
+                redirect_uri: "http://localhost:3000/refresh-token",
+            },
+            headers: {
+                Authorization: "Basic " + api.config.auth_token,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        })
             .then(function(r) {
                 console.log("refresh_token", r.data.refresh_token);
                 resolve(r.data.refresh_token);
@@ -151,10 +164,10 @@ function request(method, uri, data, params) {
         getAccessToken().then(function(token) {
             axios({
                 method: method,
-                url: 'https://api.spotify.com/v1/' + uri,
+                url: "https://api.spotify.com/v1/" + uri,
                 timeout: 10000,
                 headers: {
-                    'Authorization': "Bearer " + token
+                    Authorization: "Bearer " + token,
                 },
                 data: data,
                 params: params,

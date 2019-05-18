@@ -1,12 +1,15 @@
 # snoppify
 
 ## Requirements
+
 `npm`
 
 ## Installation and running
+
 Serve the server with `node server/` which is then available at [http://localhost:3000](http://localhost:3000).
 
 ### Configuration
+
 A `snoppify-config.js` config file is required for the server to communicate with the spotify api, on the form
 
 ```

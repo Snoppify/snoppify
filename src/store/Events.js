@@ -1,7 +1,7 @@
 import Vue from "vue";
 import api from "../api";
 
-import honk from '../assets/sounds/honk.wav';
+import honk from "../assets/sounds/honk.wav";
 import applause from "../assets/sounds/applause.wav";
 import orgasm from "../assets/sounds/orgasm.wav";
 import whistle from "../assets/sounds/whistle.wav";
@@ -11,31 +11,25 @@ import airhorn from "../assets/sounds/airhorn.wav";
 import brrrap from "../assets/sounds/brrrap.wav";
 import rastafari from "../assets/sounds/rastafari.wav";
 
-
-import {
-    Howler,
-    Howl
-}
-    from 'howler';
+import { Howler, Howl } from "howler";
 
 Howler.volume(1);
 
 var sounds = {
-    'honk': [honk],
-    'applause': [applause],
-    'orgasm': [orgasm],
-    'whistle': [whistle],
-    'yeah': [yeah],
-    'wilhelm': [wilhelm],
-    'airhorn': [airhorn],
-    'brrrap': [brrrap],
-    'rastafari': [rastafari],
-
+    honk: [honk],
+    applause: [applause],
+    orgasm: [orgasm],
+    whistle: [whistle],
+    yeah: [yeah],
+    wilhelm: [wilhelm],
+    airhorn: [airhorn],
+    brrrap: [brrrap],
+    rastafari: [rastafari],
 };
 let howls = {};
 for (let k in sounds) {
     howls[k] = new Howl({
-        src: sounds[k]
+        src: sounds[k],
     });
 }
 
@@ -66,16 +60,24 @@ export default {
                     case "waitingForNextSong":
                         this.dispatch("Messages/toast", {
                             type: "deepsea",
-                            html: "Next song: <b>" + _event.data.track.name + "</b>",
-                            duration: 10
+                            html:
+                                "Next song: <b>" +
+                                _event.data.track.name +
+                                "</b>",
+                            duration: 10,
                         });
                         break;
                     case "playMySong":
                         this.dispatch("Messages/popup", {
                             type: "deepsea",
-                            html: "<p>Playing your song:</p>" +
-                                "<p><b>" + _event.data.track.name + "</b></p>" +
-                                "<p>(" + _event.data.track.artists[0].name + ")</p>",
+                            html:
+                                "<p>Playing your song:</p>" +
+                                "<p><b>" +
+                                _event.data.track.name +
+                                "</b></p>" +
+                                "<p>(" +
+                                _event.data.track.artists[0].name +
+                                ")</p>",
                             duration: 10,
                         });
                         break;
@@ -87,7 +89,6 @@ export default {
                         break;
                 }
             });
-
         },
     },
-}
+};

@@ -5,7 +5,7 @@ const spotify = {
     init: () => {
         spotify.api.init();
         spotify.controller.init();
-    }
+    },
 };
 
-module.exports = spotify;
+export default spotify;

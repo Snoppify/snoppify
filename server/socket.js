@@ -1,4 +1,4 @@
-const socketio = require('socket.io');
+const socketio = require("socket.io");
 
 // define the actual singleton instance
 // ------------------------------------
@@ -20,13 +20,13 @@ var singleton = function socket(http) {
 Object.defineProperty(singleton, "io", {
     get: function() {
         return global[SOCKET_KEY];
-    }
+    },
 });
 
 Object.defineProperty(singleton, "sockets", {
     get: function() {
         return global[SOCKET_SOCKETS_KEY];
-    }
+    },
 });
 
 // ensure the API is never changed
