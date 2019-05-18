@@ -2,7 +2,7 @@ import appRootPath from "app-root-path";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import express from "express";
+import express, { Request as ExpRequest } from "express";
 import fallback from "express-history-api-fallback";
 import session from "express-session";
 import sharedsession from "express-socket.io-session";
@@ -105,23 +105,23 @@ app.use("/", routes);
 let isHosting = false;
 
 const startHosting = (() => {
-    return () => {
+    return (req: ExpRequest) => {
         if (isHosting) {
             return;
         }
 
         isHosting = true;
-        spotify.init();
+        spotify.init(req);
     };
 })();
-app.use("/start-host", (_, res) => {
-    startHosting();
-    res.send("Host started");
+app.use("/start-host", (req, res) => {
+    startHosting(req);
+    res.send("host started");
 });
 
 app.use("/ping", (_, res) => {
     res.json({
-        isHost: isHosting,
+        isHost: true,
     });
 });
 

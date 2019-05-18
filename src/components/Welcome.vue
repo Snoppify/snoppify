@@ -19,7 +19,9 @@
           Join
         </button>
 
-        <button class="start-btn start-btn__host">Host</button>
+        <button class="start-btn start-btn__host " @click="onHostClick()">
+          Host
+        </button>
       </div>
     </div>
   </div>
@@ -39,6 +41,7 @@ export default {
   }),
 
   methods: {
+    onHostClick() {},
     onJoinClick() {
       this.showServerForm = true;
       this.scanForServers();

@@ -1,17 +1,14 @@
-import Vue from "vue";
-import api from "../api";
+import { Howl, Howler } from "howler";
 
-import honk from "../assets/sounds/honk.wav";
-import applause from "../assets/sounds/applause.wav";
-import orgasm from "../assets/sounds/orgasm.wav";
-import whistle from "../assets/sounds/whistle.wav";
-import yeah from "../assets/sounds/yeah.wav";
-import wilhelm from "../assets/sounds/wilhelm.wav";
 import airhorn from "../assets/sounds/airhorn.wav";
+import applause from "../assets/sounds/applause.wav";
 import brrrap from "../assets/sounds/brrrap.wav";
+import honk from "../assets/sounds/honk.wav";
+import orgasm from "../assets/sounds/orgasm.wav";
 import rastafari from "../assets/sounds/rastafari.wav";
-
-import { Howler, Howl } from "howler";
+import whistle from "../assets/sounds/whistle.wav";
+import wilhelm from "../assets/sounds/wilhelm.wav";
+import yeah from "../assets/sounds/yeah.wav";
 
 Howler.volume(1);
 
@@ -82,9 +79,11 @@ export default {
                         });
                         break;
                     case "playSound":
-                        let sound = howls[_event.data.sound];
-                        if (sound) {
-                            sound.play();
+                        {
+                            let sound = howls[_event.data.sound];
+                            if (sound) {
+                                sound.play();
+                            }
                         }
                         break;
                 }

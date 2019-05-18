@@ -5,6 +5,7 @@ const fs = require("fs");
 const ip = require("ip");
 
 const socket = require("../socket");
+const spotifyPlaybackApi = require("../spotify/spotify-playback-api");
 
 const isAuthenticated = function(req, res, next) {
     // if user is authenticated in the session, call the next() to call the next request handler
@@ -306,11 +307,11 @@ module.exports = function(passport, spotify) {
 
     // route for facebook authentication and login
     // different scopes while logging in
-    router.get("/auth/facebook", (req, res) =>
+    router.get("/auth/facebook", (req, ...args) =>
         passport.authenticate("facebook", {
             scope: ["public_profile", "email"],
             state: getPassportState(req),
-        })(req, res),
+        })(req, ...args),
     );
 
     // handle the callback after facebook has authenticated the user
@@ -333,12 +334,19 @@ module.exports = function(passport, spotify) {
 
     // route for spotify authentication and login
     // different scopes while logging in
-    router.get("/auth/spotify", (req, res) =>
+    router.get("/auth/spotify", (req, ...args) =>
         passport.authenticate("spotify", {
             scope: ["user-read-email", "user-read-private"],
             state: getPassportState(req),
-        })(req, res),
+        })(req, ...args),
     );
+
+    router.get("/auth/spotify-host", (req, ...args) => {
+        return passport.authenticate("spotify", {
+            scope: spotifyPlaybackApi.scopes,
+            state: getPassportState(req),
+        })(req, ...args);
+    });
 
     // handle the callback after spotify has authenticated the user
     router.get(

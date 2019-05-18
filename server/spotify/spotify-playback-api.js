@@ -26,6 +26,7 @@ let refreshTime = 0;
 let expireTime = 3600 / 2;
 
 module.exports = {
+    scopes,
     getRefreshToken,
     getAuthUrl,
     play,
