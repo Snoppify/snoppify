@@ -1,61 +1,66 @@
-require("dotenv").config();
-
+import appRootPath from "app-root-path";
+import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 import express from "express";
+import fallback from "express-history-api-fallback";
+import session from "express-session";
+import sharedsession from "express-socket.io-session";
+import fs from "fs";
+import http from "http";
+import https from "https";
+import ip from "ip";
+import minimist from "minimist";
+import passport from "passport";
+import sessionFileStore from "session-file-store";
+
+import socketIO from "./socket";
 import spotify from "./spotify";
+
+//@ts-ignore
+dotenv.config();
 
 const app = express();
 
-const session = require("express-session"),
-    FileStore = require("session-file-store")(session),
-    sharedsession = require("express-socket.io-session"),
-    bodyParser = require("body-parser"),
-    cookieParser = require("cookie-parser");
-const fs = require("fs");
-const args = require("minimist")(process.argv);
+const FileStore = sessionFileStore(session);
+const args = minimist(process.argv);
 
 // consts
-const rootDir = require("app-root-path") + "/dist";
+const rootDir = appRootPath + "/dist";
 
 const useHttps = false;
-let httpServer;
+let httpServer: https.Server | http.Server;
 if (useHttps) {
-    httpServer = require("https").createServer(
+    httpServer = https.createServer(
         {
-            key: fs.readFileSync(
-                require("app-root-path") + "/ssl/privatekey.key",
-            ),
-            cert: fs.readFileSync(
-                require("app-root-path") + "/ssl/certificate.crt",
-            ),
+            key: fs.readFileSync(appRootPath + "/ssl/privatekey.key"),
+            cert: fs.readFileSync(appRootPath + "/ssl/certificate.crt"),
         },
         app,
     );
 } else {
-    httpServer = require("http").Server(app);
+    httpServer = http.createServer(app);
 }
 
-const socket = require("./socket")(httpServer);
-
-const fallback = require("express-history-api-fallback");
-const passport = require("passport");
+const socket = socketIO(httpServer);
 
 const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
 app.use(function(req, res, next) {
-    let ip = require("ip").address();
-    var localhost = ip + ":3000";
+    let ipAddr = ip.address();
+    var localhost = ipAddr + ":3000";
     var remotehost = "http://snoppify.com";
     var host = req.get("origin") || req.get("host");
-    switch (host) {
-        case localhost:
-        case remotehost:
-            res.header("Access-Control-Allow-Origin", host);
-            break;
-        default:
-            console.log("Rejected origin " + host);
-            break;
-    }
+    res.header("Access-Control-Allow-Origin", "*");
+    // switch (host) {
+    //     case localhost:
+    //     case remotehost:
+    //         break;
+    //     default:
+    //         console.log("Rejected origin " + host);
+    //         break;
+    // }
     res.header(
         "Access-Control-Allow-Headers",
         "Origin, X-Requested-With, Content-Type, Accept",
@@ -185,7 +190,7 @@ socket.io.on("connection", (sock: any) => {
 
 const port = args.p || 3000;
 httpServer.listen(port, () => {
-    let ip = require("ip").address();
+    let ipAddr = ip.address();
 
-    console.log(`Serving http${useHttps ? "s" : ""}://${ip}:${port}`);
+    console.log(`Serving http${useHttps ? "s" : ""}://${ipAddr}:${port}`);
 });
