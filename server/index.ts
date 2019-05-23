@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express, { Request as ExpRequest } from "express";
-import fallback from "express-history-api-fallback";
+import fallback = require("express-history-api-fallback");
 import session from "express-session";
 import sharedsession from "express-socket.io-session";
 import fs from "fs";
@@ -47,7 +47,7 @@ const socket = socketIO(httpServer);
 const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     let ipAddr = ip.address();
     var localhost = ipAddr + ":3000";
     var remotehost = "http://snoppify.com";

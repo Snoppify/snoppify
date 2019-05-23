@@ -1,7 +1,9 @@
-const SpotifyWebApi = require("spotify-web-api-node");
-const appRoot = require("app-root-path");
+import appRoot from "app-root-path";
+import { SpotifyWebApi } from "spotify-web-api-node";
 
-let config = {};
+import { ISnoppifyConfig } from "./snoppify-config.interface";
+
+let config = {} as ISnoppifyConfig;
 
 console.log("get me an api!");
 
@@ -21,14 +23,18 @@ const api = new SpotifyWebApi({
     redirectUri: "http://localhost:3000/refresh-token",
     clientId: config.client_id,
     clientSecret: config.client_secret,
-});
+}) as SpotifyWebApi & {
+    init: () => void;
+    config: ISnoppifyConfig;
+    onload: Promise<any>;
+};
 
 api.init = () => {
     api.config = config;
 
-    api.onload = new Promise(function(resolve, reject) {
+    api.onload = new Promise(function (resolve, reject) {
         api.clientCredentialsGrant().then(
-            function(data) {
+            function (data) {
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body["access_token"]);
 
@@ -36,7 +42,7 @@ api.init = () => {
 
                 resolve();
             },
-            function(err) {
+            function (err) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
@@ -49,14 +55,14 @@ api.init = () => {
 };
 
 function refreshAccessToken() {
-    setInterval(function() {
+    setInterval(function () {
         api.clientCredentialsGrant().then(
-            function(data) {
+            function (data) {
                 console.log("Updated access_token:", data.body.access_token);
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body.access_token);
             },
-            function(err) {
+            function (err) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
@@ -66,4 +72,4 @@ function refreshAccessToken() {
     }, 3000 * 1000);
 }
 
-module.exports = api;
+export default api;
