@@ -2,6 +2,7 @@
   "name": "snoppify2",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.ts",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -9,7 +10,8 @@
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node server-dist/",
     "watch-server": "npm-watch server",
-    "start-server": "concurrently \"npm run build-server -- --watch\" \"npm run watch-server\""
+    "start-server": "concurrently \"npm run build-server -- --watch\" \"npm run watch-server\"",
+    "start-electron": "tsc -p electron/ && cp electron/index.html electron-dist/ && electron ./electron-dist/main.js"
   },
   "watch": {
     "server": {
@@ -33,7 +35,7 @@
   "homepage": "https://github.com/mold/snoppify#readme",
   "dependencies": {
     "app-root-path": "^2.1.0",
-    "axios": "^0.18.0",
+    "axios": "^0.19.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",
     "dotenv": "^6.0.0",
@@ -73,7 +75,8 @@
     "@vue/cli-service": "^3.0.4",
     "@vue/eslint-config-prettier": "^4.0.1",
     "concurrently": "^4.1.0",
-    "eslint": "^5.16.0",
+    "electron": "^5.0.7",
+    "eslint": "^4.19.1",
     "eslint-plugin-vue": "^4.7.1",
     "minimist": "^1.2.0",
     "node-sass": "^4.9.0",

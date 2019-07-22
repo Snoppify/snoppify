@@ -2,6 +2,7 @@
 node_modules
 /dist
 /server-dist
+/electron-dist
 .commitmsg
 
 # local env files
