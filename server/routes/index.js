@@ -28,6 +28,8 @@ const getPassportState = req => {
 };
 
 module.exports = function (passport, spotify) {
+    spotifyPlaybackApi.init(spotify.api);
+
     // Spotify refresh token end point
     router.get("/refresh-token", (req, res) => {
         let refreshToken = "";
