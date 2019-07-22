@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "serve": "vue-cli-service build --watch --port 8080",
+    "build": "vue-cli-service build --dest dist",
     "lint": "vue-cli-service lint",
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node server-dist/",

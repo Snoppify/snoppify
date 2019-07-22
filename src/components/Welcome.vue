@@ -15,13 +15,20 @@
       <div v-else>
         <h1>Welcome to Snoppify!</h1>
 
+        <div class="start-input">
+          <div class="start-input__text">
+            <input v-model="hostIP" placeholder="Host IP">
+          </div>
+        </div>
+
         <button class="start-btn start-btn__join" @click="onJoinClick()">
           Join
         </button>
 
-        <button class="start-btn start-btn__host " @click="onHostClick()">
+        <router-link to="/host" tag="button"
+          class="start-btn start-btn__host ">
           Host
-        </button>
+        </router-link>
       </div>
     </div>
   </div>
@@ -38,13 +45,19 @@ export default {
     isScanning: false,
     timeSpentScanning: 0,
     foundHost: false,
+    hostIP: storage.get("serverIP"),
   }),
 
   methods: {
     onHostClick() {},
     onJoinClick() {
       this.showServerForm = true;
-      this.scanForServers();
+
+      api.init(this.hostIP);
+
+      this.$router.push({ name: "newUser" });
+
+      // this.scanForServers();
     },
     scanForServers() {
       this.isScanning = true;
@@ -171,6 +184,25 @@ export default {
     background: none;
     color: #fff;
     border: 1px solid #444;
+  }
+}
+
+.start-input {
+  margin: 0.3em auto;
+  width: 80%;
+  
+  &__text {
+    padding: 0 0.5em;
+    background: rgba(255,255,255,0.1);
+    
+    input {
+      width: 100%;
+      padding: 0.5em 0;
+      font-size: 1.3em;
+      border: none;
+      background: none;
+      color: white;
+    }
   }
 }
 </style>

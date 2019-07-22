@@ -11,6 +11,7 @@ import NewUser from "./components/NewUser";
 import Fingerprint from "./components/Fingerprint";
 import NotFound from "./components/NotFound";
 import Welcome from "./components/Welcome";
+import Host from "./components/Host";
 
 Vue.use(VueRouter);
 
@@ -84,6 +85,11 @@ const routes = [
         name: "fingerprint",
         beforeEnter: authGuard,
         component: Fingerprint,
+    },
+    {
+        path: "/host",
+        name: "host",
+        component: Host,
     },
     {
         path: "*",
