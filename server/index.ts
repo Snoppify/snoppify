@@ -193,4 +193,7 @@ httpServer.listen(port, () => {
     let ipAddr = ip.address();
 
     console.log(`Serving http${useHttps ? "s" : ""}://${ipAddr}:${port}`);
+
+    // send message to electron app
+    process.send && process.send("SERVER_STARTED");
 });

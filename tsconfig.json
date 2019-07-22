@@ -1,3 +1,19 @@
 {
-    "extends": "./tsconfig.server.json",
+    "compilerOptions": {
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "target": "es6",
+        "noImplicitAny": true,
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "baseUrl": ".",
+        "allowJs": true,
+        "paths": {
+            "*": [
+                "node_modules/*",
+                "src/types/*",
+            ]
+        },
+        "typeRoots": ["./node_modules/@types", "server/ts"]
+    }
 }
