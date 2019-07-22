@@ -47,7 +47,7 @@ const socket = socketIO(httpServer);
 const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     let ipAddr = ip.address();
     var localhost = ipAddr + ":3000";
     var remotehost = "http://snoppify.com";

@@ -1,7 +1,8 @@
-import spotifyAPI from "./spotify-api";
-import spotifyPlaybackApi from "./spotify-playback-api";
-import spotifyController from "./spotify-controller";
 import { Request } from "express";
+
+import spotifyAPI from "./spotify-api";
+import spotifyController = require("./spotify-controller");
+import spotifyPlaybackApi = require("./spotify-playback-api");
 
 const spotify = {
     api: spotifyAPI,
@@ -9,7 +10,7 @@ const spotify = {
     controller: spotifyController,
     init: (req: Request) => {
         spotify.api.init();
-        spotify.controller.init();
+        spotify.controller.init(spotify.api);
     },
 };
 
