@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express, { Request as ExpRequest } from "express";
-import fallback = require("express-history-api-fallback");
+import fallback from "express-history-api-fallback";
 import session from "express-session";
 import sharedsession from "express-socket.io-session";
 import fs from "fs";

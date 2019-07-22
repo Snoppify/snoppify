@@ -10,7 +10,7 @@ const spotify = {
     controller: spotifyController,
     init: (req: Request) => {
         spotify.api.init();
-        spotify.controller.init();
+        spotify.controller.init(spotify.api);
     },
 };
 

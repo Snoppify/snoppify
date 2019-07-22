@@ -2,7 +2,7 @@
 
 declare module 'spotify-web-api-node' {
 
-    export class SpotifyWebApi {
+    export default class SpotifyWebApi {
         constructor(credentials: any);
 
         addToMySavedAlbums(albumIds: any, callback: any): any;
@@ -17,7 +17,7 @@ declare module 'spotify-web-api-node' {
 
         changePlaylistDetails(userId: any, playlistId: any, options: any, callback: any): any;
 
-        clientCredentialsGrant(options?: any, callback?: any): any;
+        clientCredentialsGrant(options?: any, callback?: any): Promise<any>;
 
         containsMySavedAlbums(albumIds: any, callback: any): any;
 
@@ -55,7 +55,7 @@ declare module 'spotify-web-api-node' {
 
         getAudioFeaturesForTrack(trackId: any, callback: any): any;
 
-        getAudioFeaturesForTracks(trackIds: any, callback: any): any;
+        getAudioFeaturesForTracks(trackIds: any, callback?: any): Promise<any>;
 
         getAvailableGenreSeeds(callback: any): any;
 
@@ -105,9 +105,9 @@ declare module 'spotify-web-api-node' {
 
         getRefreshToken(): any;
 
-        getTrack(trackId: any, options: any, callback: any): any;
+        getTrack(trackId: any, options?: any, callback?: any): Promise<any>;
 
-        getTracks(trackIds: any, options: any, callback: any): any;
+        getTracks(trackIds: any, options?: any, callback?: any): Promise<any>;
 
         getUser(userId: any, callback: any): any;
 
