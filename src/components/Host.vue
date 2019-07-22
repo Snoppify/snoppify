@@ -3,6 +3,10 @@
     <div class="container">
     <h1>Host a Snoppify party!</h1>
 
+    <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+      <input type="submit" value="Auth with Spotify" />
+    </form>
+
     <!-- <form v-on:submit.prevent="" class="search-input">
       <input
         v-on:input="searchPlaylists"
@@ -43,7 +47,7 @@
 </template>
 
 <script>
-import api from "../api";
+import api from "../api/host";
 import debounce from "../common/debounce";
 
 export default {
@@ -52,6 +56,10 @@ export default {
         searchTerm: null,
         loading: false,
         playlists: null,
+        authUrls: {
+          facebook: api.axios.defaults.baseURL + "/auth/facebook",
+          spotify: api.axios.defaults.baseURL + "/auth/spotify-host",
+        },
     };
   },
 

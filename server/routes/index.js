@@ -9,7 +9,7 @@ const refreshTokenTpl = require("./refresh-token-template");
 const socket = require("../socket");
 const spotifyPlaybackApi = require("../spotify/spotify-playback-api");
 
-const isAuthenticated = function (req, res, next) {
+const isAuthenticated = function(req, res, next) {
     // if user is authenticated in the session, call the next() to call the next request handler
     // Passport adds this method to request object. A middleware is allowed to add properties to
     // request and response objects
@@ -18,7 +18,7 @@ const isAuthenticated = function (req, res, next) {
     res.redirect("/new-user");
 };
 
-const redirectIfAuthenticated = function (req, res, next) {
+const redirectIfAuthenticated = function(req, res, next) {
     if (req.isAuthenticated()) return res.redirect("/");
     next();
 };
@@ -27,21 +27,21 @@ const getPassportState = req => {
     return ip.address() + ":" + req.connection.localPort;
 };
 
-module.exports = function (passport, spotify) {
+module.exports = function(passport, spotify) {
     spotifyPlaybackApi.init(spotify.api);
 
     // Spotify refresh token end point
     router.get("/refresh-token", (req, res) => {
         let refreshToken = "";
-        let p = new Promise(function (resolve, reject) {
+        let p = new Promise(function(resolve, reject) {
             if (req.query.code && req.query.state == "auth") {
                 spotify.playbackAPI
                     .getRefreshToken(req.query.code)
-                    .then(function (token) {
+                    .then(function(token) {
                         refreshToken = token;
                         resolve();
                     })
-                    .catch(function (r) {
+                    .catch(function(r) {
                         let e = [
                             r.response.status,
                             "(" + r.response.data.error + ")",
@@ -54,7 +54,7 @@ module.exports = function (passport, spotify) {
             } else {
                 resolve();
             }
-        }).then(function () {
+        }).then(function() {
             let data = refreshTokenTpl;
             let authUrl = spotify.playbackAPI.getAuthUrl();
             data = data.replace(/{authUrl}/g, authUrl);
@@ -98,9 +98,9 @@ module.exports = function (passport, spotify) {
             /.?open.spotify.com\/user\/(.+)\/playlist\/(.+)/,
         ].find(
             pattern =>
-            string.match(pattern) &&
-            (user = string.match(pattern)[1]) &&
-            (id = string.match(pattern)[2]),
+                string.match(pattern) &&
+                (user = string.match(pattern)[1]) &&
+                (id = string.match(pattern)[2]),
         );
 
         if (user && id) {
@@ -294,7 +294,7 @@ module.exports = function (passport, spotify) {
     // });
 
     /* Handle Logout */
-    router.get("/logout", function (req, res) {
+    router.get("/logout", function(req, res) {
         req.logout();
         res.redirect("/");
         // req.session.destroy(function(err) {
@@ -316,7 +316,7 @@ module.exports = function (passport, spotify) {
     // handle the callback after facebook has authenticated the user
     router.get(
         "/auth/facebook/callback",
-        function (req, res, next) {
+        function(req, res, next) {
             console.log(
                 "well here we got facebook auth callback:",
                 req.method,
@@ -343,7 +343,7 @@ module.exports = function (passport, spotify) {
     router.get("/auth/spotify-host", (req, ...args) => {
         return passport.authenticate("spotify", {
             scope: spotifyPlaybackApi.scopes,
-            state: getPassportState(req),
+            state: getPassportState(req) + "/host",
         })(req, ...args);
     });
 
@@ -353,6 +353,15 @@ module.exports = function (passport, spotify) {
         passport.authenticate("spotify", {
             successRedirect: "/",
             failureRedirect: "/new-user",
+        }),
+    );
+
+    // handle the callback after spotify has authenticated the user
+    router.get(
+        "/host/auth/spotify/callback",
+        passport.authenticate("spotify", {
+            successRedirect: "/host",
+            failureRedirect: "/host",
         }),
     );
 

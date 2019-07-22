@@ -12,7 +12,7 @@ import https from "https";
 import ip from "ip";
 import minimist from "minimist";
 import passport from "passport";
-import sessionFileStore from "session-file-store";
+import connectLoki from "connect-loki";
 
 import socketIO from "./socket";
 import spotify from "./spotify";
@@ -22,7 +22,7 @@ dotenv.config();
 
 const app = express();
 
-const FileStore = sessionFileStore(session);
+const LokiStore = connectLoki(session);
 const args = minimist(process.argv);
 
 // consts
@@ -86,7 +86,7 @@ let mysession = session({
     cookie: {
         secure: false,
     },
-    store: sessionStore = new FileStore({
+    store: sessionStore = new LokiStore({
         ttl: 3600 * 24,
     }),
 });
