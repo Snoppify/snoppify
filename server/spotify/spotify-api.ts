@@ -20,7 +20,7 @@ try {
 }
 
 const api = new SpotifyWebApi({
-    redirectUri: "http://localhost:3000/refresh-token",
+    redirectUri: "http://localhost:3000/create-spotify-host",
     clientId: config.client_id,
     clientSecret: config.client_secret,
 }) as SpotifyWebApi & {

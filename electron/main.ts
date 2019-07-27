@@ -30,7 +30,7 @@ function startServer() {
         // sent from server/index.ts after the http server is up and
         // running
         if (msg === "SERVER_STARTED") {
-            win.loadURL("http://localhost:3000/start-host");
+            win.loadURL("http://localhost:3000/host");
         }
     });
 

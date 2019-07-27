@@ -3,9 +3,43 @@
     <div class="container">
     <h1>Host a Snoppify party!</h1>
 
-    <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
-      <input type="submit" value="Auth with Spotify" />
-    </form>
+    <p v-if="error"><b>{{ error }}</b></p>
+
+    <div v-if="user.host">
+
+      <div v-if="user.host.id">
+      
+        <p>ID: {{user.host.id}}</p>
+        <p>Hoster: {{user.username}}</p>
+      
+      </div>
+      <div v-else>
+
+        <p>You are authorized as <b>{{ user.username }}</b>.</p>
+
+        <button v-on:click="createSpotifyHost()">
+          Host a party!
+        </button>
+      
+      </div>
+
+      <p>
+        Logged in as
+        <b>{{ user.displayName }}</b>
+      </p>
+
+      <form action="/logout">
+        <input type="submit" value="Logout" class="snopp-btn" />
+      </form>
+
+    </div>
+    <div v-else>
+
+      <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+        <input type="submit" value="Auth with Spotify" />
+      </form>
+
+    </div>
 
     <!-- <form v-on:submit.prevent="" class="search-input">
       <input
@@ -47,7 +81,9 @@
 </template>
 
 <script>
-import api from "../api/host";
+
+import { mapGetters } from "vuex";
+import api from "../api";
 import debounce from "../common/debounce";
 
 export default {
@@ -55,6 +91,7 @@ export default {
     return {
         searchTerm: null,
         loading: false,
+        error: null,
         playlists: null,
         authUrls: {
           facebook: api.axios.defaults.baseURL + "/auth/facebook",
@@ -63,21 +100,35 @@ export default {
     };
   },
 
+  computed: {
+    ...mapGetters({
+      user: "Session/user",
+    })
+  },
+
+  beforeMount: function() {
+    if (this.$route.query.success == "true") {
+      // complete the request chain
+      api.spotify.createSpotifyHost({
+        check: true,
+      }).then(() => {
+        window.location.href = "/host";
+      }).catch(() => {
+        this.error = "something went wrong";
+      });
+    } else if (this.$route.query.success == "false") {
+      this.error = "something went wrong";
+    }
+  },
+
   methods: {
-    debounceSearch: debounce(function(e) {
-        // api.spotify
-        //     .getPlaylists(e.target.value)
-        //     .then(r => {
-        //     console.log(r, this);
-        //     this.playlists = r;
-        //     })
-        //     .catch(r => {
-        //     this.playlists = null;
-        //     })
-        //     .finally(() => {
-        //     this.loading = false;
-        //     });
-    }, 200),
+    createSpotifyHost: () => {
+        api.spotify
+            .createSpotifyHost()
+            .then(r => {
+              window.location.href = r.url;
+            });
+    },
 
     searchPlaylists(e) {
       if (!e.target.value) {

@@ -31,6 +31,7 @@ public/
 
 # server sessions
 sessions/
+session-store.db
 
 # queues etc.
 data/

@@ -13,4 +13,9 @@ export default axios => ({
             },
         });
     },
+    createSpotifyHost(params) {
+        return axios.get("/create-spotify-host", {
+            params: params,
+        });
+    },
 });

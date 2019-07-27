@@ -54,6 +54,22 @@ const authGuard = (to, from, next) => {
     }
 };
 
+const testauthGuard = (to, from, next) => {
+    if (api.initialized) {
+        return api.auth
+            .auth()
+            .then(sessData => {
+                store.commit("Session/SET_SESSION", sessData);
+                return next();
+            })
+            .catch(() => {
+                return next();
+            });
+    }
+
+    return next();
+};
+
 const routes = [
     {
         path: "/welcome",
@@ -89,6 +105,7 @@ const routes = [
     {
         path: "/host",
         name: "host",
+        beforeEnter: testauthGuard,
         component: Host,
     },
     {

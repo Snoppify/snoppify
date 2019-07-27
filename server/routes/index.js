@@ -30,7 +30,10 @@ const getPassportState = req => {
 module.exports = function(passport, spotify) {
     spotifyPlaybackApi.init(spotify.api);
 
+    let tmp_host_data = {};
+
     // Spotify refresh token end point
+    // OLD ROUTE
     router.get("/refresh-token", (req, res) => {
         let refreshToken = "";
         let p = new Promise(function(resolve, reject) {
@@ -61,6 +64,50 @@ module.exports = function(passport, spotify) {
             data = data.replace(/{refreshToken}/g, refreshToken);
             res.send(data);
         });
+    });
+
+    // Spotify refresh token end point
+    // NEW ROUTE
+    router.get("/create-spotify-host", (req, res) => {
+        if (req.query.check) {
+            // finalize the host process
+            if (tmp_host_data[req.user.username]) {
+                let data = tmp_host_data[req.user.username];
+                delete tmp_host_data[req.user.username];
+
+                // create host object
+                Object.assign(req.user.host, {
+                    id: Date.now(), // just some fake id for now
+                });
+                // Set the access token on the API object to use it in later calls
+                spotify.api.setAccessToken(data.access_token);
+                spotify.api.setRefreshToken(data.refresh_token);
+
+                res.status(200).end();
+            }
+            res.status(400).end();
+
+        } else if (req.query.code) {
+            // callback from the spotify api
+            spotify.api.authorizationCodeGrant(req.query.code).then(function(data) {
+                // save token data
+                tmp_host_data[req.query.state] = {
+                    access_token: data.body['access_token'],
+                    refresh_token: data.body['refresh_token'],
+                };
+
+                res.redirect('/host?success=true');
+            }).catch(function() {
+                res.redirect('/host?success=false');
+            });
+
+        } else {
+            // return an auth url
+            res.send({
+                url: spotify.playbackAPI.getAuthUrl(req.user.username),
+            });
+
+        }
     });
 
     function successHandler(res) {
@@ -281,7 +328,6 @@ module.exports = function(passport, spotify) {
         // if user is authenticated in the session, carry on
 
         if (req.isAuthenticated() && req.user) {
-            res.json(req.user);
             res.end();
         } else {
             res.sendStatus(403);
@@ -340,29 +386,42 @@ module.exports = function(passport, spotify) {
         })(req, ...args),
     );
 
-    router.get("/auth/spotify-host", (req, ...args) => {
-        return passport.authenticate("spotify", {
+    router.get("/auth/spotify-host", (req, ...args) =>
+        passport.authenticate("spotify", {
             scope: spotifyPlaybackApi.scopes,
             state: getPassportState(req) + "/host",
-        })(req, ...args);
-    });
+            successRedirect: '/host',
+            failureRedirect: '/host',
+        })(req, ...args),
+    );
 
     // handle the callback after spotify has authenticated the user
     router.get(
         "/auth/spotify/callback",
         passport.authenticate("spotify", {
-            successRedirect: "/",
             failureRedirect: "/new-user",
         }),
+        function(req, res, next) {
+            req.session.host = null;
+            res.redirect('/');
+            next();
+        }
     );
 
     // handle the callback after spotify has authenticated the user
     router.get(
         "/host/auth/spotify/callback",
         passport.authenticate("spotify", {
-            successRedirect: "/host",
+            scope: spotifyPlaybackApi.scopes,
             failureRedirect: "/host",
         }),
+        function(req, res, next) {
+            req.session.host = {
+                auth: true,
+            };
+            res.redirect('/host');
+            next();
+        }
     );
 
     return router;

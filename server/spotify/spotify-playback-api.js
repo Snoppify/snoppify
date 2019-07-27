@@ -99,30 +99,29 @@ function currentlyPlaying() {
 ///////////////////////
 
 function getAccessToken() {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         let time = (Date.now() - refreshTime) / 1000;
         if (time < expireTime) {
             resolve(accessToken);
         } else {
             axios({
-                    method: "post",
-                    url: "https://accounts.spotify.com/api/token",
-                    params: {
-                        grant_type: "refresh_token", // client_credentials, authorization_code or refresh_token
-                        refresh_token: api.config.refresh_token,
-                        redirect_uri: "http://localhost:3000",
-                    },
-                    headers: {
-                        Authorization: "Basic " + api.config.auth_token,
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                })
-                .then(function (r) {
-                    //console.log("access_token", r.data.access_token);
+                method: "post",
+                url: "https://accounts.spotify.com/api/token",
+                params: {
+                    grant_type: "refresh_token", // client_credentials, authorization_code or refresh_token
+                    refresh_token: api.config.refresh_token,
+                    redirect_uri: "http://localhost:3000",
+                },
+                headers: {
+                    Authorization: "Basic " + api.config.auth_token,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            })
+                .then(function(r) {
                     accessToken = r.data.access_token;
                     resolve(accessToken);
                 })
-                .catch(function (r) {
+                .catch(function(r) {
                     let e = [
                         r.response.status,
                         "(" + r.response.data.error + ")",
@@ -136,37 +135,37 @@ function getAccessToken() {
 }
 
 function getRefreshToken(code) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         axios({
-                method: "post",
-                url: "https://accounts.spotify.com/api/token",
-                params: {
-                    grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
-                    code: code,
-                    redirect_uri: "http://localhost:3000/refresh-token",
-                },
-                headers: {
-                    Authorization: "Basic " + api.config.auth_token,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-            })
-            .then(function (r) {
+            method: "post",
+            url: "https://accounts.spotify.com/api/token",
+            params: {
+                grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
+                code: code,
+                redirect_uri: "http://localhost:3000/create-spotify-host",
+            },
+            headers: {
+                Authorization: "Basic " + api.config.auth_token,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        })
+            .then(function(r) {
                 console.log("refresh_token", r.data.refresh_token);
                 resolve(r.data.refresh_token);
             })
-            .catch(function (r) {
+            .catch(function(r) {
                 reject(r);
             });
     });
 }
 
-function getAuthUrl() {
-    return api.createAuthorizeURL(scopes, "auth");
+function getAuthUrl(state) {
+    return api.createAuthorizeURL(scopes, state || "auth");
 }
 
 function request(method, uri, data, params) {
-    return new Promise(function (resolve, reject) {
-        getAccessToken().then(function (token) {
+    return new Promise(function(resolve, reject) {
+        getAccessToken().then(function(token) {
             axios({
                 method: method,
                 url: "https://api.spotify.com/v1/" + uri,
