@@ -52,7 +52,8 @@ app.use(function (req, res, next) {
     var localhost = ipAddr + ":3000";
     var remotehost = "http://snoppify.com";
     var host = req.get("origin") || req.get("host");
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", host);
+    //res.header("Access-Control-Allow-Origin", "*");
     // switch (host) {
     //     case localhost:
     //     case remotehost:
