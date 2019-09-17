@@ -89,6 +89,8 @@ module.exports = function(passport, spotify) {
                 spotify.api.setAccessToken(data.access_token);
                 spotify.api.setRefreshToken(data.refresh_token);
 
+                spotify.init(req);
+
                 res.status(200).end();
             }
             res.status(400).end();
