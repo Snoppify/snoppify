@@ -1,10 +1,11 @@
-import axios from "axios";
-import auth from "./auth";
-import queue from "./queue";
-import misc from "./misc";
-import spotify from "./spotify";
-import { store } from "@/store";
 import storage from "@/common/device-storage";
+import { store } from "@/store";
+import axios from "axios";
+
+import auth from "./auth";
+import misc from "./misc";
+import queue from "./queue";
+import spotify from "./spotify";
 
 const api = {
     auth: null,
@@ -16,12 +17,10 @@ const api = {
     init,
 };
 
-const serverIP = storage.get("serverIP");
-if (serverIP) {
-    console.log("Got server ip from localstorage: ", serverIP);
-    api.ip = serverIP;
-    api.init(serverIP);
-}
+let serverIP = window.location.hostname; //storage.get("serverIP");
+api.ip = serverIP;
+
+api.init(serverIP);
 
 function init(serverIP) {
     storage.set("serverIP", serverIP);

@@ -11,7 +11,7 @@
 Then run these commands in parallell:
 
 ```
-npm run watch-server
+npm run start-server
 ```
 
 ```
