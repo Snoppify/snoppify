@@ -55,7 +55,9 @@ const authGuard = (to, from, next) => {
 };
 
 const testauthGuard = (to, from, next) => {
-    if (api.initialized) {
+    if (store.getters["Session/username"]) {
+        return next();
+    } else if (api.initialized) {
         return api.auth
             .auth()
             .then(sessData => {

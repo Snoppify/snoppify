@@ -76,9 +76,15 @@ module.exports = function(passport, spotify) {
                 delete tmp_host_data[req.user.username];
 
                 // create host object
-                Object.assign(req.user.host, {
-                    id: Date.now(), // just some fake id for now
-                });
+                var id = Date.now(); // just some fake id for now
+                if (req.user.host) {
+                    req.user.host.id = id;
+                } else {
+                    req.user.host = {
+                        id: id,
+                    };
+                };
+
                 // Set the access token on the API object to use it in later calls
                 spotify.api.setAccessToken(data.access_token);
                 spotify.api.setRefreshToken(data.refresh_token);
@@ -96,9 +102,9 @@ module.exports = function(passport, spotify) {
                     refresh_token: data.body['refresh_token'],
                 };
 
-                res.redirect('/host?success=true');
+                res.redirect("http://" + getPassportState(req) + '/host?success=true');
             }).catch(function() {
-                res.redirect('/host?success=false');
+                res.redirect("http://" + getPassportState(req) + '/host?success=false');
             });
 
         } else {
@@ -328,6 +334,7 @@ module.exports = function(passport, spotify) {
         // if user is authenticated in the session, carry on
 
         if (req.isAuthenticated() && req.user) {
+            res.json(req.user);
             res.end();
         } else {
             res.sendStatus(403);
@@ -416,7 +423,7 @@ module.exports = function(passport, spotify) {
             failureRedirect: "/host",
         }),
         function(req, res, next) {
-            req.session.host = {
+            req.user.host = {
                 auth: true,
             };
             res.redirect('/host');
