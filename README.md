@@ -6,7 +6,23 @@
 
 ## Installation and running
 
-Serve the server with `node server/` which is then available at [http://localhost:3000](http://localhost:3000).
+`npm i` to install
+
+Then run these commands in parallell:
+
+```
+npm run watch-server
+```
+
+```
+npm run build -- --watch
+```
+
+### Electron
+
+```
+npm run start-electron
+```
 
 ### Configuration
 
