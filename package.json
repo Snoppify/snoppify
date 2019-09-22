@@ -11,7 +11,8 @@
     "server": "node server-dist/",
     "watch-server": "npm-watch server",
     "start-server": "concurrently \"npm run build-server -- --watch\" \"npm run watch-server\"",
-    "start-electron": "tsc -p electron/ && cp electron/index.html electron-dist/ && electron ./electron-dist/main.js"
+    "start-electron": "tsc -p electron/ && cp electron/index.html electron-dist/ && electron ./electron-dist/main.js",
+    "start-app": "concurrently \"npm run start-server\" \"npm run build -- --watch\""
   },
   "watch": {
     "server": {
