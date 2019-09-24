@@ -28,6 +28,7 @@ let backupQueue = new Queue({
     id: "id",
 });
 
+let mainPlaylist: any = null;
 let backupPlaylist: any = null;
 
 const pollTimeout = 2000;
@@ -58,6 +59,10 @@ const init = (_api: SpotifyAPI) => {
                 history.add(obj.currentTrack);
             }
 
+            if (obj.mainPlaylist) {
+                mainPlaylist = obj.mainPlaylist;
+            }
+
             if (obj.backupPlaylist) {
                 backupPlaylist = obj.backupPlaylist;
             }
@@ -69,6 +74,10 @@ const init = (_api: SpotifyAPI) => {
 
     api.onload.then(function(data) {
         reloadPlaylist();
+
+        if (mainPlaylist) {
+            setBackupPlaylist(mainPlaylist.owner.id, mainPlaylist.id);
+        }
 
         if (backupPlaylist) {
             setBackupPlaylist(backupPlaylist.owner.id, backupPlaylist.id);
@@ -384,6 +393,28 @@ function getBackupPlaylist() {
     return backupPlaylist;
 }
 
+function setMainPlaylist(user: string, id: string) {
+    return new Promise((resolve, reject) => {
+        api.getPlaylist(user, id)
+            .then(data => {
+                delete data.body.tracks;
+                mainPlaylist = data.body;
+
+                saveQueue();
+
+                sendEvent("mainPlaylist", {
+                    playlist: mainPlaylist,
+                });
+
+                resolve();
+            })
+            .catch(r => {
+                console.log(r);
+                reject(r);
+            });
+    });
+}
+
 function setBackupPlaylist(userId: string, id: string) {
     return new Promise((resolve, reject) => {
         api.getPlaylist(userId, id)
@@ -582,7 +613,7 @@ function getTrack(trackId: string) {
 /////////////////////
 
 function reloadPlaylist() {
-    api.getPlaylist(api.config.owner, api.config.playlist).then(
+    api.getPlaylist(api.config.owner, mainPlaylist || api.config.playlist).then(
         function(data) {
             playlist = data.body;
 
@@ -775,6 +806,7 @@ function saveQueue() {
     let json = JSON.stringify({
         currentTrack: getCurrentTrack(),
         queue: queue.queue,
+        mainPlaylist,
         backupPlaylist,
     });
     fs.writeFile(queueFile, json, "utf8", function(err) {

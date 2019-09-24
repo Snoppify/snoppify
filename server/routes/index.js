@@ -76,14 +76,16 @@ module.exports = function(passport, spotify) {
                 delete tmp_host_data[req.user.username];
 
                 // create host object
-                var id = Date.now(); // just some fake id for now
-                if (req.user.host) {
-                    req.user.host.id = id;
-                } else {
-                    req.user.host = {
-                        id: id,
-                    };
+                var hostData = {
+                    id: Date.now(), // just some fake id for now
+                    playlist: null,
                 };
+                if (!req.user.host) {
+                    req.user.host = {};
+                }
+                for (var key in hostData) {
+                    req.user.host[key] = hostData[key];
+                }
 
                 // Set the access token on the API object to use it in later calls
                 spotify.api.setAccessToken(data.access_token);
@@ -165,6 +167,10 @@ module.exports = function(passport, spotify) {
             };
         }
         return null;
+    }
+
+    function isHost(req) {
+        return req.user.host && req.user.host.auth;
     }
 
     router.post("/queue-track", (req, res) => {
@@ -258,6 +264,23 @@ module.exports = function(passport, spotify) {
 
         spotify.controller
             .setBackupPlaylist(playlist.user, playlist.id)
+            .then(successHandler(res))
+            .catch(errorHandler(res));
+    });
+
+    router.post("/set-main-playlist", (req, res) => {
+        if (!isHost(req)) {
+            res.status(401).end();
+        }
+
+        const playlist = extractPlaylistId(req.body.uri);
+
+        if (!playlist) {
+            res.status(400).end();
+        }
+
+        spotify.controller
+            .setMainPlaylist(playlist.user, playlist.id)
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
