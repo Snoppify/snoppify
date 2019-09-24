@@ -1,18 +1,16 @@
 import * as fs from "fs";
 import mkdirp from "mkdirp";
 
+import User from "../models/user";
+import Queue from "../Queue";
+import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
+import playbackAPI from "./spotify-playback-api";
+import states from "./spotify-states.js";
 
-const socket = require("../socket");
 // const api = require("./spotify-api");
-const playbackAPI = require("./spotify-playback-api");
-const states = require("./spotify-states.js");
-
 // const fs = require("fs");
 // const mkdirp = require("mkdirp");
-
-const User = require("../models/user");
-const Queue = require("../Queue");
 
 /////////////////////
 

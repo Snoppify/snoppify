@@ -13,7 +13,7 @@ declare module 'spotify-web-api-node' {
 
         areFollowingPlaylist(userId: any, playlistId: any, followerIds: any, callback: any): any;
 
-        authorizationCodeGrant(code: any, callback: any): any;
+        authorizationCodeGrant(code: any, callback?: any): Promise<any>;
 
         changePlaylistDetails(userId: any, playlistId: any, options: any, callback: any): any;
 
@@ -155,7 +155,7 @@ declare module 'spotify-web-api-node' {
 
         searchPlaylists(query: any, options: any, callback: any): any;
 
-        searchTracks(query: any, options: any, callback: any): any;
+        searchTracks(query: any, options?: any, callback?: any): Promise<any>;
 
         setAccessToken(accessToken: any): void;
 
