@@ -341,6 +341,21 @@ export default function(passport) {
         res.status(200).end();
     });
 
+    router.get("/get-host-playlists", (req, res) => {
+        spotify.api
+            .getUserPlaylists("me", {
+                limit: req.query.limit || 15,
+                offset: req.query.offset === undefined ? 0 : req.query.offset,
+            })
+            .then(playlistRes => {
+                res.json(playlistRes.body.items);
+            })
+            .catch(err => {
+                res.json(err);
+            })
+            .finally(() => res.send());
+    });
+
     router.get("/auth", (req, res) => {
         // if user is authenticated in the session, carry on
 
