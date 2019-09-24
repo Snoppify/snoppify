@@ -93,7 +93,7 @@ declare module 'spotify-web-api-node' {
 
         getNewReleases(options: any, callback: any): any;
 
-        getPlaylist(userId: any, playlistId: any, options: any, callback: any): any;
+        getPlaylist(userId: any, playlistId: any, options?: any, callback?: any): Promise<any>;
 
         getPlaylistTracks(userId: any, playlistId: any, options: any, callback: any): any;
 

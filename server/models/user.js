@@ -1,7 +1,7 @@
 const fs = require("fs");
 const Queue = require("../Queue");
 
-class User {
+export class User {
     constructor(data) {
         for (let key in data) {
             this[key] = data[key];

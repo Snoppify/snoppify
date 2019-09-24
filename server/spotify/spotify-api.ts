@@ -3,9 +3,13 @@ import SpotifyWebApi from "spotify-web-api-node";
 
 import { ISnoppifyConfig } from "./snoppify-config.interface";
 
-let config = {} as ISnoppifyConfig;
+export type SpotifyAPI = SpotifyWebApi & {
+    init: () => void;
+    config: ISnoppifyConfig;
+    onload: Promise<any>;
+};
 
-console.log("get me an api!");
+let config = {} as ISnoppifyConfig;
 
 try {
     config = require(appRoot + "/snoppify-config.js");
@@ -23,18 +27,14 @@ const api = new SpotifyWebApi({
     redirectUri: "http://localhost:3000/create-spotify-host",
     clientId: config.client_id,
     clientSecret: config.client_secret,
-}) as SpotifyWebApi & {
-    init: () => void;
-    config: ISnoppifyConfig;
-    onload: Promise<any>;
-};
+}) as SpotifyAPI;
 
 api.init = () => {
     api.config = config;
 
-    api.onload = new Promise(function (resolve, reject) {
+    api.onload = new Promise(function(resolve, reject) {
         api.clientCredentialsGrant().then(
-            function (data: any) {
+            function(data: any) {
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body["access_token"]);
 
@@ -42,7 +42,7 @@ api.init = () => {
 
                 resolve();
             },
-            function (err: any) {
+            function(err: any) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
@@ -55,14 +55,14 @@ api.init = () => {
 };
 
 function refreshAccessToken() {
-    setInterval(function () {
+    setInterval(function() {
         api.clientCredentialsGrant().then(
-            function (data: any) {
+            function(data: any) {
                 console.log("Updated access_token:", data.body.access_token);
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body.access_token);
             },
-            function (err: any) {
+            function(err: any) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,

@@ -1,5 +1,6 @@
 import appRootPath from "app-root-path";
 import bodyParser from "body-parser";
+import connectLoki from "connect-loki";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express, { Request as ExpRequest } from "express";
@@ -12,7 +13,6 @@ import https from "https";
 import ip from "ip";
 import minimist from "minimist";
 import passport from "passport";
-import connectLoki from "connect-loki";
 
 import socketIO from "./socket";
 import spotify from "./spotify";
@@ -28,9 +28,10 @@ const args = minimist(process.argv);
 // consts
 const rootDir = appRootPath + "/dist";
 
-const useHttps = false;
+const useHttps = true;
 let httpServer: https.Server | http.Server;
 if (useHttps) {
+    console.log("starting using https");
     httpServer = https.createServer(
         {
             key: fs.readFileSync(appRootPath + "/ssl/privatekey.key"),
@@ -47,7 +48,7 @@ const socket = socketIO(httpServer);
 const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
-app.use(function (req, res, next) {
+app.use(function(req, res, next) {
     let ipAddr = ip.address();
     var localhost = ipAddr + ":3000";
     var remotehost = "http://snoppify.com";

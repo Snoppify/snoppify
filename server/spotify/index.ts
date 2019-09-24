@@ -1,7 +1,7 @@
 import { Request } from "express";
 
 import spotifyAPI from "./spotify-api";
-import spotifyController = require("./spotify-controller");
+import spotifyController from "./spotify-controller";
 import spotifyPlaybackApi = require("./spotify-playback-api");
 
 const spotify = {
