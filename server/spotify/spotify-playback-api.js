@@ -77,8 +77,8 @@ function addToPlaylist(owner, playlist, tracks) {
         "post",
         "users/" + owner + "/playlists/" + playlist + "/tracks",
         null, {
-            uris: tracks.toString(),
-        },
+        uris: tracks.toString(),
+    },
     );
 }
 
@@ -86,9 +86,9 @@ function removePositionsFromPlaylist(owner, playlist, positions, snapshot) {
     return request(
         "delete",
         "users/" + owner + "/playlists/" + playlist + "/tracks", {
-            positions: positions,
-            snapshot_id: snapshot,
-        },
+        positions: positions,
+        snapshot_id: snapshot,
+    },
     );
 }
 
