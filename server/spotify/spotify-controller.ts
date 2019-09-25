@@ -51,7 +51,7 @@ const init = (_api: SpotifyAPI) => {
         try {
             let obj = JSON.parse(data);
 
-            obj.queue.forEach(function(track: any) {
+            obj.queue.forEach(function (track: any) {
                 queue.add(track);
             });
 
@@ -72,46 +72,48 @@ const init = (_api: SpotifyAPI) => {
         }
     });
 
-    api.onload.then(function(data) {
-        reloadPlaylist();
-
+    api.onload.then(function (data) {
         if (mainPlaylist) {
-            setBackupPlaylist(mainPlaylist.owner.id, mainPlaylist.id);
+            setMainPlaylist(mainPlaylist.owner.id, mainPlaylist.id);
         }
 
         if (backupPlaylist) {
             setBackupPlaylist(backupPlaylist.owner.id, backupPlaylist.id);
         }
 
+        if (mainPlaylist) {
+            reloadPlaylist();
+        }
+
         if (api.config.refresh_token) {
-            setInterval(function() {
+            setInterval(function () {
                 pollPlayerStatus();
             }, pollTimeout);
         }
     });
 
-    states.after(function() {
+    states.after(function () {
         // clear events
         for (var ev in states.data.events) {
             states.data.events[ev] = false;
         }
     });
 
-    states.on("paused", function(s: any) {
+    states.on("paused", function (s: any) {
         console.log(s.name);
         sendEvent(s.name, {
             track: getCurrentTrack(),
         });
     });
 
-    states.on("playing", function(s: any) {
+    states.on("playing", function (s: any) {
         console.log(s.name);
         sendEvent(s.name, {
             track: getCurrentTrack(),
         });
     });
 
-    states.on("playSong", function(s: any) {
+    states.on("playSong", function (s: any) {
         console.log(s.name);
 
         let track = getCurrentTrack();
@@ -135,7 +137,7 @@ const init = (_api: SpotifyAPI) => {
         saveQueue();
     });
 
-    states.on("waitingForNextSong", function(s: any) {
+    states.on("waitingForNextSong", function (s: any) {
         console.log(s.name);
 
         playNextTrack();
@@ -168,16 +170,18 @@ export default {
     getTrack,
     getBackupPlaylist,
     setBackupPlaylist,
+    setMainPlaylist,
+    createMainPlaylist,
 };
 
 //////////////////
 
 function queueTrack(user: any /* User */, trackId: string) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         api.getTracks([trackId])
             .then(r => {
                 let track = r.body.tracks[0];
-                getUserData(user, function(err: any, userData: any) {
+                getUserData(user, function (err: any, userData: any) {
                     if (err) {
                         return reject(err);
                     }
@@ -256,10 +260,10 @@ function queueTrack(user: any /* User */, trackId: string) {
 }
 
 function dequeueTrack(user: any /* User */, trackId: string) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         // TODO: check if playing?
         let track = queue.get(trackId);
-        getUserData(user, function(err: any, userData: any) {
+        getUserData(user, function (err: any, userData: any) {
             if (err) {
                 return reject(err);
             }
@@ -303,7 +307,7 @@ function dequeueTrack(user: any /* User */, trackId: string) {
 }
 
 function vote(user: any, trackId: any) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let track = queue.get(trackId);
 
         if (!track) {
@@ -349,7 +353,7 @@ function vote(user: any, trackId: any) {
 }
 
 function unvote(user: any, trackId: any) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let track = queue.get(trackId);
 
         if (!track) {
@@ -391,6 +395,29 @@ function unvote(user: any, trackId: any) {
 function getBackupPlaylist() {
     // console.log(backupPlaylist);
     return backupPlaylist;
+}
+
+function createMainPlaylist(id: string) {
+    return new Promise((resolve, reject) => {
+        api.createPlaylist(api.config.owner, "Snoppify " + id, {
+            public: true
+        }, function (err, data) {
+            if (err) {
+                reject(err);
+            } else {
+                delete data.body.tracks;
+                mainPlaylist = data.body;
+
+                saveQueue();
+
+                sendEvent("mainPlaylist", {
+                    playlist: mainPlaylist,
+                });
+
+                resolve();
+            }
+        });
+    });
 }
 
 function setMainPlaylist(user: string, id: string) {
@@ -437,7 +464,7 @@ function setBackupPlaylist(userId: string, id: string) {
                 });
 
                 delete data.body.tracks;
-                console.log("set");
+
                 backupPlaylist = data.body;
 
                 saveQueue();
@@ -457,7 +484,7 @@ function setBackupPlaylist(userId: string, id: string) {
 
 function playNext() {
     return new Promise((resolve, reject) => {
-        playNextTrack().then(function() {
+        playNextTrack().then(function () {
             next();
             resolve();
         });
@@ -484,7 +511,7 @@ function playNextTrack() {
 
                 saveQueue();
                 if (track && track.snoppify) {
-                    getUserData(track.snoppify.issuer.username, function(
+                    getUserData(track.snoppify.issuer.username, function (
                         err: any,
                         userData: any,
                     ) {
@@ -525,11 +552,35 @@ function playNextTrack() {
 }
 
 function play(playPlaylist = false) {
-    let data = {} as any;
-    if (playPlaylist) {
-        data.playlist = playlist.id;
+    let playData = {} as any;
+    if (playPlaylist && playlist) {
+        playData.playlist = mainPlaylist ? mainPlaylist.id : api.config.playlist;
+
+        return api.getPlaylist(api.config.owner, playData.playlist).then(
+            function (data) {
+                playlist = data.body;
+
+                states.data.playlist = playlist;
+
+                states.update();
+
+                if (playlist.tracks.total > 0) {
+                    playData.position = playlist.tracks.total - 1;
+                } else if (!queue.empty) {
+                    return playNext().then(function () {
+                        return play(playPlaylist);
+                    });
+                }
+
+                return playbackAPI.play(playData);
+            },
+            function (err) {
+                console.log("Playlist not found");
+            },
+        );
+    } else {
+        return playbackAPI.play();
     }
-    return playbackAPI.play(data);
 }
 
 function pause() {
@@ -558,7 +609,7 @@ function emptyPlaylist() {
         );
         promises.push(p);
     }
-    return Promise.all(promises).then(function() {
+    return Promise.all(promises).then(function () {
         reloadPlaylist();
     });
 }
@@ -568,6 +619,14 @@ function emptyQueue() {
         let removed = queue.queue;
 
         queue.clear();
+
+        for (let user in User.users) {
+            let u = User.users[user];
+            u.queue.clear();
+        }
+
+        saveQueue();
+        saveUsers();
 
         socket.io.local.emit("queue", {
             queue: queue.queue,
@@ -589,12 +648,12 @@ function getTrack(trackId: string) {
         Promise.all([
             track
                 ? new Promise(_resolve => {
-                      _resolve({
-                          body: {
-                              tracks: [track],
-                          },
-                      });
-                  })
+                    _resolve({
+                        body: {
+                            tracks: [track],
+                        },
+                    });
+                })
                 : api.getTracks([trackId]),
             api.getAudioFeaturesForTracks([trackId]),
         ])
@@ -613,15 +672,15 @@ function getTrack(trackId: string) {
 /////////////////////
 
 function reloadPlaylist() {
-    api.getPlaylist(api.config.owner, mainPlaylist || api.config.playlist).then(
-        function(data) {
+    return api.getPlaylist(api.config.owner, mainPlaylist ? mainPlaylist.id : api.config.playlist).then(
+        function (data) {
             playlist = data.body;
 
             states.data.playlist = playlist;
 
             states.update();
         },
-        function(err) {
+        function (err) {
             console.log("Playlist not found");
         },
     );
@@ -634,11 +693,11 @@ function addToPlaylist(track: string | { uri: string }) {
                 typeof track == "string" ? "spotify:track:" + track : track.uri;
             playbackAPI
                 .addToPlaylist(api.config.owner, playlist.id, [uri])
-                .then(function() {
+                .then(function () {
                     reloadPlaylist();
                     resolve();
                 })
-                .catch(function(r: any) {
+                .catch(function (r: any) {
                     console.log(r.response.data);
                     reject(r);
                 });
@@ -649,8 +708,7 @@ function addToPlaylist(track: string | { uri: string }) {
 }
 
 function pollPlayerStatus() {
-    playbackAPI.currentlyPlaying().then(function(r: any) {
-        let player = r.data;
+    playbackAPI.currentlyPlaying().then(function (player: any) {
         states.data.isPlaying = player.is_playing;
 
         // got new player
@@ -682,7 +740,7 @@ function pollPlayerStatus() {
             }
         }
 
-        states.data.player = r.data;
+        states.data.player = player;
 
         if (player) {
             let status = {
@@ -809,7 +867,7 @@ function saveQueue() {
         mainPlaylist,
         backupPlaylist,
     });
-    fs.writeFile(queueFile, json, "utf8", function(err) {
+    fs.writeFile(queueFile, json, "utf8", function (err) {
         if (err) {
             console.log(err);
         }

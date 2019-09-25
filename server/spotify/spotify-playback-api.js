@@ -38,6 +38,8 @@ module.exports = {
     addToPlaylist,
     currentlyPlaying,
     removePositionsFromPlaylist,
+    setActiveDevice,
+    getDevices,
 };
 
 function init(_api) {
@@ -47,7 +49,7 @@ function init(_api) {
 function play(opts = {}) {
     let data = {};
     if (opts.playlist) {
-        data.context_uri = "spotify:user:johnbrynte:playlist:" + opts.playlist;
+        data.context_uri = "spotify:playlist:" + opts.playlist;
     }
     if (typeof opts.uris != "undefined") {
         data.uris = opts.position;
@@ -94,6 +96,16 @@ function removePositionsFromPlaylist(owner, playlist, positions, snapshot) {
 
 function currentlyPlaying() {
     return request("get", "me/player");
+}
+
+function setActiveDevice(id) {
+    return request("put", "me/player", {
+        "device_ids": [id]
+    });
+}
+
+function getDevices() {
+    return request("get", "me/player/devices");
 }
 
 ///////////////////////
@@ -175,7 +187,9 @@ function request(method, uri, data, params) {
                 },
                 data: data,
                 params: params,
-            }).then(resolve, reject);
+            }).then(function(data) {
+                resolve(data.data);
+            }, reject);
         });
     });
 }

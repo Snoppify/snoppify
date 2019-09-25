@@ -28,7 +28,7 @@ const args = minimist(process.argv);
 // consts
 const rootDir = appRootPath + "/dist";
 
-const useHttps = true;
+const useHttps = false;
 let httpServer: https.Server | http.Server;
 if (useHttps) {
     console.log("starting using https");
@@ -48,7 +48,7 @@ const socket = socketIO(httpServer);
 const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     let ipAddr = ip.address();
     var localhost = ipAddr + ":3000";
     var remotehost = "http://snoppify.com";

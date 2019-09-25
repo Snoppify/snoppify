@@ -69,53 +69,59 @@ module.exports = function(passport, spotify) {
     // Spotify refresh token end point
     // NEW ROUTE
     router.get("/create-spotify-host", (req, res) => {
-        if (req.query.check) {
+        if (req.query.access_token && req.query.refresh_token) {
             // finalize the host process
-            if (tmp_host_data[req.user.username]) {
-                let data = tmp_host_data[req.user.username];
-                delete tmp_host_data[req.user.username];
 
-                // create host object
-                var hostData = {
-                    id: Date.now(), // just some fake id for now
-                    playlist: null,
-                };
-                if (!req.user.host) {
-                    req.user.host = {};
-                }
-                for (var key in hostData) {
-                    req.user.host[key] = hostData[key];
-                }
-
-                // Set the access token on the API object to use it in later calls
-                spotify.api.setAccessToken(data.access_token);
-                spotify.api.setRefreshToken(data.refresh_token);
-
-                spotify.init(req);
-
-                res.status(200).end();
+            // create host object
+            var hostData = {
+                id: Date.now(), // just some fake id for now
+                playlist: null,
+            };
+            if (!req.user.host) {
+                req.user.host = {};
             }
-            res.status(400).end();
+            for (var key in hostData) {
+                req.user.host[key] = hostData[key];
+            }
+
+            req.session.spotify = {
+                access_token: req.query.access_token,
+                refresh_token: req.query.refresh_token,
+            };
+
+            // Set the access token on the API object to use it in later calls
+            spotify.api.setAccessToken(req.query.access_token);
+            spotify.api.setRefreshToken(req.query.refresh_token);
+
+            spotify.init(req);
+
+            spotify.controller
+                .createMainPlaylist(hostData.id)
+                .then(function() {
+                    console.log("started hosting!");
+                    res.status(200).end();
+                })
+                .catch(function() {
+                    res.status(400).end();
+                });
 
         } else if (req.query.code) {
             // callback from the spotify api
             spotify.api.authorizationCodeGrant(req.query.code).then(function(data) {
-                // save token data
-                tmp_host_data[req.query.state] = {
-                    access_token: data.body['access_token'],
-                    refresh_token: data.body['refresh_token'],
-                };
+                var params = [
+                    "success=true",
+                    "access_token=" + data.body['access_token'],
+                    "refresh_token=" + data.body['refresh_token'],
+                ];
 
-                res.redirect("http://" + getPassportState(req) + '/host?success=true');
+                res.redirect("http://" + getPassportState(req) + '/host?' + params.join("&"));
             }).catch(function() {
                 res.redirect("http://" + getPassportState(req) + '/host?success=false');
             });
 
         } else {
             // return an auth url
-            res.send({
-                url: spotify.playbackAPI.getAuthUrl(req.user.username),
-            });
+            res.redirect(spotify.playbackAPI.getAuthUrl(req.user.username));
 
         }
     });
@@ -148,21 +154,19 @@ module.exports = function(passport, spotify) {
     }
 
     function extractPlaylistId(string) {
-        let user, id;
+        let id;
 
         [
-            /spotify:user:(.+):playlist:(.+)/,
-            /.?open.spotify.com\/user\/(.+)\/playlist\/(.+)/,
+            /spotify:playlist:(.+)/,
+            /.?open.spotify.com\/playlist\/(.+)/,
         ].find(
             pattern =>
                 string.match(pattern) &&
-                (user = string.match(pattern)[1]) &&
-                (id = string.match(pattern)[2]),
+                (id = string.match(pattern)[1]),
         );
 
-        if (user && id) {
+        if (id) {
             return {
-                user,
                 id,
             };
         }
@@ -268,19 +272,16 @@ module.exports = function(passport, spotify) {
             .catch(errorHandler(res));
     });
 
-    router.post("/set-main-playlist", (req, res) => {
-        if (!isHost(req)) {
-            res.status(401).end();
-        }
+    router.post("/set-active-device", (req, res) => {
+        spotify.playbackAPI
+            .setActiveDevice(req.body.id)
+            .then(successHandler(res))
+            .catch(errorHandler(res));
+    });
 
-        const playlist = extractPlaylistId(req.body.uri);
-
-        if (!playlist) {
-            res.status(400).end();
-        }
-
-        spotify.controller
-            .setMainPlaylist(playlist.user, playlist.id)
+    router.get("/get-devices", (req, res) => {
+        spotify.playbackAPI
+            .getDevices()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
@@ -359,6 +360,14 @@ module.exports = function(passport, spotify) {
         // if user is authenticated in the session, carry on
 
         if (req.isAuthenticated() && req.user) {
+            if (!spotify.initialized && req.user.host && req.user.host.auth) {
+                // Set the access token on the API object to use it in later calls
+                spotify.api.setAccessToken(req.session.spotify.access_token);
+                spotify.api.setRefreshToken(req.session.spotify.refresh_token);
+
+                spotify.init(req);
+            }
+
             res.json(req.user);
             res.end();
         } else {
@@ -451,8 +460,7 @@ module.exports = function(passport, spotify) {
             req.user.host = {
                 auth: true,
             };
-            res.redirect('/host');
-            next();
+            res.redirect('/create-spotify-host');
         }
     );
 

@@ -18,4 +18,12 @@ export default axios => ({
             params: params,
         });
     },
+    setActiveDevice(id) {
+        return axios.post("/set-active-device", {
+            id,
+        });
+    },
+    getDevices() {
+        return axios.get("/get-devices");
+    },
 });

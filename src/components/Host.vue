@@ -1,47 +1,74 @@
 <template>
   <div class="route-container">
     <div class="container">
-    <h1>Host a Snoppify party!</h1>
+      <h1>Host a Snoppify party!</h1>
 
-    <p v-if="error"><b>{{ error }}</b></p>
-
-    <div v-if="user.host">
-
-      <div v-if="user.host.id">
-      
-        <p>ID: {{user.host.id}}</p>
-        <p>Hoster: {{user.username}}</p>
-      
-      </div>
-      <div v-else>
-
-        <p>You are authorized as <b>{{ user.username }}</b>.</p>
-
-        <button v-on:click="createSpotifyHost()">
-          Host a party!
-        </button>
-      
-      </div>
-
-      <p>
-        Logged in as
-        <b>{{ user.displayName }}</b>
+      <p v-if="error">
+        <b>{{ error }}</b>
       </p>
 
-      <form action="/logout">
-        <input type="submit" value="Logout" class="snopp-btn" />
-      </form>
+      <div v-if="!user.host">
+        <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+          <input type="submit" value="Auth with Spotify" />
+        </form>
+      </div>
 
-    </div>
-    <div v-else>
+      <div v-if="user.host && !user.host.id">
+        <p>Setting up party...</p>
+      </div>
 
-      <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
-        <input type="submit" value="Auth with Spotify" />
-      </form>
+      <div v-if="user.host && user.host.id">
+        <p>ID: {{user.host.id}}</p>
+        <p>Hoster: {{user.username}}</p>
 
-    </div>
+        <p>Devices:</p>
+        <ul v-if="devices">
+          <li v-for="d in devices" :key="d.id">
+            <label>
+              <input
+                type="radio"
+                v-bind:value="d.id"
+                v-model="device"
+                v-on:click="setActiveDevice(d.id)"
+              />
+              {{d.name}} ({{d.type}})
+            </label>
+          </li>
+        </ul>
 
-    <!-- <form v-on:submit.prevent="" class="search-input">
+        <p>
+          Logged in as
+          <b>{{ user.displayName }}</b>
+        </p>
+
+        <hr />
+
+        <p v-if="playlist">{{playlist.data.length}} tracks in queue.</p>
+
+        <p>Begin playback on the last song in the spotify playlist.</p>
+        <button v-on:click="playPlaylist">Start playlist</button>
+
+        <p>Basic playback control.</p>
+        <button v-on:click="play">Play</button>
+        <button v-on:click="pause">Pause</button>
+
+        <p>Play next song in the party queue.</p>
+        <button v-on:click="playNext">Next track</button>
+
+        <p>Empty spotify playlist.</p>
+        <button v-on:click="emptyPlaylist">Empty playlist</button>
+
+        <p>Empty party queue.</p>
+        <button v-on:click="emptyQueue">Empty queue</button>
+
+        <hr />
+
+        <form action="/logout">
+          <input type="submit" value="Logout" class="snopp-btn" />
+        </form>
+      </div>
+
+      <!-- <form v-on:submit.prevent="" class="search-input">
       <input
         v-on:input="searchPlaylists"
         v-on:focus="searchPlaylists"
@@ -75,13 +102,12 @@
           class="search-results__spinner"
         />
       </div>
-    </div> -->
+      </div>-->
     </div>
   </div>
 </template>
 
 <script>
-
 import { mapGetters } from "vuex";
 import api from "../api";
 import debounce from "../common/debounce";
@@ -89,45 +115,65 @@ import debounce from "../common/debounce";
 export default {
   data() {
     return {
-        searchTerm: null,
-        loading: false,
-        error: null,
-        playlists: null,
-        authUrls: {
-          facebook: api.axios.defaults.baseURL + "/auth/facebook",
-          spotify: api.axios.defaults.baseURL + "/auth/spotify-host",
-        },
+      searchTerm: null,
+      loading: false,
+      error: null,
+      playlists: null,
+      playlist: null,
+      device: null,
+      devices: null,
+      authUrls: {
+        facebook: api.axios.defaults.baseURL + "/auth/facebook",
+        spotify: api.axios.defaults.baseURL + "/auth/spotify-host",
+      },
     };
   },
 
   computed: {
     ...mapGetters({
       user: "Session/user",
-    })
+    }),
   },
 
   beforeMount: function() {
-    if (this.$route.query.success == "true") {
+    if (this.$route.query.access_token && this.$route.query.refresh_token) {
       // complete the request chain
-      api.spotify.createSpotifyHost({
-        check: true,
-      }).then(() => {
-        window.location.href = "/host";
-      }).catch(() => {
-        this.error = "something went wrong";
-      });
+      api.spotify
+        .createSpotifyHost({
+          access_token: this.$route.query.access_token,
+          refresh_token: this.$route.query.refresh_token,
+        })
+        .then(() => {
+          window.location.href = "/host";
+        })
+        .catch(() => {
+          this.error = "something went wrong";
+        });
     } else if (this.$route.query.success == "false") {
       this.error = "something went wrong";
     }
+
+    api.spotify.getDevices().then(data => {
+      this.devices = data.devices;
+
+      var device = this.devices.find(function(d) {
+        return d.is_active;
+      });
+      if (device) {
+        this.device = device.id;
+      }
+    });
+
+    api.queue.get().then(data => {
+      this.playlist = data;
+    });
   },
 
   methods: {
     createSpotifyHost: () => {
-        api.spotify
-            .createSpotifyHost()
-            .then(r => {
-              window.location.href = r.url;
-            });
+      api.spotify.createSpotifyHost().then(r => {
+        window.location.href = r.url;
+      });
     },
 
     searchPlaylists(e) {
@@ -138,6 +184,32 @@ export default {
 
       this.loading = true;
       this.debounceSearch(e);
+    },
+
+    play() {
+      api.queue.play();
+    },
+    pause() {
+      api.queue.pause();
+    },
+    previous() {
+      api.queue.previous();
+    },
+    playNext() {
+      api.queue.playNext();
+    },
+    playPlaylist() {
+      api.queue.play(true);
+    },
+    emptyPlaylist() {
+      api.queue.emptyPlaylist();
+    },
+    emptyQueue() {
+      api.queue.emptyQueue();
+    },
+
+    setActiveDevice(device) {
+      api.spotify.setActiveDevice(device);
     },
   },
 };
