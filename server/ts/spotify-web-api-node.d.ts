@@ -13,7 +13,7 @@ declare module 'spotify-web-api-node' {
 
         areFollowingPlaylist(userId: any, playlistId: any, followerIds: any, callback: any): any;
 
-        authorizationCodeGrant(code: any, callback: any): any;
+        authorizationCodeGrant(code: any, callback?: any): Promise<any>;
 
         changePlaylistDetails(userId: any, playlistId: any, options: any, callback: any): any;
 
@@ -111,7 +111,18 @@ declare module 'spotify-web-api-node' {
 
         getUser(userId: any, callback: any): any;
 
-        getUserPlaylists(userId: any, options: any, callback: any): any;
+          /**
+         * Get a user's playlists.
+         * @param {string} userId An optional id of the user. If you know the Spotify URI it is easy
+         * to find the id (e.g. spotify:user:<here_is_the_id>). If not provided, the id of the user that granted
+         * the permissions will be used.
+         * @param {Object} [options] The options supplied to this request.
+         * @param {requestCallback} [callback] Optional callback method to be called instead of the promise.
+         * @example getUserPlaylists('thelinmichael').then(...)
+         * @returns {Promise|undefined} A promise that if successful, resolves to an object containing
+         *          a list of playlists. If rejected, it contains an error object. Not returned if a callback is given.
+         */
+        getUserPlaylists(userId: string, options?: Partial<{ offset:number; limit:number; }>, callback?: any): Promise<{body:SpotifyApi.ListOfUsersPlaylistsResponse}>;
 
         isFollowingArtists(artistIds: any, callback: any): any;
 
@@ -155,7 +166,7 @@ declare module 'spotify-web-api-node' {
 
         searchPlaylists(query: any, options: any, callback: any): any;
 
-        searchTracks(query: any, options: any, callback: any): any;
+        searchTracks(query: any, options?: any, callback?: any): Promise<any>;
 
         setAccessToken(accessToken: any): void;
 

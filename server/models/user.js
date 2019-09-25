@@ -1,7 +1,9 @@
 const fs = require("fs");
 const Queue = require("../Queue");
 
-export class User {
+export default class User {
+    static users;
+
     constructor(data) {
         for (let key in data) {
             this[key] = data[key];

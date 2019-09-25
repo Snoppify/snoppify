@@ -3,7 +3,8 @@ import bodyParser from "body-parser";
 import connectLoki from "connect-loki";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import express, { Request as ExpRequest } from "express";
+import express from "express";
+import expressDebug from "express-debug";
 import fallback from "express-history-api-fallback";
 import session from "express-session";
 import sharedsession from "express-socket.io-session";
@@ -14,6 +15,8 @@ import ip from "ip";
 import minimist from "minimist";
 import passport from "passport";
 
+import passportInit from "./auth/passport";
+import routesIndex from "./routes";
 import socketIO from "./socket";
 import spotify from "./spotify";
 
@@ -31,7 +34,6 @@ const rootDir = appRootPath + "/dist";
 const useHttps = false;
 let httpServer: https.Server | http.Server;
 if (useHttps) {
-    console.log("starting using https");
     httpServer = https.createServer(
         {
             key: fs.readFileSync(appRootPath + "/ssl/privatekey.key"),
@@ -99,27 +101,12 @@ app.use(passportsession);
 
 socket.io.use(sharedsession(mysession));
 
-require("./auth/passport")(passport);
-require("express-debug")(app, {});
+passportInit(passport);
+expressDebug(app, {});
 
-var routes = require("./routes/index")(passport, spotify);
+var routes = routesIndex(passport);
 app.use("/", routes);
 let isHosting = false;
-
-const startHosting = (() => {
-    return (req: ExpRequest) => {
-        if (isHosting) {
-            return;
-        }
-
-        isHosting = true;
-        spotify.init(req);
-    };
-})();
-app.use("/start-host", (req, res) => {
-    startHosting(req);
-    res.send("host started");
-});
 
 app.use("/ping", (_, res) => {
     res.json({
