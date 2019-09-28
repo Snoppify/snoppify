@@ -32,12 +32,14 @@
       </div>
 
       <div v-if="user.host && user.host.status == 'pending'">
-        <p>Setting up party...</p>
+        <p>Authenticating...</p>
       </div>
 
       <div v-if="user.host && user.host.id">
         <p>ID: {{user.host.id}}</p>
         <p>Hoster: {{user.username}}</p>
+
+        <hr />
 
         <p>Devices:</p>
         <ul v-if="devices">
@@ -54,12 +56,30 @@
           </li>
         </ul>
 
+        <form v-on:submit.prevent="setBackupPlaylist(backupUrl)">
+          <input v-model="backupUrl" placeholder="Paste a playlist uri" />
+          <button type="submit">Set</button>
+        </form>
+        <p>
+          Backup playlist:
+          <span v-if="backupPlaylist">
+            <b>{{ backupPlaylist.name }}</b>
+            ({{
+            backupPlaylist.owner.display_name
+            }})
+          </span>
+          <span v-else>(not set)</span>
+        </p>
+
+        <p v-if="queue">{{queue.length}} tracks in queue.</p>
+
+        <button
+          v-on:click="playPlaylist"
+          :disabled="!device || queue.length == 0 && !backupPlaylist"
+          class="start-playback-btn"
+        >Start playback</button>
+
         <hr />
-
-        <p v-if="playlist">{{playlist.data.length}} tracks in queue.</p>
-
-        <p>Begin playback on the last song in the spotify playlist.</p>
-        <button v-on:click="playPlaylist">Start playlist</button>
 
         <p>Basic playback control.</p>
         <button v-on:click="play">Play</button>
@@ -134,7 +154,7 @@ export default {
       loading: false,
       error: null,
       playlists: null,
-      playlist: null,
+      backupUrl: null,
       device: null,
       devices: null,
       authUrls: {
@@ -148,6 +168,8 @@ export default {
   computed: {
     ...mapGetters({
       user: "Session/user",
+      queue: "Queue/queue",
+      backupPlaylist: "Queue/backupPlaylist",
     }),
   },
 
@@ -160,8 +182,6 @@ export default {
         refresh_token: this.$route.query.refresh_token,
       };
       var promise = null;
-
-      console.log(this.$route.query.state, params);
 
       switch (state) {
         case "host":
@@ -193,10 +213,6 @@ export default {
         if (device) {
           this.device = device.id;
         }
-      });
-
-      api.queue.get().then(data => {
-        this.playlist = data;
       });
     }
   },
@@ -243,6 +259,10 @@ export default {
     setActiveDevice(device) {
       api.spotify.setActiveDevice(device);
     },
+
+    setBackupPlaylist(uri) {
+      api.queue.setBackupPlaylist(uri);
+    },
   },
 };
 </script>
@@ -285,6 +305,17 @@ export default {
     background: none;
     color: #fff;
     border: 1px solid #444;
+  }
+}
+
+.start-playback-btn {
+  padding: 0.5em 1em;
+  font-size: 1.2em;
+  background: #1db954;
+  color: white;
+
+  &:disabled {
+    background: #aaa;
   }
 }
 

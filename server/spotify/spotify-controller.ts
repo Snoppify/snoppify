@@ -176,6 +176,7 @@ export default {
     getTrack,
     getBackupPlaylist,
     setBackupPlaylist,
+    removeBackupPlaylist,
     setMainPlaylist,
     createMainPlaylist,
 };
@@ -481,11 +482,19 @@ function setBackupPlaylist(userId: string, id: string) {
                 });
 
                 resolve();
-            })
-            .catch(r => {
-                console.log(r);
+            }, r => {
                 reject(r);
             });
+    });
+}
+
+function removeBackupPlaylist() {
+    backupPlaylist = null;
+
+    saveQueue();
+
+    sendEvent("backupPlaylist", {
+        playlist: backupPlaylist,
     });
 }
 
@@ -560,7 +569,7 @@ function playNextTrack() {
 
 function play(playPlaylist = false) {
     let playData = {} as any;
-    if (playPlaylist && playlist) {
+    if (playPlaylist) {
         playData.playlist = mainPlaylist ? mainPlaylist.id : api.config.playlist;
 
         return api.getPlaylist(api.config.owner, playData.playlist).then(
@@ -573,13 +582,12 @@ function play(playPlaylist = false) {
 
                 if (playlist.tracks.total > 0) {
                     playData.position = playlist.tracks.total - 1;
-                } else if (!queue.empty) {
+                    return playbackAPI.play(playData);
+                } else {
                     return playNext().then(function () {
                         return play(playPlaylist);
                     });
                 }
-
-                return playbackAPI.play(playData);
             },
             function (err) {
                 console.log("Playlist not found");
@@ -604,17 +612,19 @@ function previous() {
 
 function emptyPlaylist() {
     let promises = [];
-    for (let i = 0; i < playlist.tracks.items.length; i += 100) {
-        let positions = (playlist.tracks.items as any[])
-            .slice(i, i + 100)
-            .map((_, _i) => i + _i);
-        let p = playbackAPI.removePositionsFromPlaylist(
-            api.config.owner,
-            playlist.id,
-            positions,
-            playlist.snapshot_id,
-        );
-        promises.push(p);
+    if (playlist) {
+        for (let i = 0; i < playlist.tracks.items.length; i += 100) {
+            let positions = (playlist.tracks.items as any[])
+                .slice(i, i + 100)
+                .map((_, _i) => i + _i);
+            let p = playbackAPI.removePositionsFromPlaylist(
+                api.config.owner,
+                playlist.id,
+                positions,
+                playlist.snapshot_id,
+            );
+            promises.push(p);
+        }
     }
     return Promise.all(promises).then(function () {
         reloadPlaylist();

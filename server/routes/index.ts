@@ -219,7 +219,7 @@ export default function (passport) {
 
         [
             /spotify:playlist:(.+)/,
-            /.?open.spotify.com\/playlist\/(.+)/,
+            /.?open\.spotify\.com\/playlist\/([^\?]+)/,
         ].find(
             pattern =>
                 string.match(pattern) &&
@@ -317,18 +317,29 @@ export default function (passport) {
     });
 
     router.post("/set-backup-playlist", (req, res) => {
-        if (!req.user.admin) {
+        if (!isHost(req)) {
             res.status(401).end();
+            return;
+        }
+
+        if (!req.body.uri) {
+            // unset backup playlist
+            spotify.controller
+                .removeBackupPlaylist();
+
+            res.status(200).end();
+            return;
         }
 
         const playlist = extractPlaylistId(req.body.uri);
 
         if (!playlist) {
             res.status(400).end();
+            return;
         }
 
         spotify.controller
-            .setBackupPlaylist(spotify.api.config.owner, playlist.id)
+            .setBackupPlaylist(req.user.username, playlist.id)
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
