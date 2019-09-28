@@ -1,4 +1,5 @@
 let axios = require("axios");
+let SpotifyWebApi = require('spotify-web-api-node');
 
 // let api = require("./spotify-api");
 
@@ -116,6 +117,10 @@ function getAccessToken() {
         if (time < expireTime) {
             resolve(accessToken);
         } else {
+            if (!api.config || !api.config.refresh_token || !api.config.access_token) {
+                reject();
+                return;
+            }
             axios({
                 method: "post",
                 url: "https://accounts.spotify.com/api/token",
@@ -132,14 +137,12 @@ function getAccessToken() {
                 .then(function(r) {
                     accessToken = r.data.access_token;
                     resolve(accessToken);
-                })
-                .catch(function(r) {
+                }, function(r) {
                     let e = [
                         r.response.status,
                         "(" + r.response.data.error + ")",
                         r.response.data.error_description,
                     ].join(" ");
-                    console.log(e);
                     reject(r);
                 });
         }
@@ -162,16 +165,21 @@ function getRefreshToken(code) {
             },
         })
             .then(function(r) {
-                console.log("refresh_token", r.data.refresh_token);
-                resolve(r.data.refresh_token);
-            })
-            .catch(function(r) {
+                if (r.data && r.data.refresh_token) {
+                    console.log("refresh_token", r.data.refresh_token);
+                    resolve(r.data.refresh_token);
+                } else {
+                    resolve();
+                }
+            }, function(r) {
                 reject(r);
-            });
+            })
     });
 }
 
-function getAuthUrl(state) {
+function getAuthUrl(state, redirectUri) {
+    api._credentials.redirectUri = redirectUri || "http://localhost:3000/create-spotify-host";
+
     return api.createAuthorizeURL(scopes, state || "auth");
 }
 
@@ -189,7 +197,11 @@ function request(method, uri, data, params) {
                 params: params,
             }).then(function(data) {
                 resolve(data.data);
-            }, reject);
+            }, function(r) {
+                reject(r);
+            });
+        }, function(r) {
+            reject(r);
         });
     });
 }

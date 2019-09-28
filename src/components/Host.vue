@@ -9,11 +9,29 @@
 
       <div v-if="!user.host">
         <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
-          <input type="submit" value="Auth with Spotify" />
+          <input type="submit" value="Host a party" />
         </form>
+
+        <p class="login">
+          or
+          <a v-bind:href="authUrls.spotifyLogin">log in</a>
+        </p>
       </div>
 
-      <div v-if="user.host && !user.host.id">
+      <div v-if="user.host && user.host.status == 'success'">
+        <p>
+          Logged in as
+          <b>{{ user.displayName }}</b>
+        </p>
+
+        <div v-if="!user.host.id">
+          <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+            <input type="submit" value="Host a party" />
+          </form>
+        </div>
+      </div>
+
+      <div v-if="user.host && user.host.status == 'pending'">
         <p>Setting up party...</p>
       </div>
 
@@ -36,11 +54,6 @@
           </li>
         </ul>
 
-        <p>
-          Logged in as
-          <b>{{ user.displayName }}</b>
-        </p>
-
         <hr />
 
         <p v-if="playlist">{{playlist.data.length}} tracks in queue.</p>
@@ -62,7 +75,9 @@
         <button v-on:click="emptyQueue">Empty queue</button>
 
         <hr />
+      </div>
 
+      <div v-if="user.host">
         <form action="/logout">
           <input type="submit" value="Logout" class="snopp-btn" />
         </form>
@@ -125,6 +140,7 @@ export default {
       authUrls: {
         facebook: api.axios.defaults.baseURL + "/auth/facebook",
         spotify: api.axios.defaults.baseURL + "/auth/spotify-host",
+        spotifyLogin: api.axios.defaults.baseURL + "/auth/spotify-host-login",
       },
     };
   },
@@ -138,11 +154,25 @@ export default {
   beforeMount: function() {
     if (this.$route.query.access_token && this.$route.query.refresh_token) {
       // complete the request chain
-      api.spotify
-        .createSpotifyHost({
-          access_token: this.$route.query.access_token,
-          refresh_token: this.$route.query.refresh_token,
-        })
+      var state = this.$route.query.state || "host";
+      var params = {
+        access_token: this.$route.query.access_token,
+        refresh_token: this.$route.query.refresh_token,
+      };
+      var promise = null;
+
+      console.log(this.$route.query.state, params);
+
+      switch (state) {
+        case "host":
+          promise = api.spotify.createSpotifyHost(params);
+          break;
+        case "auth":
+          promise = api.spotify.authenticateSpotifyHost(params);
+          break;
+      }
+
+      promise
         .then(() => {
           window.location.href = "/host";
         })
@@ -153,20 +183,22 @@ export default {
       this.error = "something went wrong";
     }
 
-    api.spotify.getDevices().then(data => {
-      this.devices = data.devices;
+    if (this.user && this.user.host && this.user.host.id) {
+      api.spotify.getDevices().then(data => {
+        this.devices = data.devices;
 
-      var device = this.devices.find(function(d) {
-        return d.is_active;
+        var device = this.devices.find(function(d) {
+          return d.is_active;
+        });
+        if (device) {
+          this.device = device.id;
+        }
       });
-      if (device) {
-        this.device = device.id;
-      }
-    });
 
-    api.queue.get().then(data => {
-      this.playlist = data;
-    });
+      api.queue.get().then(data => {
+        this.playlist = data;
+      });
+    }
   },
 
   methods: {
@@ -238,7 +270,7 @@ export default {
   border: none;
   border-radius: 4px;
   padding: 1em 1.4em;
-  font-size: 1.3em;
+  font-size: 1.5em;
   font-weight: bold;
   cursor: pointer;
   width: 80%;
@@ -254,5 +286,20 @@ export default {
     color: #fff;
     border: 1px solid #444;
   }
+}
+
+.login {
+  text-align: center;
+  font-size: 1.2em;
+}
+
+a,
+a:visited,
+a:link {
+  color: #aaa;
+}
+a:active,
+a:hover {
+  color: #fff;
 }
 </style>

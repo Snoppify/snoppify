@@ -18,6 +18,11 @@ export default axios => ({
             params: params,
         });
     },
+    authenticateSpotifyHost(params) {
+        return axios.get("/authenticate-spotify-host", {
+            params: params,
+        });
+    },
     setActiveDevice(id) {
         return axios.post("/set-active-device", {
             id,
