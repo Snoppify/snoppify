@@ -79,15 +79,47 @@
           <span v-else>(not set)</span>
         </p>
 
-        <p v-if="queue">{{queue.length}} tracks in queue.</p>
-
         <button
           v-on:click="playPlaylist"
           :disabled="!device || queue.length == 0 && !backupPlaylist"
           class="start-playback-btn"
         >Start playback</button>
 
+        <p>Playback can be started if you have an active device and a backup playlist or at least one song in the queue.</p>
+
         <hr />
+
+        <h1 v-if="player.isPlaying">Now playing</h1>
+        <h1 v-else>Paused</h1>
+
+        <div class="current-track current-track_compact">
+          <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt />
+          <div class="current-track__track-info">
+            <div class="title">{{ currentTrack.name }}</div>
+            <div class="artist">
+              <span v-for="(artist, index) in currentTrack.artists" :key="index">
+                <span>{{ artist.name }}</span>
+                <span v-if="index + 1 < currentTrack.artists.length">,</span>
+              </span>
+            </div>
+          </div>
+          <div class="current-track__user-info" v-if="currentTrack.snoppify">
+            <div
+              class="user-image"
+              :style="{
+              'background-image':
+                'url(' + currentTrack.snoppify.issuer.profile + ')',
+            }"
+            ></div>
+            <div class="user">
+              <div class="title">Added by</div>
+              <div class="name">{{ currentTrack.snoppify.issuer.displayName }}</div>
+              <div class="upvotes">{{ currentTrack.snoppify.votes.length }} upvotes</div>
+            </div>
+          </div>
+        </div>
+
+        <p v-if="queue">{{queue.length}} tracks in queue.</p>
 
         <p>Basic playback control.</p>
         <button v-on:click="play">Play</button>
@@ -176,7 +208,9 @@ export default {
   computed: {
     ...mapGetters({
       user: "Session/user",
+      player: "Spotify/player",
       queue: "Queue/queue",
+      currentTrack: "Queue/currentTrack",
       backupPlaylist: "Queue/backupPlaylist",
     }),
   },
@@ -349,5 +383,19 @@ a:link {
 a:active,
 a:hover {
   color: #fff;
+}
+
+.current-track.current-track_compact {
+  display: flex;
+  align-items: center;
+
+  img {
+    width: 2.5em;
+  }
+
+  .current-track__track-info {
+    flex: 1;
+    padding-left: 1em;
+  }
 }
 </style>
