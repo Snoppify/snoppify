@@ -73,9 +73,11 @@ export default function (passport) {
             // finalize the host process
 
             // create host object
+            var id = Date.now().toString(); // just some fake id for now
             var hostData = {
                 status: 'success',
-                id: Date.now(), // just some fake id for now
+                id: id,
+                name: "Snoppify " + id,
                 playlist: null,
             };
             if (!req.user.host) {
@@ -99,7 +101,7 @@ export default function (passport) {
                 spotify.init(req);
 
                 spotify.controller
-                    .createMainPlaylist(hostData.id.toString())
+                    .createMainPlaylist(hostData.name)
                     .then(function () {
                         console.log("started hosting!");
                         res.status(200).end();
@@ -314,6 +316,25 @@ export default function (passport) {
                 })
                 .catch(errorHandler(res));
         }
+    });
+
+    router.post("/set-party-name", (req, res) => {
+        if (!isHost(req)) {
+            res.status(401).end();
+            return;
+        }
+
+        spotify.controller
+            .updateMainPlaylist(req.user.username, req.body)
+            .then(data => {
+                req.user.host.name = data.name;
+
+                User.save(req.user, () => {
+                    res.send(data);
+                });
+
+            })
+            .catch(errorHandler(res));
     });
 
     router.post("/set-backup-playlist", (req, res) => {

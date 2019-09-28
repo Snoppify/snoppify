@@ -178,6 +178,7 @@ export default {
     setBackupPlaylist,
     removeBackupPlaylist,
     setMainPlaylist,
+    updateMainPlaylist,
     createMainPlaylist,
 };
 
@@ -404,10 +405,9 @@ function getBackupPlaylist() {
     return backupPlaylist;
 }
 
-function createMainPlaylist(id: string) {
+function createMainPlaylist(name: string) {
     return new Promise((resolve, reject) => {
-        console.log("owner", api.config.owner);
-        api.createPlaylist(api.config.owner, "Snoppify " + id, {
+        api.createPlaylist(api.config.owner, name, {
             public: true
         }, function (err, data) {
             if (err) {
@@ -446,6 +446,28 @@ function setMainPlaylist(user: string, id: string) {
             .catch(r => {
                 console.log(r);
                 reject(r);
+            });
+    });
+}
+
+function updateMainPlaylist(user: string, opts: any) {
+    return new Promise((resolve, reject) => {
+        if (!mainPlaylist) {
+            reject();
+            return;
+        }
+
+        var params = {
+            name: opts.name || mainPlaylist.name,
+        };
+
+        api.changePlaylistDetails(user, mainPlaylist.id, params,
+            function (err, data) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(params);
+                }
             });
     });
 }

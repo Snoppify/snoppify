@@ -37,6 +37,14 @@
 
       <div v-if="user.host && user.host.id">
         <p>ID: {{user.host.id}}</p>
+        <p>
+          Name: {{user.host.name}}
+          <input
+            type="button"
+            v-on:click="changePartyName()"
+            value="change"
+          />
+        </p>
         <p>Hoster: {{user.username}}</p>
 
         <hr />
@@ -262,6 +270,15 @@ export default {
 
     setBackupPlaylist(uri) {
       api.queue.setBackupPlaylist(uri);
+    },
+
+    changePartyName() {
+      var name = prompt("Change party name", this.user.host.name);
+      if (name) {
+        api.spotify.setPartyName(name).then(data => {
+          location.reload();
+        });
+      }
     },
   },
 };
