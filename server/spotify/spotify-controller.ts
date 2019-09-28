@@ -91,7 +91,7 @@ const init = (_api: SpotifyAPI) => {
             reloadPlaylist();
         }
 
-        if (api.config.refresh_token) {
+        if (api.getCredentials().refreshToken) {
             setInterval(function () {
                 pollPlayerStatus();
             }, pollTimeout);

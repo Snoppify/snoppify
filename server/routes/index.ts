@@ -195,7 +195,6 @@ export default function (passport) {
     function errorHandler(res) {
         return r => {
             if (!r || !r.response) {
-                console.log(r);
                 let status = r && r.status ? r.status : 500;
                 return res.status(status).send(r);
             }
