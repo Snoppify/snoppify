@@ -64,7 +64,7 @@ export default class User {
                     return User.saveToFile(callback);
                 });
             } else {
-                return User.saveToFile(callback || function() {});
+                return User.saveToFile(callback || function() { });
             }
         });
     }
@@ -78,6 +78,10 @@ export default class User {
             err,
             data,
         ) {
+            if (err) {
+                User.users = [];
+                return User.saveToFile(callback);
+            }
             try {
                 let users = JSON.parse(data);
                 if (!users.users) {

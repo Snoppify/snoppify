@@ -35,15 +35,16 @@ const maxQueueSize = 5;
 let playlist: any = null;
 let queueFile = "";
 
-const init = (_api: SpotifyAPI) => {
-    api = _api;
-
+(function () {
     mkdirp.sync("data");
     queueFile = "data/snoppify-queue.json";
 
     // load saved queue
     fs.readFile(queueFile, "utf8", function readFileCallback(err, data) {
         if (err) {
+            console.log("user init");
+            User.init(() => { });
+            saveQueue();
             return;
         }
         try {
@@ -64,11 +65,18 @@ const init = (_api: SpotifyAPI) => {
             if (obj.backupPlaylist) {
                 backupPlaylist = obj.backupPlaylist;
             }
+
+            User.init(() => { });
+            saveQueue();
         } catch (e) {
             console.log(e);
             return;
         }
     });
+})();
+
+const init = (_api: SpotifyAPI) => {
+    api = _api;
 
     api.onload.then(function (data) {
         if (mainPlaylist) {
@@ -83,7 +91,7 @@ const init = (_api: SpotifyAPI) => {
             reloadPlaylist();
         }
 
-        if (api.config.refresh_token) {
+        if (api.getCredentials().refreshToken) {
             setInterval(function () {
                 pollPlayerStatus();
             }, pollTimeout);
@@ -397,6 +405,7 @@ function getBackupPlaylist() {
 
 function createMainPlaylist(id: string) {
     return new Promise((resolve, reject) => {
+        console.log("owner", api.config.owner);
         api.createPlaylist(api.config.owner, "Snoppify " + id, {
             public: true
         }, function (err, data) {
@@ -706,7 +715,7 @@ function addToPlaylist(track: string | { uri: string }) {
 }
 
 function pollPlayerStatus() {
-    playbackAPI.currentlyPlaying().then(function (player: any) {
+    return playbackAPI.currentlyPlaying().then(function (player: any) {
         states.data.isPlaying = player.is_playing;
 
         // got new player
@@ -758,6 +767,8 @@ function pollPlayerStatus() {
         }
 
         states.update();
+    }).catch(function () {
+        //
     });
 }
 

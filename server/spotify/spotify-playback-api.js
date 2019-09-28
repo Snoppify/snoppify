@@ -1,4 +1,5 @@
 let axios = require("axios");
+let SpotifyWebApi = require('spotify-web-api-node');
 
 // let api = require("./spotify-api");
 
@@ -111,43 +112,26 @@ function getDevices() {
 ///////////////////////
 
 function getAccessToken() {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let time = (Date.now() - refreshTime) / 1000;
-        if (time < expireTime) {
+        if (accessToken && time < expireTime) {
             resolve(accessToken);
         } else {
-            axios({
-                method: "post",
-                url: "https://accounts.spotify.com/api/token",
-                params: {
-                    grant_type: "refresh_token", // client_credentials, authorization_code or refresh_token
-                    refresh_token: api.config.refresh_token,
-                    redirect_uri: "http://localhost:3000",
-                },
-                headers: {
-                    Authorization: "Basic " + api.config.auth_token,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-            })
-                .then(function(r) {
-                    accessToken = r.data.access_token;
+            return api.refreshAccessToken().then(
+                function (data) {
+                    accessToken = data.body.access_token;
+                    // Save the access token so that it's used in future calls
+                    api.setAccessToken(accessToken);
                     resolve(accessToken);
-                })
-                .catch(function(r) {
-                    let e = [
-                        r.response.status,
-                        "(" + r.response.data.error + ")",
-                        r.response.data.error_description,
-                    ].join(" ");
-                    console.log(e);
-                    reject(r);
-                });
+                },
+                reject
+            );
         }
     });
 }
 
 function getRefreshToken(code) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         axios({
             method: "post",
             url: "https://accounts.spotify.com/api/token",
@@ -161,23 +145,27 @@ function getRefreshToken(code) {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
         })
-            .then(function(r) {
-                console.log("refresh_token", r.data.refresh_token);
-                resolve(r.data.refresh_token);
-            })
-            .catch(function(r) {
+            .then(function (r) {
+                if (r.data && r.data.refresh_token) {
+                    resolve(r.data.refresh_token);
+                } else {
+                    resolve();
+                }
+            }, function (r) {
                 reject(r);
-            });
+            })
     });
 }
 
-function getAuthUrl(state) {
+function getAuthUrl(state, redirectUri) {
+    api._credentials.redirectUri = redirectUri || "http://localhost:3000/create-spotify-host";
+
     return api.createAuthorizeURL(scopes, state || "auth");
 }
 
 function request(method, uri, data, params) {
-    return new Promise(function(resolve, reject) {
-        getAccessToken().then(function(token) {
+    return new Promise(function (resolve, reject) {
+        getAccessToken().then(function (token) {
             axios({
                 method: method,
                 url: "https://api.spotify.com/v1/" + uri,
@@ -187,9 +175,9 @@ function request(method, uri, data, params) {
                 },
                 data: data,
                 params: params,
-            }).then(function(data) {
+            }).then(function (data) {
                 resolve(data.data);
             }, reject);
-        });
+        }, reject);
     });
 }

@@ -29,12 +29,14 @@ const api = new SpotifyWebApi({
     clientSecret: config.client_secret,
 }) as SpotifyAPI;
 
+api.config = config;
+
 api.init = () => {
     api.config = config;
 
-    api.onload = new Promise(function(resolve, reject) {
+    api.onload = new Promise(function (resolve, reject) {
         api.clientCredentialsGrant().then(
-            function(data: any) {
+            function (data: any) {
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body["access_token"]);
 
@@ -42,7 +44,7 @@ api.init = () => {
 
                 resolve();
             },
-            function(err: any) {
+            function (err: any) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
@@ -55,14 +57,14 @@ api.init = () => {
 };
 
 function refreshAccessToken() {
-    setInterval(function() {
+    setInterval(function () {
         api.clientCredentialsGrant().then(
-            function(data: any) {
+            function (data: any) {
                 console.log("Updated access_token:", data.body.access_token);
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body.access_token);
             },
-            function(err: any) {
+            function (err: any) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
