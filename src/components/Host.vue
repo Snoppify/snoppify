@@ -92,7 +92,7 @@
         <h1 v-if="player.isPlaying">Now playing</h1>
         <h1 v-else>Paused</h1>
 
-        <div class="current-track current-track_compact">
+        <div class="current-track current-track_compact" v-if="currentTrack">
           <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt />
           <div class="current-track__track-info">
             <div class="title">{{ currentTrack.name }}</div>
