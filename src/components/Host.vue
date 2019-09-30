@@ -1,5 +1,5 @@
 <template>
-  <div class="route-container">
+  <div class="host-container">
     <div class="container">
       <h1>Host a Snoppify party!</h1>
 
@@ -258,6 +258,18 @@ export default {
 .container {
   margin-bottom: 3em;
   padding: 0 1em;
+}
+
+.host-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: $background;
 }
 
 .logo {

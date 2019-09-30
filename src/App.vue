@@ -5,7 +5,7 @@
         <router-view></router-view>
       </transition>
     </div>
-    <messages> </messages>
+    <messages></messages>
   </div>
 </template>
 
@@ -104,7 +104,7 @@ h2 {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  max-width: 500px;
+  //max-width: 500px;
   margin: auto;
   box-shadow: 0 0 30px 7px black;
 }
@@ -120,11 +120,10 @@ h2 {
 $page-transition-speed: 0.4s;
 
 .route-container {
-  position: absolute;
-  left: 0;
-  top: 0;
+  margin: 0 auto;
   width: 100%;
   height: 100%;
+  max-width: 500px;
   box-shadow: 0 0 100px 0px rgba(0, 0, 50, 0.3);
   overflow-x: hidden;
   overflow-y: auto;
