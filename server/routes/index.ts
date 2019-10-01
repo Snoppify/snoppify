@@ -87,6 +87,14 @@ export default function (passport) {
                 req.user.host[key] = hostData[key];
             }
 
+            if (!req.user.parties) {
+                req.user.parties = [];
+            }
+            req.user.parties.push({
+                id: id,
+                name: hostData.name,
+            });
+
             req.session.spotify = {
                 access_token: req.query.access_token,
                 refresh_token: req.query.refresh_token,
@@ -102,9 +110,18 @@ export default function (passport) {
 
                 spotify.controller
                     .createMainPlaylist(hostData.name)
-                    .then(function () {
+                    .then(function (playlist) {
                         console.log("started hosting!");
-                        res.status(200).end();
+
+                        spotify.controller.setParty(id, {
+                            mainPlaylist: playlist,
+                            backupPlaylist: null,
+                        }).then(() => {
+                            res.status(200).end();
+                        }).catch(r => {
+                            console.log(r);
+                            res.status(400).end();
+                        });
                     })
                     .catch(function (r) {
                         console.log(r);
@@ -165,7 +182,18 @@ export default function (passport) {
                 spotify.init(req);
 
                 console.log("authenticated host!");
-                res.status(200).end();
+
+                if (req.user.host.id) {
+                    spotify.controller.setParty(req.user.host.id)
+                        .then(() => {
+                            res.status(200).end();
+                        }).catch(r => {
+                            console.log(r);
+                            res.status(400).end();
+                        });
+                } else {
+                    res.status(200).end();
+                }
             });
 
         } else if (req.query.code) {
@@ -318,6 +346,86 @@ export default function (passport) {
         }
     });
 
+    router.get("/search-parties", (req, res) => {
+        if (!isHost(req)) {
+            res.status(401).end();
+            return;
+        }
+
+        let data = {
+            query: "",
+            result: [],
+        };
+
+        if (!req.user.parties) {
+            res.send(data);
+            return;
+        }
+
+        let query = req.query.query ? req.query.query.trim().toLowerCase() : "";
+        let querySplit = query.split(/\s+/);
+
+        data.result = req.user.parties;
+
+        if (query != "") {
+            data.result = req.user.parties.map(party => {
+                var name = party.name.toLowerCase();
+                let p = {
+                    id: party.id,
+                    name: party.name,
+                    score: 0,
+                };
+                p.score = querySplit.map(val => {
+                    return name.search(val) != -1 ? 1 : 0;
+                }).reduce((a, b) => a + b, 0);
+                return p;
+            });
+        }
+
+        data.result = data.result.filter(party => {
+            return typeof party.score == 'undefined' ? true : party.score > 0;
+        });
+
+        data.result.sort((a, b) => {
+            return a.score - b.score;
+        });
+
+        res.send(data);
+    });
+
+    router.post("/set-party", (req, res) => {
+        if (!isHost(req)) {
+            res.status(401).end();
+            return;
+        }
+
+        if (!req.user.parties) {
+            res.status(404).end();
+            return;
+        }
+
+        var party = req.user.parties.find(p => {
+            return p.id == req.body.id;
+        });
+        if (!party) {
+            res.status(404).end();
+            return;
+        }
+
+        spotify.controller
+            .setParty(party.id)
+            .then(data => {
+                req.user.host.id = party.id;
+                req.user.host.name = party.name;
+
+                User.save(req.user, () => {
+                    res.send(data);
+                });
+
+            })
+            .catch(errorHandler(res));
+    });
+
     router.post("/set-party-name", (req, res) => {
         if (!isHost(req)) {
             res.status(401).end();
@@ -328,6 +436,13 @@ export default function (passport) {
             .updateMainPlaylist(req.user.username, req.body)
             .then(data => {
                 req.user.host.name = data.name;
+
+                var party = req.user.parties.find(p => {
+                    return p.id == req.user.host.id;
+                });
+                if (party) {
+                    party.name = data.name;
+                }
 
                 User.save(req.user, () => {
                     res.send(data);
@@ -479,6 +594,10 @@ export default function (passport) {
                     spotify.api.setRefreshToken(req.session.spotify.refresh_token);
 
                     spotify.init(req);
+
+                    if (req.user.host.id) {
+                        spotify.controller.setParty(req.user.host.id);
+                    }
                 }
             }
 
@@ -582,10 +701,12 @@ export default function (passport) {
             failureRedirect: "/host",
         }),
         function (req, res, next) {
-            req.user.host = {
-                auth: true,
-                status: 'pending',
-            };
+            if (!req.user.host) {
+                req.user.host = {};
+            }
+            req.user.host.auth = true;
+            req.user.host.status = 'pending';
+
             res.redirect('/create-spotify-host');
         }
     );
@@ -598,10 +719,11 @@ export default function (passport) {
             failureRedirect: "/host",
         }),
         function (req, res, next) {
-            req.user.host = {
-                auth: true,
-                status: 'pending',
-            };
+            if (!req.user.host) {
+                req.user.host = {};
+            }
+            req.user.host.auth = true;
+            req.user.host.status = 'pending';
 
             User.save(req.user, (err, data) => {
                 res.redirect('/authenticate-spotify-host');

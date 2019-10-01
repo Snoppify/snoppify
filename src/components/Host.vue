@@ -135,6 +135,36 @@
         <button v-on:click="emptyQueue">Empty queue</button>
 
         <hr />
+
+        <p>Your saved parties</p>
+
+        <form v-on:submit.prevent class="search-input">
+          <input
+            v-on:input="searchParties"
+            v-on:focus="searchParties"
+            ref="input"
+            placeholder="Search parties"
+            v-model="partySearchTerm"
+          />
+        </form>
+
+        <div class="search-results">
+          <div v-if="partyResult && partyResult.length == 0" class="search-results__info">
+            <p>Nothing here :(</p>
+          </div>
+          <ul v-if="partyResult && partyResult.length > 0" class="search-list">
+            <li v-for="party in partyResult" :key="party.id">
+              {{party.name}} ({{party.id}})
+              <input
+                type="button"
+                value="Set"
+                v-on:click="setParty(party.id)"
+              />
+            </li>
+          </ul>
+        </div>
+
+        <hr />
       </div>
 
       <div v-if="user.host">
@@ -195,6 +225,8 @@ export default {
       error: null,
       playlists: null,
       backupUrl: null,
+      partyResult: null,
+      partySearchTerm: null,
       device: null,
       devices: null,
       authUrls: {
@@ -256,6 +288,8 @@ export default {
           this.device = device.id;
         }
       });
+
+      this.searchParties();
     }
   },
 
@@ -314,6 +348,26 @@ export default {
         });
       }
     },
+    searchParties() {
+      api.queue
+        .searchParties(this.partySearchTerm)
+        .then(r => {
+          this.partyResult = r.result;
+        })
+        .catch(r => {
+          this.partyResult = null;
+        });
+    },
+    setParty(id) {
+      api.queue
+        .setParty(id)
+        .then(r => {
+          location.reload();
+        })
+        .catch(r => {
+          console.log(r);
+        });
+    },
   },
 };
 </script>
@@ -332,11 +386,10 @@ export default {
 }
 
 .host-container {
-  position: absolute;
-  left: 0;
-  top: 0;
+  margin: 0 auto;
   width: 100%;
   height: 100%;
+  max-width: 800px;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;

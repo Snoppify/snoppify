@@ -34,6 +34,7 @@ const maxQueueSize = 5;
 
 let playlist: any = null;
 let queueFile = "";
+let partyFile = null;
 
 (function () {
     mkdirp.sync("data");
@@ -180,9 +181,76 @@ export default {
     setMainPlaylist,
     updateMainPlaylist,
     createMainPlaylist,
+    setParty,
 };
 
 //////////////////
+
+function setParty(id: string, opts?: any) {
+    return new Promise((resolve, reject) => {
+        var filename = "data/snoppify-party-" + id + ".json";
+
+        // load saved party
+        fs.readFile(filename, "utf8", function readFileCallback(err, data) {
+            // file does not exist
+            if (err) {
+                if (!opts || !opts.mainPlaylist) {
+                    reject("A main playlist is required");
+                    return;
+                }
+
+                console.log("saving new party", id);
+
+                partyFile = filename;
+                mainPlaylist = opts.mainPlaylist;
+                backupPlaylist = opts.backupPlaylist || null;
+
+                saveQueue();
+
+                resolve({
+                    id: id,
+                    queue: [],
+                    mainPlaylist: mainPlaylist,
+                    backupPlaylist: backupPlaylist,
+                });
+                return;
+            }
+            // file exist
+            try {
+                console.log("set party", id);
+
+                partyFile = filename;
+
+                let obj = JSON.parse(data);
+
+                queue.clear();
+                obj.queue.forEach(function (track: any) {
+                    queue.add(track);
+                });
+
+                // if (obj.currentTrack) {
+                //     history.add(obj.currentTrack);
+                // }
+
+                if (obj.mainPlaylist) {
+                    mainPlaylist = obj.mainPlaylist;
+                }
+
+                if (obj.backupPlaylist) {
+                    backupPlaylist = obj.backupPlaylist;
+                }
+
+                User.init(() => { });
+
+                saveQueue();
+
+                resolve(obj);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    });
+}
 
 function queueTrack(user: any /* User */, trackId: string) {
     return new Promise(function (resolve, reject) {
@@ -422,7 +490,7 @@ function createMainPlaylist(name: string) {
                     playlist: mainPlaylist,
                 });
 
-                resolve();
+                resolve(data.body);
             }
         });
     });
@@ -915,6 +983,14 @@ function saveQueue() {
             console.log(err);
         }
     });
+
+    if (partyFile) {
+        fs.writeFile(partyFile, json, "utf8", function (err) {
+            if (err) {
+                console.log(err);
+            }
+        });
+    }
 }
 
 function getUserData(user: any, callback: (...args: any[]) => any) {

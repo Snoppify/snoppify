@@ -48,4 +48,16 @@ export default axios => ({
     get: function() {
         return axios.get("/get-queue");
     },
+    searchParties: function(query) {
+        return axios.get("/search-parties", {
+            params: {
+                query,
+            },
+        });
+    },
+    setParty: function(id) {
+        return axios.post("/set-party", {
+            id,
+        });
+    },
 });
