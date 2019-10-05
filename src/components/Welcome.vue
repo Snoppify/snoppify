@@ -17,18 +17,13 @@
 
         <div class="start-input">
           <div class="start-input__text">
-            <input v-model="hostIP" placeholder="Host IP">
+            <input v-model="hostIP" placeholder="Host IP" />
           </div>
         </div>
 
-        <button class="start-btn start-btn__join" @click="onJoinClick()">
-          Join
-        </button>
+        <button class="start-btn start-btn__join" @click="onJoinClick()">Join</button>
 
-        <router-link to="/host" tag="button"
-          class="start-btn start-btn__host ">
-          Host
-        </router-link>
+        <router-link to="/host" tag="button" class="start-btn start-btn__host">Host</router-link>
       </div>
     </div>
   </div>
@@ -38,6 +33,8 @@
 import getIP from "@/common/get-ip";
 import api from "@/api";
 import storage from "@/common/device-storage";
+
+import codeWords from "../common/code-words";
 
 export default {
   data: () => ({
@@ -51,9 +48,22 @@ export default {
   methods: {
     onHostClick() {},
     onJoinClick() {
-      this.showServerForm = true;
+      if (this.hostIP.match(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/)) {
+        api.init(this.hostIP);
+        this.$router.push({ name: "newUser" });
 
-      api.init(this.hostIP);
+        api.init(this.hostIP);
+      } else {
+        var ip = codeWords.getIP(this.hostIP);
+        if (!ip) {
+          console.error("Invalid IP or host code");
+          return;
+        }
+
+        api.init(ip);
+      }
+
+      this.showServerForm = true;
 
       this.$router.push({ name: "newUser" });
 
@@ -190,11 +200,11 @@ export default {
 .start-input {
   margin: 0.3em auto;
   width: 80%;
-  
+
   &__text {
     padding: 0 0.5em;
-    background: rgba(255,255,255,0.1);
-    
+    background: rgba(255, 255, 255, 0.1);
+
     input {
       width: 100%;
       padding: 0.5em 0;

@@ -6,6 +6,7 @@ import spotify from "../spotify";
 import spotifyPlaybackApi from "../spotify/spotify-playback-api";
 import refreshTokenTpl from "./refresh-token-template";
 import User from "../models/user";
+import codeWords from "../models/code-words";
 
 const router = express.Router();
 
@@ -77,6 +78,8 @@ export default function (passport) {
             var hostData = {
                 status: 'success',
                 id: id,
+                ip: ip.address(),
+                hostCode: codeWords.getCode(ip.address()),
                 name: "Snoppify " + id,
                 playlist: null,
             };
@@ -159,10 +162,11 @@ export default function (passport) {
             // TODO: should fetch old host data maybe
             var hostData = {
                 status: 'success',
+                ip: ip.address(),
+                hostCode: codeWords.getCode(ip.address()),
             };
             if (!req.user.host) {
                 req.user.host = {};
-            } else {
             }
             for (var key in hostData) {
                 req.user.host[key] = hostData[key];
