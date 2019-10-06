@@ -6,12 +6,12 @@
 	<form v-on:submit.prevent="createUser">
 		<input type="text" v-model="username">
 		<button>GO!</button>
-	</form> -->
+    </form>-->
     <h1>Sign in with</h1>
-    <form v-bind:action="authUrls.facebook" class="auth auth--facebook">
+    <form v-bind:action="baseURL + authUrls.facebook" class="auth auth--facebook">
       <input type="submit" value="Facebook" />
     </form>
-    <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+    <form v-bind:action="baseURL + authUrls.spotify" class="auth auth--spotify">
       <input type="submit" value="Spotify" />
     </form>
   </div>
@@ -19,15 +19,15 @@
 
 <script>
 import api from "../api";
-
-console.log(api);
+import storage from "@/common/device-storage";
 
 export default {
   data: () => ({
     username: "",
+    baseURL: "http://" + storage.get("serverIP") + ":3000",
     authUrls: {
-      facebook: api.axios.defaults.baseURL + "/auth/facebook",
-      spotify: api.axios.defaults.baseURL + "/auth/spotify",
+      facebook: "/auth/facebook",
+      spotify: "/auth/spotify",
     },
   }),
 
@@ -46,6 +46,10 @@ export default {
   created() {},
 
   computed: {},
+
+  mounted: function() {
+    this.baseURL = "http://" + storage.get("serverIP") + ":3000";
+  },
 };
 </script>
 
