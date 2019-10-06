@@ -20,7 +20,7 @@ const isAuthenticated = function (req, res, next) {
 };
 
 const redirectIfAuthenticated = function (req, res, next) {
-    if (req.isAuthenticated()) return res.redirect("/");
+    if (req.isAuthenticated()) return res.redirect("/party");
     next();
 };
 
@@ -116,7 +116,7 @@ export default function (passport) {
                     .then(function (playlist) {
                         console.log("started hosting!");
 
-                        spotify.controller.setParty(id, {
+                        spotify.controller.setParty(req.user.host, {
                             mainPlaylist: playlist,
                             backupPlaylist: null,
                         }).then(() => {
@@ -188,7 +188,7 @@ export default function (passport) {
                 console.log("authenticated host!");
 
                 if (req.user.host.id) {
-                    spotify.controller.setParty(req.user.host.id)
+                    spotify.controller.setParty(req.user.host)
                         .then(() => {
                             res.status(200).end();
                         }).catch(r => {
@@ -417,7 +417,7 @@ export default function (passport) {
         }
 
         spotify.controller
-            .setParty(party.id)
+            .setParty(party)
             .then(data => {
                 req.user.host.id = party.id;
                 req.user.host.name = party.name;
@@ -550,6 +550,7 @@ export default function (passport) {
 
     router.get("/info", (req, res) => {
         res.json({
+            party: spotify.controller.getCurrentParty(),
             queue: spotify.controller.getQueue(),
             currentTrack: spotify.controller.getCurrentTrack(),
             backupPlaylist: spotify.controller.getBackupPlaylist(),
@@ -600,7 +601,7 @@ export default function (passport) {
                     spotify.init(req);
 
                     if (req.user.host.id) {
-                        spotify.controller.setParty(req.user.host.id);
+                        spotify.controller.setParty(req.user.host);
                     }
                 }
             }
@@ -650,7 +651,7 @@ export default function (passport) {
             next();
         },
         passport.authenticate("facebook", {
-            successRedirect: "/",
+            successRedirect: "/party",
             failureRedirect: "/new-user",
         }),
     );
@@ -692,7 +693,7 @@ export default function (passport) {
         }),
         function (req, res, next) {
             req.session.host = null;
-            res.redirect("/");
+            res.redirect("/party");
             next();
         },
     );

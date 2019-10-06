@@ -3,7 +3,7 @@
     <div v-if="track">
       <div class="track_title">
         <div class="track_title_back-button">
-          <router-link to="/" tag="div">&lt;</router-link>
+          <router-link to="/party" tag="div">&lt;</router-link>
         </div>
 
         <h1 class="track_title_name">{{ track.name }}</h1>
@@ -12,18 +12,13 @@
       <div class="track-hr"></div>
 
       <div class="track_image">
-        <img v-if="track.album" :src="track.album.images[1].url" alt="" />
+        <img v-if="track.album" :src="track.album.images[1].url" alt />
       </div>
 
       <div class="track_info">
         <div class="track_snoppify">
           <div v-if="!track.snoppify">
-            <button
-              v-on:click="queueTrack(track)"
-              class="snopp-btn snopp-btn--light"
-            >
-              Queue track
-            </button>
+            <button v-on:click="queueTrack(track)" class="snopp-btn snopp-btn--light">Queue track</button>
           </div>
 
           <div v-if="track.snoppify">
@@ -40,10 +35,7 @@
                 }"
                 v-on:click="vote(track)"
               >
-                <div
-                  class="arrow-up"
-                  v-if="track.snoppify.votes.length > 0"
-                ></div>
+                <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
                 <div>{{ track.snoppify.votes.length }}</div>
               </span>
             </p>
@@ -53,9 +45,7 @@
               "
               v-on:click="dequeueTrack(track)"
               class="snopp-btn snopp-btn--light"
-            >
-              Dequeue track
-            </button>
+            >Dequeue track</button>
           </div>
 
           <hr />
@@ -68,7 +58,7 @@
         <p>
           <span v-for="(artist, index) in track.artists" :key="index">
             <span>{{ artist.name }}</span>
-            <span v-if="index + 1 < track.artists.length">, </span>
+            <span v-if="index + 1 < track.artists.length">,</span>
           </span>
         </p>
         <h3>Album</h3>
@@ -76,8 +66,8 @@
         <h3>Audio features</h3>
         <ul>
           <li v-for="(val, key) in track.audio_features" :key="key">
-            <i>{{ key }}</i
-            >: {{ val }}
+            <i>{{ key }}</i>
+            : {{ val }}
           </li>
         </ul>
       </div>

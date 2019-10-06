@@ -20,16 +20,18 @@ Vue.use(VueRouter);
  * Otherwise redirects to "/"
  */
 const nonauthGuard = (to, from, next) => {
+    console.log(store.getters["Session/username"]);
     if (api.initialized) {
-        api.auth
-            .auth()
-            .then(sessData => {
-                store.commit("Session/SET_SESSION", sessData);
-                next("/");
-            })
-            .catch(() => {
-                next();
-            });
+        next();
+        // api.auth
+        //     .auth()
+        //     .then(sessData => {
+        //         store.commit("Session/SET_SESSION", sessData);
+        //         next("/party");
+        //     })
+        //     .catch(() => {
+        //         next();
+        //     });
     } else {
         next();
     }
@@ -38,19 +40,18 @@ const nonauthGuard = (to, from, next) => {
 const authGuard = (to, from, next) => {
     if (store.getters["Session/username"]) {
         return next();
+    } else if (api.initialized) {
+        return api.auth
+            .auth()
+            .then(sessData => {
+                store.commit("Session/SET_SESSION", sessData);
+                return next();
+            })
+            .catch(() => {
+                return next("/");
+            });
     } else {
-        api.initialized &&
-            api.auth
-                .auth()
-                .then(sessData => {
-                    store.commit("Session/SET_SESSION", sessData);
-                    return next();
-                })
-                .catch(() => {
-                    return next("/welcome");
-                });
-
-        return next("/welcome");
+        return next("/");
     }
 };
 
@@ -74,13 +75,13 @@ const testauthGuard = (to, from, next) => {
 
 const routes = [
     {
-        path: "/welcome",
+        path: "/",
         name: "welcome",
         component: Welcome,
         beforeEnter: nonauthGuard,
     },
     {
-        path: "/",
+        path: "/party",
         name: "home",
         beforeEnter: authGuard,
         component: Home,

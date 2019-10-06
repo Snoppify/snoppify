@@ -37,7 +37,7 @@ export default {
         .newUser(this.username)
         .then(rep => {
           this.$store.commit("Session/SET_SESSION", rep);
-          this.$router.push("/");
+          this.$router.push("/party");
         })
         .catch(err => console.log(err));
     },

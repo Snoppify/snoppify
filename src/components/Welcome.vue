@@ -15,6 +15,17 @@
       <div v-else>
         <h1>Welcome to Snoppify!</h1>
 
+        <div class="party" v-if="party">
+          <p class="party__info">Ongoing party:</p>
+          <div class="party__body">
+            <div>
+              <p>{{party.name}}</p>
+              <p>({{party.hostCode}})</p>
+            </div>
+            <button class="party__button" v-if="user" @click="onJoinPartyClick()">Jump in</button>
+          </div>
+        </div>
+
         <div class="start-input">
           <div class="start-input__text">
             <input v-model="hostIP" placeholder="Host IP" />
@@ -38,6 +49,8 @@ import codeWords from "../common/code-words";
 
 export default {
   data: () => ({
+    party: null,
+    user: null,
     showServerForm: false,
     isScanning: false,
     timeSpentScanning: 0,
@@ -47,6 +60,9 @@ export default {
 
   methods: {
     onHostClick() {},
+    onJoinPartyClick() {
+      this.$router.push({ name: "home" });
+    },
     onJoinClick() {
       if (this.hostIP.match(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/)) {
         api.init(this.hostIP);
@@ -153,6 +169,16 @@ export default {
       });
     },
   },
+
+  mounted: function() {
+    api.auth.auth().then(sessData => {
+      this.user = sessData;
+    });
+
+    api.misc.info().then(data => {
+      this.party = data.party;
+    });
+  },
 };
 </script>
 
@@ -170,9 +196,39 @@ export default {
 }
 
 .logo {
-  width: 50%;
+  width: 30%;
   display: block;
-  margin: 3em auto;
+  margin: 1em auto 2em auto;
+}
+
+.party {
+  text-align: left;
+  border: 1px solid aliceblue;
+  border-radius: 0.4em;
+  padding: 0.4em 0.8em;
+  color: aliceblue;
+  margin: 20px 0;
+
+  &__info {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    color: #aaa;
+  }
+
+  &__body {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__button {
+    background: none;
+    border: 1px solid aliceblue;
+    color: aliceblue;
+  }
+
+  p {
+    margin: 0.5em 0;
+  }
 }
 
 .start-btn {

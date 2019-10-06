@@ -398,12 +398,6 @@ export default {
   background: $background;
 }
 
-.logo {
-  width: 50%;
-  display: block;
-  margin: 3em auto;
-}
-
 .start-btn {
   border: none;
   border-radius: 4px;

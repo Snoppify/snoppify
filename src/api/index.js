@@ -17,12 +17,17 @@ const api = {
     init,
 };
 
-let serverIP = window.location.hostname; //storage.get("serverIP");
+let serverIP = storage.get("serverIP");
 api.ip = serverIP;
 
 api.init(serverIP);
 
 function init(serverIP) {
+    if (!serverIP) {
+        console.error("No server ip set");
+        return;
+    }
+
     storage.set("serverIP", serverIP);
 
     const _axios = axios.create({

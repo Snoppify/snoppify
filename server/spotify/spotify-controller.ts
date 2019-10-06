@@ -35,6 +35,7 @@ const maxQueueSize = 5;
 let playlist: any = null;
 let queueFile = "";
 let partyFile = null;
+let currentParty = null;
 
 (function () {
     mkdirp.sync("data");
@@ -182,13 +183,14 @@ export default {
     updateMainPlaylist,
     createMainPlaylist,
     setParty,
+    getCurrentParty,
 };
 
 //////////////////
 
-function setParty(id: string, opts?: any) {
+function setParty(party: any, opts?: any) {
     return new Promise((resolve, reject) => {
-        var filename = "data/snoppify-party-" + id + ".json";
+        var filename = "data/snoppify-party-" + party.id + ".json";
 
         // load saved party
         fs.readFile(filename, "utf8", function readFileCallback(err, data) {
@@ -199,8 +201,9 @@ function setParty(id: string, opts?: any) {
                     return;
                 }
 
-                console.log("saving new party", id);
+                console.log("saving new party " + party.name + " (" + party.id + ")");
 
+                currentParty = party;
                 partyFile = filename;
                 mainPlaylist = opts.mainPlaylist;
                 backupPlaylist = opts.backupPlaylist || null;
@@ -208,7 +211,7 @@ function setParty(id: string, opts?: any) {
                 saveQueue();
 
                 resolve({
-                    id: id,
+                    id: party.id,
                     queue: [],
                     mainPlaylist: mainPlaylist,
                     backupPlaylist: backupPlaylist,
@@ -217,8 +220,9 @@ function setParty(id: string, opts?: any) {
             }
             // file exist
             try {
-                console.log("set party", id);
+                console.log("set party " + party.name + " (" + party.id + ")");
 
+                currentParty = party;
                 partyFile = filename;
 
                 let obj = JSON.parse(data);
@@ -250,6 +254,10 @@ function setParty(id: string, opts?: any) {
             }
         });
     });
+}
+
+function getCurrentParty() {
+    return currentParty;
 }
 
 function queueTrack(user: any /* User */, trackId: string) {
