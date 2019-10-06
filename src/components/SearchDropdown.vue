@@ -1,6 +1,6 @@
 <template>
   <div id="search-dropdown" v-on:click="!show && focusSearch()">
-    <form v-on:submit.prevent="" class="search-input">
+    <form v-on:submit.prevent class="search-input">
       <input
         v-on:input="search"
         v-on:focus="search"
@@ -9,15 +9,17 @@
         v-model="searchTerm"
         v-bind:class="{ active: show }"
       />
+      <button
+        class="search-input__close"
+        type="button"
+        v-if="show"
+        v-on:click.stop.prevent="blurSearch"
+      >&times;</button>
       <!-- <button type="submit">Search</button> -->
     </form>
 
     <transition name="search-backdrop">
-      <div
-        v-if="show"
-        class="search-backdrop"
-        v-on:click.stop.prevent="blurSearch"
-      ></div>
+      <div v-if="show" class="search-backdrop" v-on:click.stop.prevent="blurSearch"></div>
     </transition>
 
     <div class="search-results" v-if="show">
@@ -25,10 +27,7 @@
         <div v-if="!result" class="search-results__info">
           <p>Search by text or paste a spotify link</p>
         </div>
-        <div
-          v-if="result && result.tracks.items.length == 0"
-          class="search-results__info"
-        >
+        <div v-if="result && result.tracks.items.length == 0" class="search-results__info">
           <p>Nothing here :(</p>
         </div>
         <ul v-if="result && result.tracks.items.length > 0" class="search-list">
@@ -38,11 +37,7 @@
         </ul>
       </div>
       <div v-show="loading" class="search-results__info">
-        <img
-          src="@/assets/spinner.svg"
-          alt="LOADING SPINER"
-          class="search-results__spinner"
-        />
+        <img src="@/assets/spinner.svg" alt="LOADING SPINER" class="search-results__spinner" />
       </div>
     </div>
   </div>
@@ -130,6 +125,7 @@ export default {
 
 .search-input {
   display: flex;
+  align-items: center;
   padding: 0.2em 20px 0.4em;
 
   input {
@@ -159,6 +155,20 @@ export default {
         color: #666;
       }
     }
+  }
+
+  &__close {
+    font-size: 1.5em;
+    width: 1.2em;
+    height: 1.2em;
+    padding: 0;
+
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    border-radius: 999px;
+
+    margin-left: 0.5rem;
   }
 }
 
