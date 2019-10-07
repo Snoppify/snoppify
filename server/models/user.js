@@ -12,10 +12,28 @@ export default class User {
             id: "id",
             queue: data.queue,
         });
+        this.votes = Object.assign({
+            received: {},
+            given: {},
+            receivedTotal: 0,
+            givenTotal: 0,
+        }, data.votes);
+        this.friends = data.friends || [];
     }
 
     save(callback) {
         return User.save(this, callback);
+    }
+
+    clear() {
+        this.queue.clear();
+        this.votes = {
+            received: {},
+            given: {},
+            receivedTotal: 0,
+            givenTotal: 0,
+        };
+        this.friends = [];
     }
 
     ////////////

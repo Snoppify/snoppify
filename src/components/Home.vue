@@ -1,9 +1,7 @@
 <template>
   <div id="home" class="route-container">
     <header>
-      <div class="title">
-        — Snoppify —
-      </div>
+      <div class="title">— Snoppify —</div>
       <search-dropdown :options="{ search: 'Search term' }"></search-dropdown>
     </header>
 
@@ -11,19 +9,13 @@
     <h1 v-else>Paused</h1>
 
     <div class="current-track" v-if="currentTrack">
-      <img
-        v-if="currentTrack.album"
-        :src="currentTrack.album.images[1].url"
-        alt=""
-      />
+      <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt />
       <div class="current-track__track-info">
-        <div class="title">
-          {{ currentTrack.name }}
-        </div>
+        <div class="title">{{ currentTrack.name }}</div>
         <div class="artist">
           <span v-for="(artist, index) in currentTrack.artists" :key="index">
             <span>{{ artist.name }}</span>
-            <span v-if="index + 1 < currentTrack.artists.length">, </span>
+            <span v-if="index + 1 < currentTrack.artists.length">,</span>
           </span>
         </div>
       </div>
@@ -38,9 +30,7 @@
         <div class="user">
           <div class="title">Added by</div>
           <div class="name">{{ currentTrack.snoppify.issuer.displayName }}</div>
-          <div class="upvotes">
-            {{ currentTrack.snoppify.votes.length }} upvotes
-          </div>
+          <div class="upvotes">{{ currentTrack.snoppify.votes.length }} upvotes</div>
         </div>
       </div>
     </div>
@@ -64,6 +54,14 @@
         <track-item :track="track" :index="index + 1"></track-item>
       </li>
     </transition-group>
+
+    <h1>Friends</h1>
+    <div v-if="user.friends.length == 0">
+      <p>No friends :(</p>
+    </div>
+    <div v-else>
+      <p v-for="friend in user.friends" v-bind:key="friend.username">{{friend.displayName}}</p>
+    </div>
 
     <p>
       Logged in as
@@ -89,9 +87,7 @@
       v-bind:key="sound"
       v-on:click="playSound(sound)"
       class="snopp-btn"
-    >
-      Play '{{ sound }}'
-    </button>
+    >Play '{{ sound }}'</button>
 
     <div v-if="user.admin">
       <button v-on:click="play">Play</button>
@@ -111,10 +107,11 @@
       <p>
         Backup playlist:
         <span v-if="backupPlaylist">
-          <b>{{ backupPlaylist.name }}</b> ({{
-            backupPlaylist.owner.display_name
-          }})</span
-        >
+          <b>{{ backupPlaylist.name }}</b>
+          ({{
+          backupPlaylist.owner.display_name
+          }})
+        </span>
         <span v-else>(not set)</span>
       </p>
     </div>

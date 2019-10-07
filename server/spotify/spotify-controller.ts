@@ -414,6 +414,9 @@ function vote(user: any, trackId: any) {
 
         track.snoppify.votes.push(user);
 
+        // update friendships
+        updateFriendship(track, user, 1);
+
         rebuildQueueOrder();
 
         saveQueue();
@@ -454,6 +457,9 @@ function unvote(user: any, trackId: any) {
             track.snoppify.votes.splice(i, 1);
         }
 
+        // update friendships
+        updateFriendship(track, user, -1);
+
         rebuildQueueOrder();
 
         saveQueue();
@@ -473,6 +479,65 @@ function unvote(user: any, trackId: any) {
         });
 
         resolve();
+    });
+}
+
+function updateFriendship(track, voterId, vote) {
+    var issuerId = track.snoppify.issuer.id;
+
+    // get voter
+    User.find(voterId, (err, uVoter) => {
+        if (err) return;
+
+        if (!uVoter.votes.given[issuerId]) {
+            uVoter.votes.given[issuerId] = 0;
+        }
+        uVoter.votes.given[issuerId] += vote;
+        uVoter.votes.givenTotal += vote;
+
+        // get issuer
+        User.find(issuerId, (err, uIssuer) => {
+            if (err) return;
+
+            if (!uIssuer.votes.received[voterId]) {
+                uIssuer.votes.received[voterId] = 0;
+            }
+            uIssuer.votes.received[voterId] += vote;
+            uIssuer.votes.receivedTotal += vote;
+
+            sendEvent("friend.vote", {
+                user: uIssuer,
+                voter: uVoter,
+                votes: uIssuer.votes.received[voterId],
+                vote,
+            });
+
+            var areFriends = !!uIssuer.friends.find(u => {
+                return u.username == uVoter.username;
+            });
+
+            if (uIssuer.votes.received[voterId] >= 2 && !areFriends) {
+                // new friends!
+                uIssuer.friends.push({
+                    username: uVoter.username,
+                    displayName: uVoter.displayName,
+                });
+                uVoter.friends.push({
+                    username: uIssuer.username,
+                    displayName: uIssuer.displayName,
+                });
+
+                sendEvent("friend.new", {
+                    user: uIssuer,
+                    voter: uVoter,
+                    votes: uIssuer.votes.received[voterId],
+                });
+            }
+
+            User.save(uVoter, () => { });
+
+            User.save(uIssuer, () => { });
+        });
     });
 }
 
@@ -739,7 +804,7 @@ function emptyQueue() {
 
         for (let user in User.users) {
             let u = User.users[user];
-            u.queue.clear();
+            u.clear();
         }
 
         saveQueue();
