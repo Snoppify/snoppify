@@ -46,7 +46,7 @@
           />
         </p>
         <p>IP: {{user.host.ip}}</p>
-        <p>Code: {{user.host.hostCode}}</p>
+        <p>SnoppiCode: {{user.host.hostCode}}</p>
         <p>Hoster: {{user.username}}</p>
 
         <hr />

@@ -28,7 +28,7 @@
 
         <div class="start-input">
           <div class="start-input__text">
-            <input v-model="hostIP" placeholder="Host IP" />
+            <input v-model="hostIP" placeholder="Host IP or SnoppiCode" />
           </div>
         </div>
 
