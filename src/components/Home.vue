@@ -89,6 +89,26 @@
       class="snopp-btn"
     >Play '{{ sound }}'</button>
 
+    <hr />
+
+    <div>
+      <button class="snopp-btn" @click="showShareModal = true; generateQR()">Share party!</button>
+      <modal v-if="showShareModal" @close="showShareModal = false">
+        <!--
+      you can use custom content here to overwrite
+      default content
+        -->
+        <div slot="body">
+          <h1>SnoppiCode</h1>
+          <p class="share-snoppi-code">{{snoppiCode}}</p>
+          <h1>QR code</h1>
+          <div class="share-qr-code">
+            <canvas ref="qrCanvas"></canvas>
+          </div>
+        </div>
+      </modal>
+    </div>
+
     <div v-if="user.admin">
       <button v-on:click="play">Play</button>
       <button v-on:click="pause">Pause</button>
@@ -121,6 +141,8 @@
 <script>
 import { mapGetters } from "vuex";
 import api from "../api";
+import codeWords from "../common/code-words";
+import * as QRCode from "qrcode";
 
 // components
 import SearchDropdown from "./SearchDropdown";
@@ -134,6 +156,8 @@ export default {
   data() {
     return {
       searchQuery: "",
+      showShareModal: false,
+      snoppiCode: codeWords.getCode(location.hostname),
     };
   },
 
@@ -185,6 +209,18 @@ export default {
 
     playSound(sound) {
       api.misc.playSound(sound);
+    },
+
+    generateQR() {
+      setTimeout(() => {
+        QRCode.toCanvas(
+          this.$refs.qrCanvas,
+          `http://${location.hostname}:3000/new-user`,
+          function(error) {
+            if (error) console.error(error);
+          },
+        );
+      });
     },
   },
 };
@@ -335,6 +371,24 @@ $current-track__border-radius: 4px;
 
     max-width: $progress_width;
     margin: 3px auto;
+  }
+}
+
+.share-snoppi-code {
+  font-size: 1.5em;
+  background: #282828;
+  color: #a9a9a9;
+  font-family: monospace;
+  padding: 0.5em 0.8em;
+  text-align: center;
+}
+
+.share-qr-code {
+  ::v-deep canvas {
+    height: 148px;
+    width: 148px;
+    margin: auto;
+    display: block;
   }
 }
 </style>

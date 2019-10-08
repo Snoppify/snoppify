@@ -1,16 +1,17 @@
 // import 'vueify/lib/insert-css';
 import Vue from "vue";
-// import Vuex from 'vuex'
+
+import api from "./api";
 import App from "./App";
 import router from "./router";
 import socket from "./socket";
 import { store } from "./store";
-import api from "./api";
-import storage from "./common/device-storage";
 
-// global components
 import TrackItem from "./components/TrackItem";
+import Modal from "./common/Modal";
 
+// import Vuex from 'vuex'
+// global components
 // Remove the ugly Facebook appended hash
 // <https://github.com/jaredhanson/passport-facebook/issues/12>
 if (window.location.hash && window.location.hash === "#_=_") {
@@ -62,6 +63,7 @@ new Vue({
 });
 
 Vue.component("track-item", TrackItem);
+Vue.component("modal", Modal);
 
 // TODO: Move to after the server has been found
 socket.init(api.ip);
