@@ -1,6 +1,6 @@
 <template>
   <div id="welcome" class="route-container">
-    <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo" />
+    <img src="@/assets/snoppify_logo.png" alt="Snoppify logo" class="logo" />
 
     <div class="container">
       <div v-if="showServerForm && !foundHost">
