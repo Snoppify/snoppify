@@ -17,12 +17,16 @@ const api = {
     init,
 };
 
-let serverIP = storage.get("serverIP");
-api.ip = serverIP;
+let serverIP =
+    storage.get("serverIP") ||
+    // don't do this on snoppify.com
+    (!location.hostname.includes("snoppify.com") && location.hostname);
 
 api.init(serverIP);
 
 function init(serverIP) {
+    api.ip = serverIP;
+
     if (!serverIP) {
         console.error("No server ip set");
         return;

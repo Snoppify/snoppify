@@ -1,12 +1,12 @@
 import express from "express";
 import ip from "ip";
 
+import codeWords from "../models/code-words";
+import User from "../models/user";
 import socket from "../socket";
 import spotify from "../spotify";
 import spotifyPlaybackApi from "../spotify/spotify-playback-api";
 import refreshTokenTpl from "./refresh-token-template";
-import User from "../models/user";
-import codeWords from "../models/code-words";
 
 const router = express.Router();
 
@@ -639,22 +639,19 @@ export default function (passport) {
     );
 
     // handle the callback after facebook has authenticated the user
-    router.get(
-        "/auth/facebook/callback",
-        function (req, res, next) {
-            console.log(
-                "well here we got facebook auth callback:",
-                req.method,
-                req.params,
-                req.query,
-            );
-            next();
-        },
-        passport.authenticate("facebook", {
+    router.get("/auth/facebook/callback", function (req, res, next) {
+        console.log(
+            "well here we got facebook auth callback:",
+            req.method,
+            req.params,
+            req.query,
+        );
+        // next();
+        return passport.authenticate("facebook", {
             successRedirect: "/party",
             failureRedirect: "/new-user",
-        }),
-    );
+        })(req, res, next);
+    });
 
     // route for spotify authentication and login
     // different scopes while logging in
