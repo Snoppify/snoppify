@@ -56,11 +56,17 @@
     </transition-group>
 
     <h1>Friends</h1>
-    <div v-if="user.friends.length == 0">
-      <p>No friends :(</p>
-    </div>
-    <div v-else>
-      <p v-for="friend in user.friends" v-bind:key="friend.username">{{friend.displayName}}</p>
+
+    <div class="friends-container">
+      <button
+        :disabled="user.friends.length == 0"
+        v-on:click="showFriends()"
+        class="friends-button"
+      >
+        Show your {{user.friends.length}}
+        <span v-if="user.friends.length == 1">friend</span>
+        <span v-else>friends</span>
+      </button>
     </div>
 
     <p>
@@ -220,6 +226,34 @@ export default {
             if (error) console.error(error);
           },
         );
+      });
+    },
+
+    showFriends() {
+      this.$store.dispatch("Messages/popup", {
+        type: "deepsea",
+        html:
+          "<h2>Your friends:</h2>" +
+          (this.user.friends.length == 0 ? "<p>No friends yet :(</p>" : "") +
+          this.user.friends
+            .map(f => {
+              var html = f.displayName;
+              var given = this.user.votes.given[f.username]
+                ? this.user.votes.given[f.username]
+                : 0;
+              var received = this.user.votes.received[f.username]
+                ? this.user.votes.received[f.username]
+                : 0;
+              if (given > received) {
+                html += " (you upvoted " + given + " times)";
+              } else if (received > given) {
+                html += " (upvoted you " + received + " times)";
+              } else {
+                html += " (" + received + " upvotes)";
+              }
+              return "<p>" + html + "</p>";
+            })
+            .join(""),
       });
     },
   },
@@ -389,6 +423,28 @@ $current-track__border-radius: 4px;
     width: 148px;
     margin: auto;
     display: block;
+  }
+}
+
+.friends-container {
+  width: 100%;
+  text-align: center;
+}
+
+.friends-button {
+  background: linear-gradient(to right, transparent, #1f9eb3),
+    linear-gradient(to right, rgba(183, 63, 175, 0.3), rgba(57, 15, 84, 0.75)),
+    linear-gradient(to top right, #701cbd, transparent),
+    radial-gradient(closest-corner at 20% 80%, #51983f, #263238);
+  color: white;
+  margin: 1em auto;
+  font-size: 1.4em;
+  padding: 0.6em 1em;
+
+  &:disabled {
+    background: none;
+    border: 1px solid white;
+    opacity: 0.2;
   }
 }
 </style>

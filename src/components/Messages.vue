@@ -16,11 +16,7 @@
 
     <!-- popups -->
     <transition name="popups-backdrop">
-      <div
-        v-if="popups.length > 0"
-        class="popups-backdrop"
-        v-on:click="dismissPopup()"
-      ></div>
+      <div v-if="popups.length > 0" class="popups-backdrop" v-on:click="dismissPopup()"></div>
     </transition>
     <transition-group name="popups-body" tag="div" class="messages-container">
       <div
@@ -31,7 +27,7 @@
         v-on:click="dismissPopup()"
       >
         <span v-if="popup.message">{{ popup.message }}</span>
-        <span v-if="popup.html" v-html="popup.html"></span>
+        <div class="popups-body__html" v-if="popup.html" v-html="popup.html"></div>
       </div>
     </transition-group>
   </div>
@@ -173,6 +169,8 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
   pointer-events: all;
   border-radius: 4px;
   min-height: 100px;
+  max-height: 80%;
+  overflow-y: auto;
   width: 80%;
   max-width: 300px;
   padding: 1em;
@@ -183,6 +181,10 @@ $smooth-transition: cubic-bezier(0.195, 0.945, 0.485, 1);
   align-items: center;
   justify-content: center;
   text-align: center;
+
+  &__html {
+    align-self: stretch;
+  }
 }
 
 .popups-backdrop-enter-active,

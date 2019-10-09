@@ -516,7 +516,7 @@ function updateFriendship(track, voterId, vote) {
                 return u.username == uVoter.username;
             });
 
-            if (uIssuer.votes.received[voterId] >= 2 && !areFriends) {
+            if (uIssuer.votes.received[voterId] >= 3 && !areFriends) {
                 // new friends!
                 uIssuer.friends.push({
                     username: uVoter.username,
