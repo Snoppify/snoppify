@@ -1,6 +1,6 @@
 <template>
   <div id="new-user" class="route-container">
-    <img src="@/assets/snopp-logo.png" alt="Snoppify logo" class="logo" />
+    <img src="@/assets/snoppify_logo.png" alt="Snoppify logo" class="logo" />
     <!-- <h1>SNOPPIFY</h1> -->
     <!-- <p>sign up, BIIGGHHHCC</p>
 	<form v-on:submit.prevent="createUser">

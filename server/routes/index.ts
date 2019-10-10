@@ -149,7 +149,8 @@ export default function (passport) {
 
         } else {
             // return an auth url
-            res.redirect(spotify.playbackAPI.getAuthUrl(req.user.username));
+            var url = spotify.playbackAPI.getAuthUrl(getPassportState(req) + '/create-spotify-host', "https://snoppify.com/auth/spotify/host");
+            res.redirect(url);
         }
     });
 
@@ -216,8 +217,7 @@ export default function (passport) {
             });
 
         } else {
-            // return an auth url
-            var url = spotify.playbackAPI.getAuthUrl(req.user.username, "http://localhost:3000/authenticate-spotify-host");
+            var url = spotify.playbackAPI.getAuthUrl(getPassportState(req) + '/authenticate-spotify-host', "https://snoppify.com/auth/spotify/host");
             res.redirect(url);
         }
     });
@@ -728,7 +728,7 @@ export default function (passport) {
             req.user.host.status = 'pending';
 
             User.save(req.user, (err, data) => {
-                res.redirect('/authenticate-spotify-host');
+                res.redirect('http://' + getPassportState(req) + '/authenticate-spotify-host');
             });
         }
     );

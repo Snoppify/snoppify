@@ -8,13 +8,13 @@
       </p>
 
       <div v-if="!user.host">
-        <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+        <form v-bind:action="baseURL + authUrls.spotify" class="auth auth--spotify">
           <input type="submit" value="Host a party" />
         </form>
 
         <p class="login">
           or
-          <a v-bind:href="authUrls.spotifyLogin">log in</a>
+          <a v-bind:href="baseURL + authUrls.spotifyLogin">log in</a>
         </p>
       </div>
 
@@ -25,7 +25,7 @@
         </p>
 
         <div v-if="!user.host.id">
-          <form v-bind:action="authUrls.spotify" class="auth auth--spotify">
+          <form v-bind:action="baseURL + authUrls.spotify" class="auth auth--spotify">
             <input type="submit" value="Host a party" />
           </form>
         </div>
@@ -218,6 +218,7 @@
 import { mapGetters } from "vuex";
 import api from "../api";
 import debounce from "../common/debounce";
+import storage from "@/common/device-storage";
 
 export default {
   data() {
@@ -231,10 +232,11 @@ export default {
       partySearchTerm: null,
       device: null,
       devices: null,
+      baseURL: "http://" + storage.get("serverIP") + ":3000",
       authUrls: {
-        facebook: api.axios.defaults.baseURL + "/auth/facebook",
-        spotify: api.axios.defaults.baseURL + "/auth/spotify-host",
-        spotifyLogin: api.axios.defaults.baseURL + "/auth/spotify-host-login",
+        facebook: "/auth/facebook",
+        spotify: "/auth/spotify-host",
+        spotifyLogin: "/auth/spotify-host-login",
       },
     };
   },
@@ -370,6 +372,10 @@ export default {
           console.log(r);
         });
     },
+  },
+
+  mounted: function() {
+    this.baseURL = "http://" + storage.get("serverIP") + ":3000";
   },
 };
 </script>

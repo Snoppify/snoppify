@@ -16,13 +16,15 @@
         <h1>Welcome to Snoppify!</h1>
 
         <div class="party" v-if="party">
-          <p class="party__info">Ongoing party:</p>
-          <div class="party__body">
-            <div>
-              <p>{{party.name}}</p>
-              <p>({{party.hostCode}})</p>
+          <div class="party__container">
+            <p class="party__info">Ongoing party:</p>
+            <div class="party__body">
+              <div>
+                <p>{{party.name}}</p>
+                <p>({{party.hostCode}})</p>
+              </div>
+              <button class="party__button" v-if="user" @click="onJoinPartyClick()">Jump in</button>
             </div>
-            <button class="party__button" v-if="user" @click="onJoinPartyClick()">Jump in</button>
           </div>
         </div>
 
@@ -34,7 +36,26 @@
 
         <button class="start-btn start-btn__join" @click="onJoinClick()">Join</button>
 
-        <router-link to="/host" tag="button" class="start-btn start-btn__host">Host</router-link>
+        <hr class="welcome-break" />
+
+        <h1>Snoppify your party</h1>
+        <p
+          class="welcome-text"
+        >Snoppify is a party app that connects all members of your party to your Spotify player. It is a live playlist with a democratic voting system.</p>
+
+        <h1>How does it work?</h1>
+        <p class="welcome-text">1) Connect to the local WiFi</p>
+        <p class="welcome-text">2) Enter the party code or scan the QR-code</p>
+        <p class="welcome-text">3) Authenticate with Facebook or Spotify</p>
+        <p class="welcome-text">4) Queue tracks and vote for the next song</p>
+
+        <h1>I want to host a party!</h1>
+        <p class="welcome-text">
+          Get the code from our
+          <a href="https://github.com/mold/snoppify">GitHub</a>.
+        </p>
+
+        <!-- <router-link to="/host" tag="button" class="start-btn start-btn__host">Host</router-link> -->
       </div>
     </div>
   </div>
@@ -202,12 +223,16 @@ export default {
 }
 
 .party {
-  text-align: left;
+  width: 80%;
+  margin: 1rem auto;
   border: 1px solid aliceblue;
   border-radius: 0.4em;
-  padding: 0.4em 0.8em;
-  color: aliceblue;
-  margin: 20px 0;
+
+  &__container {
+    padding: 0.4em 0.8em;
+    color: aliceblue;
+    text-align: left;
+  }
 
   &__info {
     font-size: 0.7em;
@@ -232,6 +257,7 @@ export default {
 }
 
 .start-btn {
+  display: block;
   border: none;
   border-radius: 4px;
   padding: 1em 1.4em;
@@ -239,7 +265,7 @@ export default {
   font-weight: bold;
   cursor: pointer;
   width: 80%;
-  margin-bottom: 1em;
+  margin: 1rem auto;
 
   &__join {
     background: #1db954;
@@ -270,5 +296,17 @@ export default {
       color: white;
     }
   }
+}
+
+.welcome-break {
+  margin: 5rem auto;
+}
+
+.welcome-text {
+  font-size: 1em;
+  line-height: 1.9em;
+  color: orchid;
+  width: 90%;
+  margin: 0 auto;
 }
 </style>
