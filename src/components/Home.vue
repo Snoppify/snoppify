@@ -115,8 +115,11 @@
 
     <hr />
 
-    <button
-      v-for="sound in [
+    <h1>Make some noise</h1>
+
+    <div class="soundboard">
+      <button
+        v-for="sound in [
         'honk',
         'applause',
         'orgasm',
@@ -134,10 +137,11 @@
         'yoshi2',
         'yoshi3',
       ]"
-      v-bind:key="sound"
-      v-on:click="playSound(sound)"
-      class="snopp-btn"
-    >Play '{{ sound }}'</button>
+        v-bind:key="sound"
+        v-on:click="playSound(sound)"
+        class="soundboard__btn snopp-btn"
+      >{{ sound }}</button>
+    </div>
 
     <div v-if="user.admin">
       <hr />
@@ -491,6 +495,21 @@ $current-track__border-radius: 4px;
     background: none;
     border: 1px solid white;
     opacity: 0.2;
+  }
+}
+
+.soundboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  &__btn {
+    width: 120px;
+    height: 120px;
+    margin: 10px;
+    background: $background;
+    border: 2px solid $darkgray;
+    border-radius: 4px;
   }
 }
 </style>
