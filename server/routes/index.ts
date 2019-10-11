@@ -756,7 +756,9 @@ export default function (passport) {
 
         const wifi = spotify.controller.getCurrentParty().wifi;
         if (!wifi) {
-            return res.status(500).json({ error: "No wifi in the party object" });
+            //return res.status(500).json({ error: "No wifi in the party object" });
+            res.send(null);
+            return;
         }
 
         res.send(`WIFI:S:${wifi.ssid};T:${wifi.encryption};P:${wifi.password};;`);

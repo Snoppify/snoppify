@@ -701,11 +701,9 @@ function playNextTrack() {
                     });
                 }
 
-                if (!states.data.isPlaying) {
-                    sendEvent("waitingForNextSong", {
-                        track: track,
-                    });
-                }
+                sendEvent("waitingForNextSong", {
+                    track: track,
+                });
 
                 if (track) {
                     socket.io.local.emit("queue", {
