@@ -1,4 +1,3 @@
-import Vue from "vue";
 import api from "../api";
 
 export default {
@@ -7,11 +6,13 @@ export default {
     state: {
         user: {},
         username: "",
+        wifiQR: "",
     },
 
     getters: {
         user: state => state.user,
         username: state => state.username,
+        wifiQR: state => state.wifiQR,
     },
 
     mutations: {
@@ -53,8 +54,7 @@ export default {
 
                         this.dispatch("Messages/popup", {
                             type: "deepsea",
-                            html:
-                                "<p>New friend!</p>" +
+                            html: "<p>New friend!</p>" +
                                 "<p><b>" + uVoter.displayName + "</b> liked more than 3 of your tracks.</p>" +
                                 "<p>You should be friends!</p>",
                             //duration: 10,
@@ -66,8 +66,7 @@ export default {
 
                         this.dispatch("Messages/popup", {
                             type: "deepsea",
-                            html:
-                                "<p>New friend!</p>" +
+                            html: "<p>New friend!</p>" +
                                 "<p>You liked more than 3 tracks queued by <b>" + uIssuer.displayName + "</b>.</p>" +
                                 "<p>You should be friends!</p>",
                             //duration: 10,
@@ -76,10 +75,15 @@ export default {
                     break;
             }
         },
+        SET_WIFI_QR(state, qr) {
+            state.wifiQR = qr;
+        }
     },
 
     actions: {
-        CREATE_SESSION({ commit }, username) {
+        CREATE_SESSION({
+            commit
+        }, username) {
             return api.auth.newUser(username).then(
                 resp => {
                     commit("SET_SESSION", {
@@ -100,6 +104,11 @@ export default {
                     console.log(err);
                 },
             );
+        },
+        GET_WIFI_QR({
+            commit
+        }) {
+            return api.axios.get("/wifi").then(s => commit("SET_WIFI_QR", s));
         },
     },
 };

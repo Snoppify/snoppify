@@ -26,6 +26,7 @@ export default {
         this.$store.commit("Queue/SET_QUEUE", res.queue);
         this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
         this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);
+        this.$store.dispatch("Session/GET_WIFI_QR");
       });
   },
 

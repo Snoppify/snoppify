@@ -69,6 +69,41 @@
       </button>
     </div>
 
+    <hr />
+
+    <div>
+      <h1>Share the party!</h1>
+      <p>
+        <button
+          style="margin:auto; "
+          class="snopp-btn"
+          @click="showShareModal = true; generateShareQR(); generateWifiQR();"
+        >Share party!</button>
+      </p>
+      <modal v-if="showShareModal" @close="showShareModal = false">
+        <!--
+      you can use custom content here to overwrite
+      default content
+        -->
+        <div slot="body">
+          <h1>SnoppiCode</h1>
+          <p class="share-snoppi-code">{{snoppiCode}}</p>
+          <h1>Join the party!</h1>
+          <div class="share-qr-code">
+            <canvas ref="qrCanvas"></canvas>
+          </div>
+          <div v-if="wifiQR">
+            <h1>Connect to wi-fi</h1>
+            <div class="share-qr-code">
+              <canvas ref="wifiQRCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </modal>
+    </div>
+
+    <hr />
+
     <p>
       Logged in as
       <b>{{ user.displayName }}</b>
@@ -77,6 +112,8 @@
     <form action="/logout">
       <input type="submit" value="Logout" class="snopp-btn" />
     </form>
+
+    <hr />
 
     <button
       v-for="sound in [
@@ -102,27 +139,8 @@
       class="snopp-btn"
     >Play '{{ sound }}'</button>
 
-    <hr />
-
-    <div>
-      <button class="snopp-btn" @click="showShareModal = true; generateQR()">Share party!</button>
-      <modal v-if="showShareModal" @close="showShareModal = false">
-        <!--
-      you can use custom content here to overwrite
-      default content
-        -->
-        <div slot="body">
-          <h1>SnoppiCode</h1>
-          <p class="share-snoppi-code">{{snoppiCode}}</p>
-          <h1>QR code</h1>
-          <div class="share-qr-code">
-            <canvas ref="qrCanvas"></canvas>
-          </div>
-        </div>
-      </modal>
-    </div>
-
     <div v-if="user.admin">
+      <hr />
       <button v-on:click="play">Play</button>
       <button v-on:click="pause">Pause</button>
       <button v-on:click="playNext">Next track</button>
@@ -185,6 +203,7 @@ export default {
       queue: "Queue/queue",
       currentTrack: "Queue/currentTrack",
       backupPlaylist: "Queue/backupPlaylist",
+      wifiQR: "Session/wifiQR",
     }),
   },
 
@@ -224,7 +243,7 @@ export default {
       api.misc.playSound(sound);
     },
 
-    generateQR() {
+    generateShareQR() {
       setTimeout(() => {
         QRCode.toCanvas(
           this.$refs.qrCanvas,
@@ -233,6 +252,20 @@ export default {
             if (error) console.error(error);
           },
         );
+      });
+    },
+
+    generateWifiQR() {
+      if (!this.wifiQR) {
+        return;
+      }
+
+      setTimeout(() => {
+        QRCode.toCanvas(this.$refs.wifiQRCanvas, this.wifiQR, err => {
+          if (err) {
+            console.error(err);
+          }
+        });
       });
     },
 
@@ -269,6 +302,12 @@ export default {
 
 <style lang="scss" scoped>
 @import "../assets/variables.scss";
+
+hr {
+  margin-left: 20px;
+  margin-right: 20px;
+  border: 0.5px solid $darkgray;
+}
 
 #track-list {
   text-align: left;

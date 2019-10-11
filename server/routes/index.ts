@@ -733,5 +733,34 @@ export default function (passport) {
         }
     );
 
+    router.post("/wifi", (req, res, next) => {
+        if (!isHost(req)) {
+            res.status(401);
+            return res.json({ error: "You need to be host!" });
+        }
+
+        const party = spotify.controller.getCurrentParty();
+        if (!party) {
+            res.status(500);
+            return res.json({ error: "No party file/object" });
+        }
+
+        party.wifi = req.body;
+        res.send(`WIFI:S:${party.wifi.ssid};T:${party.wifi.encryption};P:${party.wifi.password};;`);
+    });
+
+    router.get("/wifi", (req, res, next) => {
+        if (!req.isAuthenticated()) {
+            return res.status(403).end();
+        }
+
+        const wifi = spotify.controller.getCurrentParty().wifi;
+        if (!wifi) {
+            return res.status(500).json({ error: "No wifi in the party object" });
+        }
+
+        res.send(`WIFI:S:${wifi.ssid};T:${wifi.encryption};P:${wifi.password};;`);
+    });
+
     return router;
 }

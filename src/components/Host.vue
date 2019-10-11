@@ -136,6 +136,44 @@
         <p>Empty party queue.</p>
         <button v-on:click="emptyQueue">Empty queue</button>
 
+        <div v-if="user.host">
+          <hr />
+
+          <h1>Wifi sharing</h1>
+          <p>Note: this will generate a QR code but it will not be encrypted or anything. Anyone could "steeeaaal" this 🙄</p>
+          <div style="padding:20px; border:1px solid #666; border-radius:5px;">
+            <p>UPDATE:</p>
+            <form action @submit="setWifiCredentials">
+              <label>
+                Name/SSID:
+                <input type="text" v-model="wifiCredentials.ssid" />
+              </label>
+              <label>
+                Password:
+                <input type="text" v-model="wifiCredentials.password" />
+              </label>
+              <label>
+                Encryption type:
+                <select v-model="wifiCredentials.encryption">
+                  <option value="WPA">WPA/WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value>None</option>
+                </select>
+              </label>
+
+              <p>
+                <button type="submit">save</button>
+              </p>
+            </form>
+          </div>
+
+          <p>CURRENT VALUE:</p>
+          <div v-if="wifiQR">
+            <canvas ref="wifiCanvas"></canvas>
+            <p>{{wifiQR}}</p>
+          </div>
+        </div>
+
         <hr />
 
         <p>Your saved parties</p>
@@ -219,8 +257,14 @@ import { mapGetters } from "vuex";
 import api from "../api";
 import debounce from "../common/debounce";
 import storage from "@/common/device-storage";
+import QRCode from "qrcode";
 
 export default {
+  created() {
+    // this.genWifiQR();
+    this.$store.watch(state => state.Session.wifiQR, () => this.genWifiQR());
+  },
+
   data() {
     return {
       searchTerm: null,
@@ -238,6 +282,11 @@ export default {
         spotify: "/auth/spotify-host",
         spotifyLogin: "/auth/spotify-host-login",
       },
+      wifiCredentials: {
+        ssid: "",
+        password: "",
+        encryption: "",
+      },
     };
   },
 
@@ -248,6 +297,7 @@ export default {
       queue: "Queue/queue",
       currentTrack: "Queue/currentTrack",
       backupPlaylist: "Queue/backupPlaylist",
+      wifiQR: "Session/wifiQR",
     }),
   },
 
@@ -371,6 +421,22 @@ export default {
         .catch(r => {
           console.log(r);
         });
+    },
+    setWifiCredentials(e) {
+      e.preventDefault();
+      api.axios.post("wifi", this.wifiCredentials).then(string => {
+        this.$store.commit("Session/SET_WIFI_QR", string);
+        this.genWifiQR(string);
+      });
+    },
+    genWifiQR(qr = this.wifiQR) {
+      setTimeout(() => {
+        QRCode.toCanvas(this.$refs.wifiCanvas, qr, err => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      });
     },
   },
 
