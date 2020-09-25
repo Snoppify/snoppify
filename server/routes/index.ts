@@ -366,7 +366,7 @@ export default function (passport) {
             return;
         }
 
-        let query = req.query.query ? req.query.query.trim().toLowerCase() : "";
+        let query = req.query.query ? (req.query.query as string).trim().toLowerCase() : "";
         let querySplit = query.split(/\s+/);
 
         data.result = req.user.parties;
@@ -574,8 +574,8 @@ export default function (passport) {
     router.get("/get-host-playlists", (req, res) => {
         spotify.api
             .getUserPlaylists("me", {
-                limit: req.query.limit || 15,
-                offset: req.query.offset === undefined ? 0 : req.query.offset,
+                limit: +req.query.limit || 15,
+                offset:req.query.offset === undefined ? 0 : +req.query.offset,
             })
             .then(playlistRes => {
                 res.json(playlistRes.body.items);
