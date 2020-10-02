@@ -8,7 +8,7 @@ export type Spotify = {
     initialized: boolean;
     api: SpotifyAPI;
     playbackAPI: any;
-    controller: any;
+    controller: typeof spotifyController;
     init: (req: Request) => void;
 };
 

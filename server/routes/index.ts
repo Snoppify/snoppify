@@ -28,6 +28,16 @@ const getPassportState = req => {
     return ip.address() + ":" + req.connection.localPort;
 };
 
+/**
+ * Throws an error if the provided param is not a string. Used for
+ * checking/asserting the type of e.g. parsed querystrings.
+ * @param str 
+ */
+const checkStr = (str: any) => {
+    if (typeof str === "string") return str;
+    throw new Error("Not a string: " + JSON.stringify(str));
+};
+
 export default function (passport) {
     spotifyPlaybackApi.init(spotify.api);
 
@@ -106,8 +116,8 @@ export default function (passport) {
             User.save(req.user, () => {
                 // Set the access token on the API object to use it in later calls
                 spotify.api.config.owner = req.user.username;
-                spotify.api.setAccessToken(req.query.access_token);
-                spotify.api.setRefreshToken(req.query.refresh_token);
+                spotify.api.setAccessToken(checkStr(req.query.access_token));
+                spotify.api.setRefreshToken(checkStr(req.query.refresh_token));
 
                 spotify.init(req);
 
@@ -134,7 +144,7 @@ export default function (passport) {
 
         } else if (req.query.code) {
             // callback from the spotify api
-            spotify.api.authorizationCodeGrant(req.query.code).then(function (data) {
+            spotify.api.authorizationCodeGrant(checkStr(req.query.code)).then(function (data) {
                 var params = [
                     "success=true",
                     "state=host",
@@ -181,8 +191,8 @@ export default function (passport) {
             User.save(req.user, () => {
                 // Set the access token on the API object to use it in later calls
                 spotify.api.config.owner = req.user.username;
-                spotify.api.setAccessToken(req.query.access_token);
-                spotify.api.setRefreshToken(req.query.refresh_token);
+                spotify.api.setAccessToken(checkStr(req.query.access_token));
+                spotify.api.setRefreshToken(checkStr(req.query.refresh_token));
 
                 spotify.init(req);
 
@@ -203,7 +213,7 @@ export default function (passport) {
 
         } else if (req.query.code) {
             // callback from the spotify api
-            spotify.api.authorizationCodeGrant(req.query.code).then(function (data) {
+            spotify.api.authorizationCodeGrant(checkStr(req.query.code)).then(function (data) {
                 var params = [
                     "success=true",
                     "state=auth",
@@ -239,7 +249,7 @@ export default function (passport) {
     }
 
     function extractId(string) {
-        let id;
+        let id: string;
 
         [/spotify:track:(.+)/, /.?open.spotify.com\/track\/(.+)\?.*/].find(
             pattern => string.match(pattern) && (id = string.match(pattern)[1]),
@@ -306,7 +316,7 @@ export default function (passport) {
     });
 
     router.get("/search", (req, res) => {
-        let query = req.query.query || "";
+        let query = checkStr(req.query.query) || "";
 
         if (query == "") {
             return res.send({
@@ -437,7 +447,7 @@ export default function (passport) {
         }
 
         spotify.controller
-            .updateMainPlaylist(req.user.username, req.body)
+            .updateMainPlaylist(req.body)
             .then(data => {
                 req.user.host.name = data.name;
 
@@ -479,7 +489,7 @@ export default function (passport) {
         }
 
         spotify.controller
-            .setBackupPlaylist(req.user.username, playlist.id)
+            .setBackupPlaylist({id: playlist.id})
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
@@ -500,7 +510,7 @@ export default function (passport) {
 
     router.get("/get-track", (req, res) => {
         spotify.controller
-            .getTrack(req.query.trackId)
+            .getTrack(checkStr(req.query.trackId))
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
@@ -754,7 +764,7 @@ export default function (passport) {
             return res.status(403).end();
         }
 
-        const wifi = spotify.controller.getCurrentParty().wifi;
+        const wifi = spotify.controller.getCurrentParty()?.wifi;
         if (!wifi) {
             //return res.status(500).json({ error: "No wifi in the party object" });
             res.send(null);

@@ -78,15 +78,17 @@ let currentParty = null;
 })();
 
 const init = (_api: SpotifyAPI) => {
+    console.log("init?");
+    
     api = _api;
 
     api.onload.then(function (data) {
         if (mainPlaylist) {
-            setMainPlaylist(mainPlaylist.owner.id, mainPlaylist.id);
+            setMainPlaylist({id: mainPlaylist.id});
         }
 
         if (backupPlaylist) {
-            setBackupPlaylist(backupPlaylist.owner.id, backupPlaylist.id);
+            setBackupPlaylist({id: backupPlaylist.id});
         }
 
         if (mainPlaylist) {
@@ -154,7 +156,7 @@ const init = (_api: SpotifyAPI) => {
     states.start();
 };
 
-export default {
+export default  {
     init,
     get queue() {
         return queue;
@@ -189,6 +191,9 @@ export default {
 //////////////////
 
 function setParty(party: any, opts?: any) {
+    console.log("Party is this:");
+    console.log(JSON.stringify(party, null, 2));
+    
     return new Promise((resolve, reject) => {
         var filename = "data/snoppify-party-" + party.id + ".json";
 
@@ -264,7 +269,14 @@ function queueTrack(user: any /* User */, trackId: string) {
     return new Promise(function (resolve, reject) {
         api.getTracks([trackId])
             .then(r => {
-                let track = r.body.tracks[0];
+                let track: SpotifyApi.TrackObjectFull & {
+                    snoppify?: {
+                        issuer: any;
+                        votes: any[];
+                        timestamp: number;
+                    };
+                } = r.body.tracks[0];
+
                 getUserData(user, function (err: any, userData: any) {
                     if (err) {
                         return reject(err);
@@ -569,9 +581,9 @@ function createMainPlaylist(name: string) {
     });
 }
 
-function setMainPlaylist(user: string, id: string) {
+function setMainPlaylist({id}: { id: string}) {
     return new Promise((resolve, reject) => {
-        api.getPlaylist(user, id)
+        api.getPlaylist(id)
             .then(data => {
                 delete data.body.tracks;
                 mainPlaylist = data.body;
@@ -591,31 +603,23 @@ function setMainPlaylist(user: string, id: string) {
     });
 }
 
-function updateMainPlaylist(user: string, opts: any) {
-    return new Promise((resolve, reject) => {
-        if (!mainPlaylist) {
-            reject();
-            return;
-        }
+function updateMainPlaylist(opts: { name: string; }): Promise<{ name?: string }> {
+    if (!mainPlaylist) {
+        return Promise.reject("ERR: No main playlist");
+    }
 
-        var params = {
-            name: opts.name || mainPlaylist.name,
-        };
+    var params = {
+        name: opts.name || mainPlaylist.name,
+    };
 
-        api.changePlaylistDetails(user, mainPlaylist.id, params,
-            function (err, data) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(params);
-                }
-            });
-    });
+    return api
+        .changePlaylistDetails(mainPlaylist.id, params)
+        .then(() => params);
 }
 
-function setBackupPlaylist(userId: string, id: string) {
+function setBackupPlaylist({id}: {id: string}) {
     return new Promise((resolve, reject) => {
-        api.getPlaylist(userId, id)
+        api.getPlaylist(id)
             .then(data => {
                 backupQueue = new Queue({
                     id: "id",
@@ -735,7 +739,7 @@ function play(playPlaylist = false) {
     if (playPlaylist) {
         playData.playlist = mainPlaylist ? mainPlaylist.id : api.config.playlist;
 
-        return api.getPlaylist(api.config.owner, playData.playlist).then(
+        return api.getPlaylist(playData.playlist).then(
             function (data) {
                 playlist = data.body;
 
@@ -827,18 +831,18 @@ function getTrack(trackId: string) {
         let track = queue.get(trackId);
         Promise.all([
             track
-                ? new Promise(_resolve => {
-                    _resolve({
-                        body: {
-                            tracks: [track],
-                        },
-                    });
+                ? Promise.resolve({
+                    body: { tracks: [track] as SpotifyApi.TrackObjectFull[], },
                 })
                 : api.getTracks([trackId]),
             api.getAudioFeaturesForTracks([trackId]),
         ])
-            .then((data: any[]) => {
-                let track = data[0].body.tracks[0];
+            .then((data) => {
+                let track: SpotifyApi.TrackObjectFull & {
+                    audio_features?: SpotifyApi.AudioFeaturesObject;
+                } = data[0].body.tracks[0];
+
+                // console.log(JSON.stringify(track, null, 2));
                 track.audio_features = data[1].body.audio_features[0];
 
                 resolve(track);
@@ -852,7 +856,7 @@ function getTrack(trackId: string) {
 /////////////////////
 
 function reloadPlaylist() {
-    return api.getPlaylist(api.config.owner, mainPlaylist ? mainPlaylist.id : api.config.playlist).then(
+    return api.getPlaylist(mainPlaylist ? mainPlaylist.id : api.config.playlist).then(
         function (data) {
             playlist = data.body;
 
@@ -867,6 +871,8 @@ function reloadPlaylist() {
 }
 
 function addToPlaylist(track: string | { uri: string }) {
+    playlist = mainPlaylist;
+    
     return new Promise((resolve, reject) => {
         if (track) {
             let uri =
@@ -903,7 +909,7 @@ function pollPlayerStatus() {
         } else {
             // started/stopped playing
             if (states.data.player.is_playing != player.is_playing) {
-                if (player.is_playing) {
+                if (player.is_playing) {§
                     states.data.events.startedPlaying = true;
                 }
                 if (!player.is_playing) {

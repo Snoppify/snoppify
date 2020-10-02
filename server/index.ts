@@ -166,7 +166,10 @@ socket.io.on("connection", (sock: any) => {
             spotify.api.getAudioFeaturesForTracks([id]),
         ])
             .then(data => {
-                var track = data[0].body.tracks[0];
+                let track: SpotifyApi.TrackObjectFull & {
+                    audio_features?: SpotifyApi.AudioFeaturesObject;
+                }  = data[0].body.tracks[0];
+                
                 track.audio_features = data[1].body.audio_features[0];
 
                 sock.emit("getTrack", JSON.stringify(track));
