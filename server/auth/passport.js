@@ -22,7 +22,7 @@ module.exports = function(passport) {
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
         User.find(id, function(err, user) {
-            done(err, user);
+            done(err, user || false);
         });
     });
 
