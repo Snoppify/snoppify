@@ -1,7 +1,6 @@
-let axios = require("axios");
-let SpotifyWebApi = require('spotify-web-api-node');
+import { SpotifyAPI } from "./spotify-api";
 
-// let api = require("./spotify-api");
+let axios = require("axios");
 
 const scopes = [
     "playlist-read-private",
@@ -25,9 +24,9 @@ const scopes = [
 let accessToken = null;
 let refreshTime = 0;
 let expireTime = 3600 / 2;
-let api;
+let api: SpotifyAPI;
 
-module.exports = {
+export default {
     init,
     scopes,
     getRefreshToken,
@@ -43,12 +42,19 @@ module.exports = {
     getDevices,
 };
 
-function init(_api) {
+function init(_api: SpotifyAPI) {
     api = _api;
 }
 
-function play(opts = {}) {
-    let data = {};
+interface PlayOptions {
+    playlist?: any;
+    position?: any;
+    offset?: any;
+    uris?: any;
+}
+
+function play(opts: PlayOptions = {}) {
+    let data: Parameters<SpotifyAPI["play"]>[0] = {};
     if (opts.playlist) {
         data.context_uri = "spotify:playlist:" + opts.playlist;
     }
@@ -60,78 +66,88 @@ function play(opts = {}) {
             position: opts.position,
         };
     }
-    return request("put", "me/player/play", data);
+
+    return api.play(data);
 }
 
 function pause() {
-    return request("put", "me/player/pause");
+    return api.pause();
 }
 
 function next() {
-    return request("post", "me/player/next");
+    return api.skipToNext();
 }
 
 function previous() {
-    return request("post", "me/player/previous");
+    return api.skipToPrevious();
 }
 
-function addToPlaylist(owner, playlist, tracks) {
-    return request(
-        "post",
-        "users/" + owner + "/playlists/" + playlist + "/tracks",
-        null, {
-        uris: tracks.toString(),
-    },
-    );
+function addToPlaylist(owner, playlist: string, tracks: string[]) {
+    return api.addTracksToPlaylist(playlist, tracks);
+
+    // return request(
+    //     "post",
+    //     "users/" + owner + "/playlists/" + playlist + "/tracks",
+    //     null,
+    //     {
+    //         uris: tracks.toString(),
+    //     },
+    // );
 }
 
-function removePositionsFromPlaylist(owner, playlist, positions, snapshot) {
-    return request(
-        "delete",
-        "users/" + owner + "/playlists/" + playlist + "/tracks", {
-        positions: positions,
-        snapshot_id: snapshot,
-    },
+function removePositionsFromPlaylist(
+    owner,
+    playlist: string,
+    positions: number[],
+    snapshot: string,
+) {
+    return api.removeTracksFromPlaylistByPosition(
+        playlist,
+        positions,
+        snapshot,
     );
 }
 
 function currentlyPlaying() {
-    return request("get", "me/player");
+    // I think this is correct
+    return api.getMyCurrentPlayingTrack().then(r => r.body);
+
+    // return request("get", "me/player");
 }
 
-function setActiveDevice(id) {
+function setActiveDevice(id: string) {
+    // cant find a suitable method in api
     return request("put", "me/player", {
-        "device_ids": [id]
+        device_ids: [id],
     });
 }
 
 function getDevices() {
-    return request("get", "me/player/devices");
+    return api.getMyDevices();
 }
 
 ///////////////////////
 
 function getAccessToken() {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         let time = (Date.now() - refreshTime) / 1000;
         if (accessToken && time < expireTime) {
             resolve(accessToken);
         } else {
-            return api.refreshAccessToken().then(
-                function (data) {
-                    accessToken = data.body.access_token;
-                    // Save the access token so that it's used in future calls
-                    api.setAccessToken(accessToken);
-                    resolve(accessToken);
-                },
-                reject
-            );
+            return api.refreshAccessToken().then(function(data) {
+                accessToken = data.body.access_token;
+                // Save the access token so that it's used in future calls
+                api.setAccessToken(accessToken);
+                resolve(accessToken);
+            }, reject);
         }
     });
 }
 
-function getRefreshToken(code) {
-    return new Promise(function (resolve, reject) {
+function getRefreshToken(code): Promise<string> {
+    return Promise.resolve(api.getRefreshToken());
+    
+    return new Promise(function(resolve, reject) {
         axios({
             method: "post",
             url: "https://accounts.spotify.com/api/token",
@@ -144,28 +160,32 @@ function getRefreshToken(code) {
                 Authorization: "Basic " + api.config.auth_token,
                 "Content-Type": "application/x-www-form-urlencoded",
             },
-        })
-            .then(function (r) {
+        }).then(
+            function(r) {
                 if (r.data && r.data.refresh_token) {
                     resolve(r.data.refresh_token);
                 } else {
                     resolve();
                 }
-            }, function (r) {
+            },
+            function(r) {
                 reject(r);
-            })
+            },
+        );
     });
 }
 
-function getAuthUrl(state, redirectUri) {
-    api._credentials.redirectUri = redirectUri || "http://localhost:3000/create-spotify-host";
+function getAuthUrl(state?, redirectUri?) {
+    // Does this work?
+    (api as any)._credentials.redirectUri =
+        redirectUri || "http://localhost:3000/create-spotify-host";
 
     return api.createAuthorizeURL(scopes, state || "auth");
 }
 
-function request(method, uri, data, params) {
-    return new Promise(function (resolve, reject) {
-        getAccessToken().then(function (token) {
+function request(method, uri, data, params?) {
+    return new Promise(function(resolve, reject) {
+        getAccessToken().then(function(token) {
             axios({
                 method: method,
                 url: "https://api.spotify.com/v1/" + uri,
@@ -175,7 +195,7 @@ function request(method, uri, data, params) {
                 },
                 data: data,
                 params: params,
-            }).then(function (data) {
+            }).then(function(data) {
                 resolve(data.data);
             }, reject);
         }, reject);

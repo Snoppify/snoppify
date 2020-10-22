@@ -2,12 +2,12 @@ import { Request } from "express";
 
 import spotifyAPI, { SpotifyAPI } from "./spotify-api";
 import spotifyController from "./spotify-controller";
-import spotifyPlaybackApi = require("./spotify-playback-api");
+import spotifyPlaybackApi from "./spotify-playback-api";
 
 export type Spotify = {
     initialized: boolean;
     api: SpotifyAPI;
-    playbackAPI: any;
+    playbackAPI: typeof spotifyPlaybackApi;
     controller: typeof spotifyController;
     init: (req: Request) => void;
 };
