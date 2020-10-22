@@ -1,8 +1,16 @@
-const StateMachine = require("../StateMachine");
+import { StateMachine } from "../StateMachine";
 
 const nextTrackThreshold = 10;
 
-const stateMachine = new StateMachine({
+export default new StateMachine<
+    "paused" | "playing" | "playSong" | "waitingForNextSong",
+    | "queuedTrack"
+    | "dequeuedTrack"
+    | "changedTrack"
+    | "startedPlaying"
+    | "stoppedPlaying"
+    | "userVoted"
+>({
     data: {
         isPlaying: false,
         //track: null,
@@ -111,5 +119,3 @@ const stateMachine = new StateMachine({
     initialState: "paused",
     //finalState: "waitingForNextSong",
 });
-
-module.exports = stateMachine;

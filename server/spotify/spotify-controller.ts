@@ -6,7 +6,7 @@ import Queue from "../Queue";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
 import playbackAPI from "./spotify-playback-api";
-import states from "./spotify-states.js";
+import states from "./spotify-states";
 
 // const api = require("./spotify-api");
 // const fs = require("fs");
@@ -892,7 +892,7 @@ function addToPlaylist(track: string | { uri: string }) {
 }
 
 function pollPlayerStatus() {
-    return playbackAPI.currentlyPlaying().then(function (player: any) {
+    return playbackAPI.currentlyPlaying().then(function (player) {
         states.data.isPlaying = player.is_playing;
 
         // got new player
@@ -903,7 +903,8 @@ function pollPlayerStatus() {
             if (!player.is_playing) {
                 states.data.events.stoppedPlaying = true;
             }
-            states.data.changedTrack = true;
+            // possible bug fixed: should be states.data.events.changedTrack?
+            states.data.events.changedTrack = true;
         } else {
             // started/stopped playing
             if (states.data.player.is_playing != player.is_playing) {

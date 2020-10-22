@@ -1,5 +1,46 @@
-class StateMachine {
-    constructor(data) {
+export interface StateMachineData<SN extends string, EN extends string> {
+    states: StateMachineState<SN>[];
+    data: Partial<{
+        isPlaying: boolean;
+        player: any;
+        events: {
+            [eventName in EN]: boolean;
+        };
+        playlist?: SpotifyApi.SinglePlaylistResponse;
+    }>;
+    transitions: StateMachineTransition<SN>[];
+    initialState: SN;
+}
+
+export interface StateMachineState<SN extends string> {
+    name: SN;
+}
+
+export interface StateMachineTransition<SN extends string> {
+    source: SN;
+    target: SN;
+    value: (d: any) => boolean;
+}
+
+export type StateMachineEvtCallback<SN extends string> = (
+    state: StateMachineState<SN>,
+) => void;
+
+export class StateMachine<StateName extends string, EventName extends string> {
+    private _data: Partial<StateMachineData<StateName, EventName>>;
+
+    data: StateMachineData<StateName, EventName>["data"];
+    states: StateMachineState<StateName>[];
+    afterHandlers: StateMachineEvtCallback<StateName>[];
+    handlers: { [name in StateName]?: StateMachineEvtCallback<StateName>[] };
+    currentState: StateName;
+    currentTransitions: StateMachineTransition<StateName>[];
+    finalState: StateName;
+    running: boolean;
+
+    public constructor(
+        data: Partial<StateMachineData<StateName, EventName>> = {},
+    ) {
         this._data = data;
         this.data = data.data || {};
         this.states = data.states;
@@ -10,7 +51,7 @@ class StateMachine {
         });
     }
 
-    setState(state) {
+    setState(state: StateName) {
         this.currentState = state;
         this.currentTransitions = this._data.transitions.filter(t => {
             return t.source == state;
@@ -52,7 +93,7 @@ class StateMachine {
         }
     }
 
-    get(state) {
+    get(state: StateName) {
         return this.states.find(function(s) {
             return s.name == state;
         });
@@ -64,26 +105,24 @@ class StateMachine {
         this.emitAfter();
     }
 
-    emit(state) {
+    emit(state: StateName) {
         let item = this.get(state);
         this.handlers[state].forEach(f => {
             f(item);
         });
     }
 
-    emitAfter(data) {
+    emitAfter(data?: any) {
         this.afterHandlers.forEach(f => {
             f(data);
         });
     }
 
-    on(state, f) {
+    on(state: StateName, f: StateMachineEvtCallback<StateName>) {
         this.handlers[state].push(f);
     }
 
-    after(f) {
+    after(f: StateMachineEvtCallback<StateName>) {
         this.afterHandlers.push(f);
     }
 }
-
-module.exports = StateMachine;
