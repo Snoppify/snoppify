@@ -78,8 +78,6 @@ let currentParty = null;
 })();
 
 const init = (_api: SpotifyAPI) => {
-    console.log("init?");
-    
     api = _api;
 
     api.onload.then(function (data) {
@@ -909,7 +907,7 @@ function pollPlayerStatus() {
         } else {
             // started/stopped playing
             if (states.data.player.is_playing != player.is_playing) {
-                if (player.is_playing) {§
+                if (player.is_playing) {
                     states.data.events.startedPlaying = true;
                 }
                 if (!player.is_playing) {
