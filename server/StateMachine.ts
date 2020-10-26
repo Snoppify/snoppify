@@ -1,25 +1,27 @@
 export interface StateMachineData<SN extends string, EN extends string> {
     states: StateMachineState<SN>[];
-    data: Partial<{
-        isPlaying: boolean;
-        player: any;
-        events: {
-            [eventName in EN]: boolean;
-        };
-        playlist?: SpotifyApi.SinglePlaylistResponse;
-    }>;
-    transitions: StateMachineTransition<SN>[];
+    data: Partial<StateMachineDataData<EN>>;
+    transitions: StateMachineTransition<SN, EN>[];
     initialState: SN;
+}
+
+interface StateMachineDataData<EN extends string> {
+    isPlaying: boolean;
+    player: any;
+    events: {
+        [eventName in EN]: boolean;
+    };
+    playlist?: SpotifyApi.SinglePlaylistResponse;
 }
 
 export interface StateMachineState<SN extends string> {
     name: SN;
 }
 
-export interface StateMachineTransition<SN extends string> {
+export interface StateMachineTransition<SN extends string, EN extends string> {
     source: SN;
     target: SN;
-    value: (d: any) => boolean;
+    value: (d: Partial<StateMachineDataData<EN>>) => boolean;
 }
 
 export type StateMachineEvtCallback<SN extends string> = (
@@ -29,12 +31,12 @@ export type StateMachineEvtCallback<SN extends string> = (
 export class StateMachine<StateName extends string, EventName extends string> {
     private _data: Partial<StateMachineData<StateName, EventName>>;
 
-    data: StateMachineData<StateName, EventName>["data"];
+    data: Partial<StateMachineDataData<EventName>>;
     states: StateMachineState<StateName>[];
     afterHandlers: StateMachineEvtCallback<StateName>[];
     handlers: { [name in StateName]?: StateMachineEvtCallback<StateName>[] };
     currentState: StateName;
-    currentTransitions: StateMachineTransition<StateName>[];
+    currentTransitions: StateMachineTransition<StateName, EventName>[];
     finalState: StateName;
     running: boolean;
 
