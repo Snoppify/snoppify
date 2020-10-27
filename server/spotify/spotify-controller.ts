@@ -557,26 +557,22 @@ function getBackupPlaylist() {
 }
 
 function createMainPlaylist(name: string) {
-    return new Promise((resolve, reject) => {
-        api.createPlaylist(api.config.owner, name, {
-            public: true
-        }, function (err, data) {
-            if (err) {
-                reject(err);
-            } else {
-                delete data.body.tracks;
-                mainPlaylist = data.body;
+    return api
+        .createPlaylist(name, {
+            public: true,
+        })
+        .then(data => {
+            delete data.body.tracks;
+            mainPlaylist = data.body;
 
-                saveQueue();
+            saveQueue();
 
-                sendEvent("mainPlaylist", {
-                    playlist: mainPlaylist,
-                });
+            sendEvent("mainPlaylist", {
+                playlist: mainPlaylist,
+            });
 
-                resolve(data.body);
-            }
+            return data.body;
         });
-    });
 }
 
 function setMainPlaylist({id}: { id: string}) {
@@ -881,8 +877,8 @@ function addToPlaylist(track: string | { uri: string }) {
                     reloadPlaylist();
                     resolve();
                 })
-                .catch(function (r: any) {
-                    console.log(r.response.data);
+                .catch(function (r) {
+                    console.log("ERROR:", r, JSON.stringify(r));
                     reject(r);
                 });
         } else {

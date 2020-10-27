@@ -123,7 +123,8 @@ function setActiveDevice(id: string) {
 }
 
 function getDevices() {
-    return api.getMyDevices();
+    //  return request("get", "me/player/devices");
+    return api.getMyDevices().then(r => r.body);
 }
 
 ///////////////////////
@@ -183,7 +184,7 @@ function getAuthUrl(state?, redirectUri?) {
     return api.createAuthorizeURL(scopes, state || "auth");
 }
 
-function request(method, uri, data, params?) {
+function request(method, uri, data?, params?) {
     return new Promise(function(resolve, reject) {
         getAccessToken().then(function(token) {
             axios({
@@ -193,8 +194,8 @@ function request(method, uri, data, params?) {
                 headers: {
                     Authorization: "Bearer " + token,
                 },
-                data: data,
-                params: params,
+                data,
+                params,
             }).then(function(data) {
                 resolve(data.data);
             }, reject);
