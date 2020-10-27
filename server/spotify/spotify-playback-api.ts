@@ -123,13 +123,13 @@ function setActiveDevice(id: string) {
 }
 
 function getDevices() {
-    //  return request("get", "me/player/devices");
+    setAPITokens();
     return api.getMyDevices().then(r => r.body);
 }
 
 ///////////////////////
 
-function getAccessToken() {
+function getAccessToken():Promise<string> {
     return new Promise(function(resolve, reject) {
         let time = (Date.now() - refreshTime) / 1000;
         if (accessToken && time < expireTime) {
@@ -145,7 +145,7 @@ function getAccessToken() {
     });
 }
 
-function getRefreshToken(code): Promise<string> {
+function getRefreshToken(code?): Promise<string> {
     return Promise.resolve(api.getRefreshToken());
     
     return new Promise(function(resolve, reject) {
@@ -201,4 +201,13 @@ function request(method, uri, data?, params?) {
             }, reject);
         }, reject);
     });
+}
+
+function setAPITokens(): Promise<void> {
+    return Promise.all([getRefreshToken(), getAccessToken()]).then(
+        ([refresh, access]) => {
+            api.setAccessToken(access);
+            api.setRefreshToken(refresh);
+        },
+    );
 }

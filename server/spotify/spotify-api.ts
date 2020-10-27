@@ -32,7 +32,6 @@ const api = new SpotifyWebApi({
 api.config = config;
 
 api.init = () => {
-    
     api.config = config;
 
     api.onload = new Promise(function (resolve, reject) {
