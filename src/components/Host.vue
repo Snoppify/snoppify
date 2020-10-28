@@ -8,14 +8,12 @@
       </p>
 
       <div v-if="!user.host">
-        <form v-bind:action="baseURL + authUrls.spotify" class="auth auth--spotify">
-          <input type="submit" value="Host a party" />
+        <form
+          v-bind:action="baseURL + authUrls.spotifyLogin"
+          class="auth auth--spotify"
+        >
+          <input type="submit" value="Log in to your Spotify accouunt" />
         </form>
-
-        <p class="login">
-          or
-          <a v-bind:href="baseURL + authUrls.spotifyLogin">log in</a>
-        </p>
       </div>
 
       <div v-if="user.host && user.host.status == 'success'">
@@ -25,7 +23,10 @@
         </p>
 
         <div v-if="!user.host.id">
-          <form v-bind:action="baseURL + authUrls.spotify" class="auth auth--spotify">
+          <form
+            v-bind:action="baseURL + authUrls.spotify"
+            class="auth auth--spotify"
+          >
             <input type="submit" value="Host a party" />
           </form>
         </div>
@@ -36,18 +37,14 @@
       </div>
 
       <div v-if="user.host && user.host.id">
-        <p>ID: {{user.host.id}}</p>
+        <p>ID: {{ user.host.id }}</p>
         <p>
-          Name: {{user.host.name}}
-          <input
-            type="button"
-            v-on:click="changePartyName()"
-            value="change"
-          />
+          Name: {{ user.host.name }}
+          <input type="button" v-on:click="changePartyName()" value="change" />
         </p>
-        <p>IP: {{user.host.ip}}</p>
-        <p>SnoppiCode: {{user.host.hostCode}}</p>
-        <p>Hoster: {{user.username}}</p>
+        <p>IP: {{ user.host.ip }}</p>
+        <p>SnoppiCode: {{ user.host.hostCode }}</p>
+        <p>Hoster: {{ user.username }}</p>
 
         <hr />
 
@@ -61,7 +58,7 @@
                 v-model="device"
                 v-on:click="setActiveDevice(d.id)"
               />
-              {{d.name}} ({{d.type}})
+              {{ d.name }} ({{ d.type }})
             </label>
           </li>
         </ul>
@@ -74,20 +71,23 @@
           Backup playlist:
           <span v-if="backupPlaylist">
             <b>{{ backupPlaylist.name }}</b>
-            ({{
-            backupPlaylist.owner.display_name
-            }})
+            ({{ backupPlaylist.owner.display_name }})
           </span>
           <span v-else>(not set)</span>
         </p>
 
         <button
           v-on:click="playPlaylist"
-          :disabled="!device || queue.length == 0 && !backupPlaylist"
+          :disabled="!device || (queue.length == 0 && !backupPlaylist)"
           class="start-playback-btn"
-        >Start playback</button>
+        >
+          Start playback
+        </button>
 
-        <p>Playback can be started if you have an active device and a backup playlist or at least one song in the queue.</p>
+        <p>
+          Playback can be started if you have an active device and a backup
+          playlist or at least one song in the queue.
+        </p>
 
         <hr />
 
@@ -95,11 +95,18 @@
         <h1 v-else>Paused</h1>
 
         <div class="current-track current-track_compact" v-if="currentTrack">
-          <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt />
+          <img
+            v-if="currentTrack.album"
+            :src="currentTrack.album.images[1].url"
+            alt
+          />
           <div class="current-track__track-info">
             <div class="title">{{ currentTrack.name }}</div>
             <div class="artist">
-              <span v-for="(artist, index) in currentTrack.artists" :key="index">
+              <span
+                v-for="(artist, index) in currentTrack.artists"
+                :key="index"
+              >
                 <span>{{ artist.name }}</span>
                 <span v-if="index + 1 < currentTrack.artists.length">,</span>
               </span>
@@ -109,19 +116,23 @@
             <div
               class="user-image"
               :style="{
-              'background-image':
-                'url(' + currentTrack.snoppify.issuer.profile + ')',
-            }"
+                'background-image':
+                  'url(' + currentTrack.snoppify.issuer.profile + ')',
+              }"
             ></div>
             <div class="user">
               <div class="title">Added by</div>
-              <div class="name">{{ currentTrack.snoppify.issuer.displayName }}</div>
-              <div class="upvotes">{{ currentTrack.snoppify.votes.length }} upvotes</div>
+              <div class="name">
+                {{ currentTrack.snoppify.issuer.displayName }}
+              </div>
+              <div class="upvotes">
+                {{ currentTrack.snoppify.votes.length }} upvotes
+              </div>
             </div>
           </div>
         </div>
 
-        <p v-if="queue">{{queue.length}} tracks in queue.</p>
+        <p v-if="queue">{{ queue.length }} tracks in queue.</p>
 
         <p>Basic playback control.</p>
         <button v-on:click="play">Play</button>
@@ -140,7 +151,10 @@
           <hr />
 
           <h1>Wifi sharing</h1>
-          <p>Note: this will generate a QR code but it will not be encrypted or anything. Anyone could "steeeaaal" this 🙄</p>
+          <p>
+            Note: this will generate a QR code but it will not be encrypted or
+            anything. Anyone could "steeeaaal" this 🙄
+          </p>
           <div style="padding:20px; border:1px solid #666; border-radius:5px;">
             <p>UPDATE:</p>
             <form action @submit="setWifiCredentials">
@@ -170,12 +184,14 @@
           <p>CURRENT VALUE:</p>
           <div v-if="wifiQR">
             <canvas ref="wifiCanvas"></canvas>
-            <p>{{wifiQR}}</p>
+            <p>{{ wifiQR }}</p>
           </div>
         </div>
 
         <hr />
+      </div>
 
+      <div v-if="user.host && user.host.status == 'success'">
         <p>Your saved parties</p>
 
         <form v-on:submit.prevent class="search-input">
@@ -189,12 +205,15 @@
         </form>
 
         <div class="search-results">
-          <div v-if="partyResult && partyResult.length == 0" class="search-results__info">
+          <div
+            v-if="partyResult && partyResult.length == 0"
+            class="search-results__info"
+          >
             <p>Nothing here :(</p>
           </div>
           <ul v-if="partyResult && partyResult.length > 0" class="search-list">
             <li v-for="party in partyResult" :key="party.id">
-              {{party.name}} ({{party.id}})
+              {{ party.name }} ({{ party.id }})
               <input
                 type="button"
                 value="Set"
@@ -262,7 +281,10 @@ import QRCode from "qrcode";
 export default {
   created() {
     // this.genWifiQR();
-    this.$store.watch(state => state.Session.wifiQR, () => this.genWifiQR());
+    this.$store.watch(
+      state => state.Session.wifiQR,
+      () => this.genWifiQR(),
+    );
   },
 
   data() {
@@ -331,17 +353,19 @@ export default {
       this.error = "something went wrong";
     }
 
-    if (this.user && this.user.host && this.user.host.id) {
-      api.spotify.getDevices().then(data => {
-        this.devices = data.devices;
+    if (this.user && this.user.host) {
+      if (this.user.host.id) {
+        api.spotify.getDevices().then(data => {
+          this.devices = data.devices;
 
-        var device = this.devices.find(function(d) {
-          return d.is_active;
+          var device = this.devices.find(function(d) {
+            return d.is_active;
+          });
+          if (device) {
+            this.device = device.id;
+          }
         });
-        if (device) {
-          this.device = device.id;
-        }
-      });
+      }
 
       this.searchParties();
     }
@@ -391,7 +415,13 @@ export default {
     },
 
     setBackupPlaylist(uri) {
-      api.queue.setBackupPlaylist(uri);
+      api.queue.setBackupPlaylist(uri).catch(r => {
+        this.$store.dispatch("Messages/toast", {
+          type: "alert",
+          html: "Could not set playlist. Did you really paste a playlist URL?",
+          duration: 10,
+        });
+      });
     },
 
     changePartyName() {

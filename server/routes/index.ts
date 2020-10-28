@@ -203,8 +203,14 @@ export default function (passport) {
                         .then(() => {
                             res.status(200).end();
                         }).catch(r => {
-                            console.log(r);
-                            res.status(400).end();
+                            // Bad party, remove
+                            // TODO: better party handling
+                            delete req.user.host.id;
+                            delete req.user.host.name;
+
+                            User.save(req.user, () => {
+                                res.status(200).end();
+                            });
                         });
                 } else {
                     res.status(200).end();
@@ -489,7 +495,7 @@ export default function (passport) {
         }
 
         spotify.controller
-            .setBackupPlaylist({id: playlist.id})
+            .setBackupPlaylist({ id: playlist.id })
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
@@ -585,7 +591,7 @@ export default function (passport) {
         spotify.api
             .getUserPlaylists("me", {
                 limit: +req.query.limit || 15,
-                offset:req.query.offset === undefined ? 0 : +req.query.offset,
+                offset: req.query.offset === undefined ? 0 : +req.query.offset,
             })
             .then(playlistRes => {
                 res.json(playlistRes.body.items);
@@ -674,6 +680,7 @@ export default function (passport) {
 
     // authenticate host and create party
     router.get("/auth/spotify-host", (req, ...args) =>
+        // TODO: deprecate
         passport.authenticate("spotify", {
             scope: spotifyPlaybackApi.scopes,
             state: getPassportState(req) + "/host",

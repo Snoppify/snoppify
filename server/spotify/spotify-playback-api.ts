@@ -123,19 +123,20 @@ function setActiveDevice(id: string) {
 }
 
 function getDevices() {
-    setAPITokens();
-    return api.getMyDevices().then(r => r.body);
+    return setAPITokens().then(function () {
+        return api.getMyDevices().then(r => r.body);
+    });
 }
 
 ///////////////////////
 
-function getAccessToken():Promise<string> {
-    return new Promise(function(resolve, reject) {
+function getAccessToken(): Promise<string> {
+    return new Promise(function (resolve, reject) {
         let time = (Date.now() - refreshTime) / 1000;
         if (accessToken && time < expireTime) {
             resolve(accessToken);
         } else {
-            return api.refreshAccessToken().then(function(data) {
+            return api.refreshAccessToken().then(function (data) {
                 accessToken = data.body.access_token;
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(accessToken);
@@ -147,8 +148,8 @@ function getAccessToken():Promise<string> {
 
 function getRefreshToken(code?): Promise<string> {
     return Promise.resolve(api.getRefreshToken());
-    
-    return new Promise(function(resolve, reject) {
+
+    return new Promise(function (resolve, reject) {
         axios({
             method: "post",
             url: "https://accounts.spotify.com/api/token",
@@ -162,14 +163,14 @@ function getRefreshToken(code?): Promise<string> {
                 "Content-Type": "application/x-www-form-urlencoded",
             },
         }).then(
-            function(r) {
+            function (r) {
                 if (r.data && r.data.refresh_token) {
                     resolve(r.data.refresh_token);
                 } else {
                     resolve();
                 }
             },
-            function(r) {
+            function (r) {
                 reject(r);
             },
         );
@@ -185,8 +186,8 @@ function getAuthUrl(state?, redirectUri?) {
 }
 
 function request(method, uri, data?, params?) {
-    return new Promise(function(resolve, reject) {
-        getAccessToken().then(function(token) {
+    return new Promise(function (resolve, reject) {
+        getAccessToken().then(function (token) {
             axios({
                 method: method,
                 url: "https://api.spotify.com/v1/" + uri,
@@ -196,7 +197,7 @@ function request(method, uri, data?, params?) {
                 },
                 data,
                 params,
-            }).then(function(data) {
+            }).then(function (data) {
                 resolve(data.data);
             }, reject);
         }, reject);

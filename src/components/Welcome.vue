@@ -20,10 +20,16 @@
             <p class="party__info">Ongoing party:</p>
             <div class="party__body">
               <div>
-                <p>{{party.name}}</p>
-                <p>({{party.hostCode}})</p>
+                <p>{{ party.name }}</p>
+                <p>({{ party.hostCode }})</p>
               </div>
-              <button class="party__button" v-if="user" @click="onJoinPartyClick()">Jump in</button>
+              <button
+                class="party__button"
+                v-if="user"
+                @click="onJoinPartyClick()"
+              >
+                Jump in
+              </button>
             </div>
           </div>
         </div>
@@ -34,14 +40,19 @@
           </div>
         </div>
 
-        <button class="start-btn start-btn__join" @click="onJoinClick()">Join</button>
+        <button class="start-btn start-btn__join" @click="onJoinClick()">
+          Join
+        </button>
+        <p>or <a href="/host">host a party</a></p>
 
         <hr class="welcome-break" />
 
         <h1>Snoppify your party</h1>
-        <p
-          class="welcome-text"
-        >Snoppify is a party app that connects all members of your party to your Spotify player. It is a live playlist with a democratic voting system.</p>
+        <p class="welcome-text">
+          Snoppify is a party app that connects all members of your party to
+          your Spotify player. It is a live playlist with a democratic voting
+          system.
+        </p>
 
         <h1>How does it work?</h1>
         <p class="welcome-text">1) Connect to the local WiFi</p>

@@ -82,11 +82,11 @@ const init = (_api: SpotifyAPI) => {
 
     api.onload.then(function (data) {
         if (mainPlaylist) {
-            setMainPlaylist({id: mainPlaylist.id});
+            setMainPlaylist({ id: mainPlaylist.id });
         }
 
         if (backupPlaylist) {
-            setBackupPlaylist({id: backupPlaylist.id});
+            setBackupPlaylist({ id: backupPlaylist.id });
         }
 
         if (mainPlaylist) {
@@ -154,7 +154,7 @@ const init = (_api: SpotifyAPI) => {
     states.start();
 };
 
-export default  {
+export default {
     init,
     get queue() {
         return queue;
@@ -191,9 +191,10 @@ export default  {
 function setParty(party: any, opts?: any) {
     console.log("Party is this:");
     console.log(JSON.stringify(party, null, 2));
-    
+
     return new Promise((resolve, reject) => {
         var filename = "data/snoppify-party-" + party.id + ".json";
+        console.log("Trying to read party file:", filename);
 
         // load saved party
         fs.readFile(filename, "utf8", function readFileCallback(err, data) {
@@ -575,7 +576,7 @@ function createMainPlaylist(name: string) {
         });
 }
 
-function setMainPlaylist({id}: { id: string}) {
+function setMainPlaylist({ id }: { id: string }) {
     return new Promise((resolve, reject) => {
         api.getPlaylist(id)
             .then(data => {
@@ -611,7 +612,7 @@ function updateMainPlaylist(opts: { name: string; }): Promise<{ name?: string }>
         .then(() => params);
 }
 
-function setBackupPlaylist({id}: {id: string}) {
+function setBackupPlaylist({ id }: { id: string }) {
     return new Promise((resolve, reject) => {
         api.getPlaylist(id)
             .then(data => {
@@ -866,7 +867,7 @@ function reloadPlaylist() {
 
 function addToPlaylist(track: string | { uri: string }) {
     playlist = mainPlaylist;
-    
+
     return new Promise((resolve, reject) => {
         if (track) {
             let uri =
