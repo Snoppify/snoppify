@@ -21,7 +21,7 @@ export interface StateMachineState<SN extends string> {
 export interface StateMachineTransition<SN extends string, EN extends string> {
     source: SN;
     target: SN;
-    value: (d: Partial<StateMachineDataData<EN>>) => boolean;
+    condition: (d: Partial<StateMachineDataData<EN>>) => boolean;
 }
 
 export type StateMachineEvtCallback<SN extends string> = (
@@ -58,6 +58,7 @@ export class StateMachine<StateName extends string, EventName extends string> {
         this.currentTransitions = this._data.transitions.filter(t => {
             return t.source == state;
         });
+
         this.emit(state);
 
         if (this.finalState == state) {
@@ -73,12 +74,18 @@ export class StateMachine<StateName extends string, EventName extends string> {
         let data = this.data;
         let next = null;
         this.currentTransitions.forEach(s => {
-            if (s.value(data)) {
+            if (!next && s.condition(data)) {
                 next = s;
             }
         });
         if (next) {
             let data;
+
+            // debug for issue #14
+            if (next.target == "playSong") {
+                console.log("from " + next.source);
+            }
+
             if (next.target) {
                 data = this.get(next.target);
 
@@ -96,7 +103,7 @@ export class StateMachine<StateName extends string, EventName extends string> {
     }
 
     get(state: StateName) {
-        return this.states.find(function(s) {
+        return this.states.find(function (s) {
             return s.name == state;
         });
     }

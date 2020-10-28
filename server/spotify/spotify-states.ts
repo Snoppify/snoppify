@@ -39,25 +39,40 @@ export default new StateMachine<
         },
     ],
     transitions: [
+        // waitingForNextSong
+        {
+            source: "waitingForNextSong",
+            target: "playSong",
+            condition: function (d) {
+                return d.events.changedTrack;
+            },
+        },
+        {
+            source: "waitingForNextSong",
+            target: "paused",
+            condition: function (d) {
+                return !d.isPlaying;
+            },
+        },
         // paused
         {
             source: "paused",
             target: "playSong",
-            value: function(d) {
+            condition: function (d) {
                 return d.events.changedTrack;
             },
         },
         {
             source: "paused",
             target: "playing",
-            value: function(d) {
+            condition: function (d) {
                 return d.isPlaying && !d.events.changedTrack;
             },
         },
         {
             source: "paused",
             target: "waitingForNextSong",
-            value: function(d) {
+            condition: function (d) {
                 return (
                     d.events.queuedTrack &&
                     d.playlist &&
@@ -69,26 +84,26 @@ export default new StateMachine<
         {
             source: "playing",
             target: "paused",
-            value: function(d) {
+            condition: function (d) {
                 return d.events.stoppedPlaying;
             },
         },
         {
             source: "playing",
             target: "playSong",
-            value: function(d) {
+            condition: function (d) {
                 return d.events.changedTrack;
             },
         },
         {
             source: "playing",
             target: "waitingForNextSong",
-            value: function(d) {
+            condition: function (d) {
                 return (
                     d.player.is_playing &&
                     d.player.item &&
                     (d.player.item.duration_ms - d.player.progress_ms) / 1000 <
-                        nextTrackThreshold
+                    nextTrackThreshold
                 );
             },
         },
@@ -96,23 +111,8 @@ export default new StateMachine<
         {
             source: "playSong",
             target: "playing",
-            value: function(d) {
+            condition: function (d) {
                 return d.isPlaying;
-            },
-        },
-        // waitingForNextSong
-        {
-            source: "waitingForNextSong",
-            target: "playSong",
-            value: function(d) {
-                return d.events.changedTrack;
-            },
-        },
-        {
-            source: "waitingForNextSong",
-            target: "paused",
-            value: function(d) {
-                return !d.isPlaying;
             },
         },
     ],
