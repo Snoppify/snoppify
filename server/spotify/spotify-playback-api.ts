@@ -21,30 +21,8 @@ const scopes = [
     "user-modify-playback-state",
 ];
 
-let accessToken = null;
 let refreshTime = 0;
 let expireTime = 3600 / 2;
-let api: SpotifyAPI;
-
-export default {
-    init,
-    scopes,
-    getRefreshToken,
-    getAuthUrl,
-    play,
-    pause,
-    next,
-    previous,
-    addToPlaylist,
-    currentlyPlaying,
-    removePositionsFromPlaylist,
-    setActiveDevice,
-    getDevices,
-};
-
-function init(_api: SpotifyAPI) {
-    api = _api;
-}
 
 interface PlayOptions {
     playlist?: any;
@@ -53,162 +31,174 @@ interface PlayOptions {
     uris?: any;
 }
 
-function play(opts: PlayOptions = {}) {
-    let data: Parameters<SpotifyAPI["play"]>[0] = {};
-    if (opts.playlist) {
-        data.context_uri = "spotify:playlist:" + opts.playlist;
-    }
-    if (typeof opts.uris != "undefined") {
-        data.uris = opts.position;
-    }
-    if (typeof opts.position != "undefined") {
-        data.offset = {
-            position: opts.position,
-        };
+class SpotifyPlaybackAPI {
+    private accessToken: string;
+    private api: SpotifyAPI;
+
+    constructor(api: SpotifyAPI) {
+        this.api = api;
     }
 
-    return api.play(data);
-}
-
-function pause() {
-    return api.pause();
-}
-
-function next() {
-    return api.skipToNext();
-}
-
-function previous() {
-    return api.skipToPrevious();
-}
-
-function addToPlaylist(owner, playlist: string, tracks: string[]) {
-    return api.addTracksToPlaylist(playlist, tracks);
-
-    // return request(
-    //     "post",
-    //     "users/" + owner + "/playlists/" + playlist + "/tracks",
-    //     null,
-    //     {
-    //         uris: tracks.toString(),
-    //     },
-    // );
-}
-
-function removePositionsFromPlaylist(
-    owner,
-    playlist: string,
-    positions: number[],
-    snapshot: string,
-) {
-    return api.removeTracksFromPlaylistByPosition(
-        playlist,
-        positions,
-        snapshot,
-    );
-}
-
-function currentlyPlaying() {
-    // I think this is correct
-    return api.getMyCurrentPlayingTrack().then(r => r.body);
-
-    // return request("get", "me/player");
-}
-
-function setActiveDevice(id: string) {
-    // cant find a suitable method in api
-    return request("put", "me/player", {
-        device_ids: [id],
-    });
-}
-
-function getDevices() {
-    return setAPITokens().then(function () {
-        return api.getMyDevices().then(r => r.body);
-    });
-}
-
-///////////////////////
-
-function getAccessToken(): Promise<string> {
-    return new Promise(function (resolve, reject) {
-        let time = (Date.now() - refreshTime) / 1000;
-        if (accessToken && time < expireTime) {
-            resolve(accessToken);
-        } else {
-            return api.refreshAccessToken().then(function (data) {
-                accessToken = data.body.access_token;
-                // Save the access token so that it's used in future calls
-                api.setAccessToken(accessToken);
-                resolve(accessToken);
-            }, reject);
+    play(opts: PlayOptions = {}) {
+        let data: Parameters<SpotifyAPI["play"]>[0] = {};
+        if (opts.playlist) {
+            data.context_uri = "spotify:playlist:" + opts.playlist;
         }
-    });
-}
+        if (typeof opts.uris != "undefined") {
+            data.uris = opts.position;
+        }
+        if (typeof opts.position != "undefined") {
+            data.offset = {
+                position: opts.position,
+            };
+        }
 
-function getRefreshToken(code?): Promise<string> {
-    return Promise.resolve(api.getRefreshToken());
+        return this.api.play(data);
+    }
 
-    return new Promise(function (resolve, reject) {
-        axios({
-            method: "post",
-            url: "https://accounts.spotify.com/api/token",
-            params: {
-                grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
-                code: code,
-                redirect_uri: "http://localhost:3000/create-spotify-host",
-            },
-            headers: {
-                Authorization: "Basic " + api.config.auth_token,
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-        }).then(
-            function (r) {
-                if (r.data && r.data.refresh_token) {
-                    resolve(r.data.refresh_token);
-                } else {
-                    resolve();
-                }
-            },
-            function (r) {
-                reject(r);
-            },
+    pause() {
+        return this.api.pause();
+    }
+
+    next() {
+        return this.api.skipToNext();
+    }
+
+    previous() {
+        return this.api.skipToPrevious();
+    }
+
+    addToPlaylist(owner, playlist: string, tracks: string[]) {
+        return this.api.addTracksToPlaylist(playlist, tracks);
+
+        // return request(
+        //     "post",
+        //     "users/" + owner + "/playlists/" + playlist + "/tracks",
+        //     null,
+        //     {
+        //         uris: tracks.toString(),
+        //     },
+        // );
+    }
+
+    removePositionsFromPlaylist(
+        owner,
+        playlist: string,
+        positions: number[],
+        snapshot: string,
+    ) {
+        return this.api.removeTracksFromPlaylistByPosition(
+            playlist,
+            positions,
+            snapshot,
         );
-    });
-}
+    }
 
-function getAuthUrl(state?, redirectUri?) {
-    // Does this work?
-    (api as any)._credentials.redirectUri =
-        redirectUri || "http://localhost:3000/create-spotify-host";
+    currentlyPlaying() {
+        // I think this is correct
+        return this.api.getMyCurrentPlayingTrack().then(r => r.body);
 
-    return api.createAuthorizeURL(scopes, state || "auth");
-}
+        // return request("get", "me/player");
+    }
 
-function request(method, uri, data?, params?) {
-    return new Promise(function (resolve, reject) {
-        getAccessToken().then(function (token) {
+    setActiveDevice(id: string) {
+        // cant find a suitable method in api
+        return this.request("put", "me/player", {
+            device_ids: [id],
+        });
+    }
+
+    getDevices() {
+        return this.setAPITokens().then(function () {
+            return this.api.getMyDevices().then(r => r.body);
+        });
+    }
+
+    ///////////////////////
+
+    getAccessToken(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            let time = (Date.now() - refreshTime) / 1000;
+            if (this.accessToken && time < expireTime) {
+                resolve(this.accessToken);
+            } else {
+                return this.api.refreshAccessToken().then(data => {
+                    this.accessToken = data.body.access_token;
+                    // Save the access token so that it's used in future calls
+                    this.api.setAccessToken(this.accessToken);
+                    resolve(this.accessToken);
+                }, reject);
+            }
+        });
+    }
+
+    getRefreshToken(code?): Promise<string> {
+        return Promise.resolve(this.api.getRefreshToken());
+
+        return new Promise((resolve, reject) => {
             axios({
-                method: method,
-                url: "https://api.spotify.com/v1/" + uri,
-                timeout: 10000,
-                headers: {
-                    Authorization: "Bearer " + token,
+                method: "post",
+                url: "https://accounts.spotify.com/api/token",
+                params: {
+                    grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
+                    code: code,
+                    redirect_uri: "http://localhost:3000/create-spotify-host",
                 },
-                data,
-                params,
-            }).then(function (data) {
-                resolve(data.data);
+                headers: {
+                    Authorization: "Basic " + this.api.config.auth_token,
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+            }).then(
+                r => {
+                    if (r.data && r.data.refresh_token) {
+                        resolve(r.data.refresh_token);
+                    } else {
+                        resolve();
+                    }
+                },
+                r => {
+                    reject(r);
+                },
+            );
+        });
+    }
+
+    getAuthUrl(state?, redirectUri?) {
+        // Does this work?
+        (this.api as any)._credentials.redirectUri =
+            redirectUri || "http://localhost:3000/create-spotify-host";
+
+        return this.api.createAuthorizeURL(scopes, state || "auth");
+    }
+
+    private setAPITokens(): Promise<void> {
+        return Promise.all([
+            this.getRefreshToken(),
+            this.getAccessToken(),
+        ]).then(([refresh, access]) => {
+            this.api.setAccessToken(access);
+            this.api.setRefreshToken(refresh);
+        });
+    }
+
+    private request(method, uri, data?, params?) {
+        return new Promise((resolve, reject) => {
+            this.getAccessToken().then(token => {
+                axios({
+                    method: method,
+                    url: "https://api.spotify.com/v1/" + uri,
+                    timeout: 10000,
+                    headers: {
+                        Authorization: "Bearer " + token,
+                    },
+                    data,
+                    params,
+                }).then(data => {
+                    resolve(data.data);
+                }, reject);
             }, reject);
-        }, reject);
-    });
+        });
+    }
 }
 
-function setAPITokens(): Promise<void> {
-    return Promise.all([getRefreshToken(), getAccessToken()]).then(
-        ([refresh, access]) => {
-            api.setAccessToken(access);
-            api.setRefreshToken(refresh);
-        },
-    );
-}
+export { SpotifyPlaybackAPI, scopes as spotifyAPIScopes };

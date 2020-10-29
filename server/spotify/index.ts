@@ -1,28 +1,56 @@
 import { Request } from "express";
 
-import spotifyAPI, { SpotifyAPI } from "./spotify-api";
-import spotifyController from "./spotify-controller";
-import spotifyPlaybackApi from "./spotify-playback-api";
+import { createSpotifyAPI, SpotifyAPI } from "./spotify-api";
+import { SpotifyController } from "./spotify-controller";
+import { SpotifyPlaybackAPI } from "./spotify-playback-api";
 
-export type Spotify = {
+export type SnoppifyHost = {
     initialized: boolean;
     api: SpotifyAPI;
-    playbackAPI: typeof spotifyPlaybackApi;
-    controller: typeof spotifyController;
-    init: (req: Request) => void;
+    playbackAPI: SpotifyPlaybackAPI;
+    controller: SpotifyController;
 };
 
-const spotify = {
-    initialized: false,
-    api: spotifyAPI,
-    playbackAPI: spotifyPlaybackApi,
-    controller: spotifyController,
-    init: (req: Request) => {
-        spotify.initialized = true;
-        spotify.api.init();
-        spotify.playbackAPI.init(spotify.api);
-        spotify.controller.init(spotify.api);
-    },
-} as Spotify;
+export { createSnoppifyHost, getSnoppifyHost };
 
-export default spotify;
+
+const activeHosts: {
+    [hostId: string]: SnoppifyHost;
+} = {};
+
+const createSnoppifyHost = (opts: {
+    owner: string;
+    accessToken: string;
+    refreshToken: string;
+    hostId:string;
+}) => {
+    const api = createSpotifyAPI();
+
+    // Set the access token on the API object to use it in later calls
+    api.config.owner = opts.owner;
+    api.setAccessToken(opts.accessToken);
+    api.setRefreshToken(opts.refreshToken);
+
+    api.init();
+
+    const playbackAPI = new SpotifyPlaybackAPI(api);
+    const controller = new SpotifyController({ api, playbackAPI });
+
+    const host = {
+        initialized: true,
+        api,
+        playbackAPI,
+        controller
+    } as SnoppifyHost;
+
+    activeHosts[opts.hostId] = host;
+
+    console.log("new host:", { host });
+
+    return host;
+}
+
+const getSnoppifyHost = (id: string) => {
+    return activeHosts[id];
+}
+
