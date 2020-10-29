@@ -4,7 +4,7 @@ import SpotifyWebApi from "spotify-web-api-node";
 import { ISnoppifyConfig } from "./snoppify-config.interface";
 
 export type SpotifyAPI = SpotifyWebApi & {
-    init: () => void;
+    init: () => SpotifyAPI;
     config: ISnoppifyConfig;
     onload: Promise<any>;
 };
@@ -73,6 +73,8 @@ export function createSpotifyAPI() {
                 },
             );
         });
+
+        return api;
     };
 
     return api;

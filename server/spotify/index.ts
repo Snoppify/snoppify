@@ -22,7 +22,7 @@ const createSnoppifyHost = (opts: {
     owner: string;
     accessToken: string;
     refreshToken: string;
-    hostId:string;
+    hostId: string;
 }) => {
     const api = createSpotifyAPI();
 
@@ -44,8 +44,6 @@ const createSnoppifyHost = (opts: {
     } as SnoppifyHost;
 
     activeHosts[opts.hostId] = host;
-
-    console.log("new host:", { host });
 
     return host;
 }

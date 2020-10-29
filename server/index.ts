@@ -16,9 +16,10 @@ import minimist from "minimist";
 import passport from "passport";
 
 import passportInit from "./auth/passport";
+import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import spotify from "./spotify";
+import { createSnoppifyHost, getSnoppifyHost } from "./spotify";
 
 //@ts-ignore
 dotenv.config();
@@ -98,8 +99,16 @@ app.use(mysession);
 app.use(passport.initialize());
 let passportsession = passport.session();
 app.use(passportsession);
-
 socket.io.use(sharedsession(mysession));
+
+app.use("*", (req, _, next) => {
+    // add the host to the request
+    if (req.user?.partyId) {
+        req.snoppifyHost = getSnoppifyHost(req.user.partyId);
+    }
+    next();
+});
+
 
 passportInit(passport);
 expressDebug(app, {});
@@ -107,6 +116,7 @@ expressDebug(app, {});
 var routes = routesIndex(passport);
 app.use("/", routes);
 let isHosting = false;
+
 
 app.use("/ping", (_, res) => {
     res.json({
@@ -137,6 +147,9 @@ socket.io.on("connection", (sock: any) => {
         (sock.handshake as any).session.passport,
     );
 
+    // console.log("SOCK SESSION:", sock.handshake.session);
+
+
     // need to do " as any" since handshake.session is added by
     // express-socket.io or passport or something
     // if ((sock.handshake as any).session.passport) {
@@ -161,22 +174,31 @@ socket.io.on("connection", (sock: any) => {
     // });
 
     sock.on("getTrack", (id: any) => {
-        Promise.all([
-            spotify.api.getTracks([id]),
-            spotify.api.getAudioFeaturesForTracks([id]),
-        ])
-            .then(data => {
-                let track: SpotifyApi.TrackObjectFull & {
-                    audio_features?: SpotifyApi.AudioFeaturesObject;
-                }  = data[0].body.tracks[0];
-                
-                track.audio_features = data[1].body.audio_features[0];
+        console.log("SOCK SESSION:", sock.handshake.session);
 
-                sock.emit("getTrack", JSON.stringify(track));
-            })
-            .catch(data => {
-                sock.emit("getTrack", null);
-            });
+        User.find(sock.handshake.session.passport.user, user => {
+            const spotify = getSnoppifyHost(user.partyId);
+            console.log({ spotify });
+
+            Promise.all([
+                spotify.api.getTracks([id]),
+                spotify.api.getAudioFeaturesForTracks([id]),
+            ])
+                .then(data => {
+                    let track: SpotifyApi.TrackObjectFull & {
+                        audio_features?: SpotifyApi.AudioFeaturesObject;
+                    } = data[0].body.tracks[0];
+
+                    track.audio_features = data[1].body.audio_features[0];
+
+                    sock.emit("getTrack", JSON.stringify(track));
+                })
+                .catch(data => {
+                    sock.emit("getTrack", null);
+                });
+
+        })
+
     });
 });
 
