@@ -202,7 +202,7 @@ socket.io.on("connection", (sock: any) => {
     });
 });
 
-const port = args.p || 3000;
+const port = process.env.PORT || 80;
 httpServer.listen(port, () => {
     let ipAddr = ip.address();
 
