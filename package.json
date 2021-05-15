@@ -3,8 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "start": "npm run server",
+    "build": "npm run build-client && npm run build-server",
     "serve": "vue-cli-service build --watch --port 8080",
-    "build": "vue-cli-service build --dest dist",
+    "build-client": "vue-cli-service build --dest dist",
     "lint": "vue-cli-service lint",
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node --enable-source-maps server-dist/",
