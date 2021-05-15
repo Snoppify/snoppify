@@ -17,10 +17,10 @@ const api = {
     init,
 };
 
-let serverIP =
-    storage.get("serverIP") ||
-    // don't do this on snoppify.com
-    (!location.hostname.includes("snoppify.com") && location.hostname);
+let serverIP = "snoppify.herokuapp.com";
+// storage.get("serverIP") ||
+// // don't do this on snoppify.com
+// (!location.hostname.includes("snoppify.com") && location.hostname);
 
 api.init(serverIP);
 
