@@ -26,7 +26,7 @@ import storage from "@/common/device-storage";
 export default {
   data: () => ({
     username: "",
-    baseURL: "http://" + storage.get("serverIP") + ":3000",
+    baseURL: "https://" + storage.get("serverIP"),
     authUrls: {
       facebook: "/auth/facebook",
       spotify: "/auth/spotify",
@@ -37,11 +37,11 @@ export default {
     createUser() {
       api.auth
         .newUser(this.username)
-        .then(rep => {
+        .then((rep) => {
           this.$store.commit("Session/SET_SESSION", rep);
           this.$router.push("/party");
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     },
 
     getAuthUrl(service) {
@@ -55,8 +55,8 @@ export default {
 
   computed: {},
 
-  mounted: function() {
-    this.baseURL = "http://" + storage.get("serverIP") + ":3000";
+  mounted: function () {
+    this.baseURL = "https://" + storage.get("serverIP");
   },
 };
 </script>

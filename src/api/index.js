@@ -35,7 +35,7 @@ function init(serverIP) {
     storage.set("serverIP", serverIP);
 
     const _axios = axios.create({
-        baseURL: window.location.protocol + "//" + serverIP + ":3000",
+        baseURL: window.location.protocol + "//" + serverIP,
         timeout: 5000,
         withCredentials: true,
     });

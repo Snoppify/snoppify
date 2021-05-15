@@ -25,6 +25,7 @@ import { createSnoppifyHost, getSnoppifyHost } from "./spotify";
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 80;
 
 const LokiStore = connectLoki(session);
 const args = minimist(process.argv);
@@ -202,7 +203,6 @@ socket.io.on("connection", (sock: any) => {
     });
 });
 
-const port = process.env.PORT || 80;
 httpServer.listen(port, () => {
     let ipAddr = ip.address();
 

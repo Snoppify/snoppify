@@ -694,7 +694,12 @@ export default function (passport) {
         passport.authenticate("spotify", { failureRedirect: "/new-user", }),
         (req, res, next) => {
             req.session.host = null;
-            req.user.partyId = req.query.partyId;
+            console.log(req.query.state);
+            try {
+                const data = JSON.parse(req.query.state as any);
+                console.log(data);
+                req.user.partyId = data.id;
+            } catch (e) { }
 
             console.log("Authed SPOTIFY user: ", req.user, req.query);
 
