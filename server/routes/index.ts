@@ -32,7 +32,7 @@ const redirectIfAuthenticated = function (req, res, next) {
 
 const getPassportState = (req: ExpressRequest, addressSuffix = "") => {
     return {
-        address: ip.address() + ":" + req.connection.localPort + addressSuffix,
+        address: "https://snoppify.herokuapp.com" + addressSuffix,
         id: req.query.partyId
     };
 };
@@ -683,6 +683,7 @@ export default function (passport) {
         passport.authenticate("spotify", {
             scope: spotifyAPIScopes,
             state: JSON.stringify(getPassportState(req, "/host-login")),
+            callbackURL: "https://snoppify.herokuapp.com/host-login/auth/spotify/callback",
             successRedirect: "/host",
             failureRedirect: "/host",
         })(req, ...args),
