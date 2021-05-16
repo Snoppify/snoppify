@@ -13,7 +13,7 @@ module.exports = {
         clientID: "1e62943d6e7843afb48654f227fa06b4", // your App ID
         clientSecret: "f01c555344e249d2895fbf73f6255290", // your App Secret
         // callbackURL: "http://localhost:3000/auth/spotify",
-        callbackURL: "https://snoppify.herokuapp.com/auth/spotify",
+        callbackURL: "https://snoppify.herokuapp.com/auth/spotify/callback",
         profileURL:
             "https://graph.facebook.com/v2.5/me?fields=first_name,last_name,email",
         profileFields: ["id", "email", "name"], // For requesting permissions from Facebook API
@@ -23,7 +23,7 @@ module.exports = {
         clientID: "441745129577205", // your App ID
         clientSecret: "2eb6de98b65a4f29b6e098932bab43dd", // your App Secret
         // callbackURL: "http://localhost:3000/auth/facebook",
-        callbackURL: "https://snoppify.herokuapp.com/auth/facebook",
+        callbackURL: "https://snoppify.herokuapp.com/auth/facebook/callback",
         profileURL:
             "https://graph.facebook.com/v2.5/me?fields=first_name,last_name,email",
         profileFields: ["id", "email", "name"], // For requesting permissions from Facebook API
