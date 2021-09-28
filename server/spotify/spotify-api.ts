@@ -9,15 +9,17 @@ export type SpotifyAPI = SpotifyWebApi & {
     onload: Promise<any>;
 };
 
+let globalSpotifyAPI;
+
 function refreshAccessToken(api: SpotifyAPI) {
-    setInterval(function() {
+    setInterval(function () {
         api.clientCredentialsGrant().then(
-            function(data: any) {
+            function (data: any) {
                 console.log("Updated access_token:", data.body.access_token);
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body.access_token);
             },
-            function(err: any) {
+            function (err: any) {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
@@ -29,6 +31,10 @@ function refreshAccessToken(api: SpotifyAPI) {
 
 export function createSpotifyAPI() {
     let config = {} as ISnoppifyConfig;
+
+    if (globalSpotifyAPI) {
+        return globalSpotifyAPI;
+    }
 
     try {
         config = require(appRoot + "/snoppify-config.js");
@@ -48,14 +54,18 @@ export function createSpotifyAPI() {
         clientSecret: config.client_secret,
     }) as SpotifyAPI;
 
+    if (!globalSpotifyAPI) {
+        globalSpotifyAPI = api;
+    }
+
     api.config = config;
 
     api.init = () => {
         api.config = config;
 
-        api.onload = new Promise(function(resolve, reject) {
+        api.onload = new Promise(function (resolve, reject) {
             api.clientCredentialsGrant().then(
-                function(data: any) {
+                function (data: any) {
                     // Save the access token so that it's used in future calls
                     api.setAccessToken(data.body["access_token"]);
 
@@ -63,7 +73,7 @@ export function createSpotifyAPI() {
 
                     resolve();
                 },
-                function(err: any) {
+                function (err: any) {
                     console.log(
                         "Something went wrong when retrieving an access token",
                         err,
