@@ -8,10 +8,12 @@
 		<button>GO!</button>
     </form>-->
     <h1>Sign in with</h1>
-    <form v-bind:action="baseURL + authUrls.facebook" class="auth auth--facebook">
+    <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
+      <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Facebook" />
     </form>
-    <form v-bind:action="baseURL + authUrls.spotify" class="auth auth--spotify">
+    <form v-bind:action="getAuthUrl('spotify')" class="auth auth--spotify">
+      <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Spotify" />
     </form>
   </div>
@@ -41,9 +43,15 @@ export default {
         })
         .catch(err => console.log(err));
     },
+
+    getAuthUrl(service) {
+      return `${this.baseURL}${this.authUrls[service]}`;
+    },
   },
 
-  created() {},
+  created() {
+    console.log(this.$route.query, this.getAuthUrl("facebook"));
+  },
 
   computed: {},
 

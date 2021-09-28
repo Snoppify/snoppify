@@ -39,6 +39,11 @@
             <input v-model="hostIP" placeholder="Host IP or SnoppiCode" />
           </div>
         </div>
+        <div class="start-input">
+          <div class="start-input__text">
+            <input v-model="partyId" placeholder="Party id" />
+          </div>
+        </div>
 
         <button class="start-btn start-btn__join" @click="onJoinClick()">
           Join
@@ -88,6 +93,7 @@ export default {
     timeSpentScanning: 0,
     foundHost: false,
     hostIP: storage.get("serverIP"),
+    partyId: null,
   }),
 
   methods: {
@@ -97,9 +103,6 @@ export default {
     },
     onJoinClick() {
       if (this.hostIP.match(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/)) {
-        api.init(this.hostIP);
-        this.$router.push({ name: "newUser" });
-
         api.init(this.hostIP);
       } else {
         var ip = codeWords.getIP(this.hostIP);
@@ -113,7 +116,7 @@ export default {
 
       this.showServerForm = true;
 
-      this.$router.push({ name: "newUser" });
+      this.$router.push({ name: "newUser", query: { partyId: this.partyId } });
 
       // this.scanForServers();
     },
