@@ -11,8 +11,9 @@ export type SnoppifyHost = {
     controller: SpotifyController;
 };
 
-export { createSnoppifyHost, getSnoppifyHost };
+export { createSnoppifyHost, getSnoppifyHost, getLatestSnoppifyHost };
 
+let latestHost: SnoppifyHost;
 
 const activeHosts: {
     [hostId: string]: SnoppifyHost;
@@ -44,6 +45,7 @@ const createSnoppifyHost = (opts: {
     } as SnoppifyHost;
 
     activeHosts[opts.hostId] = host;
+    latestHost = host;
 
     return host;
 }
@@ -51,4 +53,11 @@ const createSnoppifyHost = (opts: {
 const getSnoppifyHost = (id: string) => {
     return activeHosts[id];
 }
+
+/**
+ * returns the latest created host
+ * 
+ * OBS!!! VÄLDIGT FULHACK!!!
+ */
+const getLatestSnoppifyHost = () => latestHost
 
