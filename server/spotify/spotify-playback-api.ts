@@ -135,7 +135,7 @@ class SpotifyPlaybackAPI {
     getRefreshToken(code?): Promise<string> {
         return Promise.resolve(this.api.getRefreshToken());
 
-        return new Promise((resolve, reject) => {
+        return new Promise<string | null>((resolve, reject) => {
             axios({
                 method: "post",
                 url: "https://accounts.spotify.com/api/token",
@@ -153,7 +153,7 @@ class SpotifyPlaybackAPI {
                     if (r.data && r.data.refresh_token) {
                         resolve(r.data.refresh_token);
                     } else {
-                        resolve();
+                        resolve(null);
                     }
                 },
                 r => {

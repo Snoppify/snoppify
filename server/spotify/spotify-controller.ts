@@ -212,7 +212,7 @@ class SpotifyController {
     }
 
     dequeueTrack(user: any /* User */, trackId: string) {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             // TODO: check if playing?
             let track = this.queue.get(trackId);
             this.getUserData(user, (err: any, userData: any) => {
@@ -259,7 +259,7 @@ class SpotifyController {
     }
 
     vote(user: any, trackId: any) {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             let track = this.queue.get(trackId);
 
             if (!track) {
@@ -308,7 +308,7 @@ class SpotifyController {
     }
 
     unvote(user: any, trackId: any) {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             let track = this.queue.get(trackId);
 
             if (!track) {
@@ -629,7 +629,7 @@ class SpotifyController {
 
 
     emptyQueue() {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             let removed = this.queue.queue;
 
             this.queue.clear();
@@ -700,7 +700,7 @@ class SpotifyController {
     private addToPlaylist(track: string | { uri: string }) {
         this.playlist = this.mainPlaylist;
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (track) {
                 let uri =
                     typeof track == "string" ? "spotify:track:" + track : track.uri;
