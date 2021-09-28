@@ -25,6 +25,8 @@ const createSnoppifyHost = (opts: {
     refreshToken: string;
     hostId: string;
 }) => {
+    // if (latestHost) return latestHost;
+
     const api = createSpotifyAPI();
 
     // Set the access token on the API object to use it in later calls

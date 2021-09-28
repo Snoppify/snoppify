@@ -53,7 +53,8 @@ class SpotifyController {
         this.currentParty = party;
 
         return new Promise((resolve, reject) => {
-            var filename = "data/snoppify-party-" + party.id + ".json";
+            // var filename = "data/snoppify-party-" + party.id + ".json";
+            var filename = this.queueFile;
 
             // load saved party
             fs.readFile(filename, "utf8", (err, data) => {

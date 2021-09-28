@@ -103,9 +103,12 @@ socket.io.use(sharedsession(mysession));
 
 app.use("*", (req, _, next) => {
     // add the host to the request
-    if (req.user?.partyId) {
-        req.snoppifyHost = getSnoppifyHost(req.user.partyId);
-    }
+    // if (req.user?.partyId) {
+    //     req.snoppifyHost = getSnoppifyHost(req.user.partyId);
+    // }
+
+    req.snoppifyHost = getSnoppifyHost("hehe");
+
     next();
 });
 

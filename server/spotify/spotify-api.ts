@@ -9,7 +9,7 @@ export type SpotifyAPI = SpotifyWebApi & {
     onload: Promise<any>;
 };
 
-let globalSpotifyAPI;
+let globalSpotifyAPI: SpotifyAPI;
 
 function refreshAccessToken(api: SpotifyAPI) {
     setInterval(function () {
@@ -63,9 +63,9 @@ export function createSpotifyAPI() {
     api.init = () => {
         api.config = config;
 
-        api.onload = new Promise(function (resolve, reject) {
+        api.onload = new Promise<void>((resolve, reject) => {
             api.clientCredentialsGrant().then(
-                function (data: any) {
+                (data: any) => {
                     // Save the access token so that it's used in future calls
                     api.setAccessToken(data.body["access_token"]);
 
@@ -73,7 +73,7 @@ export function createSpotifyAPI() {
 
                     resolve();
                 },
-                function (err: any) {
+                (err: any) => {
                     console.log(
                         "Something went wrong when retrieving an access token",
                         err,
@@ -84,6 +84,8 @@ export function createSpotifyAPI() {
             );
         });
 
+        // Make sure init only does things the first time it gets called?
+        api.init = () => api
         return api;
     };
 
