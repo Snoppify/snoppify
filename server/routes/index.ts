@@ -8,6 +8,7 @@ import socket from "../socket";
 import { createSnoppifyHost, getSnoppifyHost } from "../spotify";
 import { SpotifyPlaybackAPI, spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import refreshTokenTpl from "./refresh-token-template";
+import { PassportStatic } from "passport";
 
 const spotifyAPI = createSpotifyAPI().init();;
 
@@ -47,7 +48,7 @@ const checkStr = (str: any) => {
     throw new Error("Not a string: " + JSON.stringify(str));
 };
 
-export default function (passport) {
+export default function (passport: PassportStatic) {
     // spotifyPlaybackApi.init(spotify.api);
 
     let tmp_host_data = {};
@@ -728,7 +729,7 @@ export default function (passport) {
             scope: spotifyAPIScopes,
             failureRedirect: "/host",
         }),
-        function (req, res, next) {
+        (req, res, next) => {
             if (!req.user.host) {
                 req.user.host = {};
             }
