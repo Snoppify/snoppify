@@ -37,6 +37,7 @@ class SpotifyPlaybackAPI {
 
     constructor(api: SpotifyAPI) {
         this.api = api;
+        this.accessToken = api.getAccessToken();
     }
 
     play(opts: PlayOptions = {}) {
@@ -119,6 +120,9 @@ class SpotifyPlaybackAPI {
     getAccessToken(): Promise<string> {
         return new Promise((resolve, reject) => {
             let time = (Date.now() - refreshTime) / 1000;
+
+            // console.log("this.accestoken", this.accessToken, { time, expireTime })
+
             if (this.accessToken && time < expireTime) {
                 resolve(this.accessToken);
             } else {
@@ -126,6 +130,7 @@ class SpotifyPlaybackAPI {
                     this.accessToken = data.body.access_token;
                     // Save the access token so that it's used in future calls
                     this.api.setAccessToken(this.accessToken);
+                    refreshTime = Date.now();
                     resolve(this.accessToken);
                 }, reject);
             }

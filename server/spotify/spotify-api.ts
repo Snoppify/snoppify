@@ -11,22 +11,22 @@ export type SpotifyAPI = SpotifyWebApi & {
 
 let globalSpotifyAPI: SpotifyAPI;
 
-function refreshAccessToken(api: SpotifyAPI) {
-    setInterval(function () {
-        api.clientCredentialsGrant().then(
-            function (data: any) {
+function initAccessTokenRefreshInterval(api: SpotifyAPI) {
+    setInterval(() => {
+        api.refreshAccessToken().then(
+            (data) => {
                 console.log("Updated access_token:", data.body.access_token);
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body.access_token);
             },
-            function (err: any) {
+            (err: any) => {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
                 );
             },
         );
-    }, 3000 * 1000);
+    }, 60 * 10 * 1000); // every 15 min
 }
 
 export function createSpotifyAPI() {
@@ -69,7 +69,7 @@ export function createSpotifyAPI() {
                     // Save the access token so that it's used in future calls
                     api.setAccessToken(data.body["access_token"]);
 
-                    refreshAccessToken(api);
+                    initAccessTokenRefreshInterval(api);
 
                     resolve();
                 },

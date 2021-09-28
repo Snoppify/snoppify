@@ -13,7 +13,7 @@ export type SnoppifyHost = {
 
 export { createSnoppifyHost, getSnoppifyHost, getLatestSnoppifyHost };
 
-let latestHost: SnoppifyHost;
+let latestHost: SnoppifyHost = {} as any;
 
 const activeHosts: {
     [hostId: string]: SnoppifyHost;

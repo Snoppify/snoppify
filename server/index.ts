@@ -19,7 +19,7 @@ import passportInit from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { createSnoppifyHost, getSnoppifyHost } from "./spotify";
+import { getSnoppifyHost } from "./spotify";
 
 //@ts-ignore
 dotenv.config();
