@@ -51,7 +51,8 @@ const createSnoppifyHost = (opts: {
 }
 
 const getSnoppifyHost = (id: string) => {
-    return activeHosts[id];
+    // return activeHosts[id];
+    return getLatestSnoppifyHost();
 }
 
 /**
