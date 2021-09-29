@@ -217,7 +217,7 @@ export default function (passport: PassportStatic) {
                     "access_token=" + data.body['access_token'],
                     "refresh_token=" + data.body['refresh_token'],
                 ];
-                res.redirect("http://" + getPassportState(req, + '/host?' + params.join("&")).address);
+                res.redirect("http://" + getPassportState(req, '/host?' + params.join("&")).address);
             }).catch(function (r) {
                 res.redirect("http://" + getPassportState(req, '/host?success=false').address);
             });

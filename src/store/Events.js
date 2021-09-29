@@ -35,6 +35,17 @@ export default {
                 state.events.push(_event);
 
                 switch (_event.type) {
+                    case "newUser":
+                        this.dispatch("Messages/toast", {
+                            type: "peach",
+                            html:
+                                "<img src='" + _event.data.profile + "' style='width:24px;height:24px;border-radius:99px;vertical-align:middle;margin-right:8px;'>" +
+                                "<b>" +
+                                _event.data.displayName +
+                                "</b> just joined!",
+                            duration: 10,
+                        });
+                        break;
                     case "waitingForNextSong":
                         this.dispatch("Messages/toast", {
                             type: "deepsea",
