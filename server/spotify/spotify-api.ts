@@ -49,7 +49,7 @@ export function createSpotifyAPI() {
     }
 
     const api = new SpotifyWebApi({
-        redirectUri: "http://localhost:3000/create-spotify-host",
+        redirectUri: "http://localhost:3000/authenticate-spotify-host",
         clientId: config.client_id,
         clientSecret: config.client_secret,
     }) as SpotifyAPI;
