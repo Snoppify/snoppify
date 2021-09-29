@@ -660,6 +660,29 @@ export default function (passport: PassportStatic) {
         }
     );
 
+    // route for google authentication and login
+    // different scopes while logging in
+    router.get("/auth/google", (req, ...args) =>
+        passport.authenticate("google", {
+            scope: ['email', 'profile', 'https://www.googleapis.com/auth/plus.login'],
+            state: JSON.stringify(getPassportState(req)),
+        })(req, ...args),
+    );
+
+    // handle the callback after google has authenticated the user
+    // new test callback that looks more like the spotify one
+    router.get(
+        "/auth/google/callback",
+        passport.authenticate("google", { failureRedirect: "/new-user", }),
+        (req, res, next) => {
+            req.session.host = null;
+            req.user.partyId = req.query.partyId;
+
+            res.redirect("/party");
+            next();
+        }
+    );
+
     // route for spotify authentication and login
     // different scopes while logging in
     router.get("/auth/spotify", (req, ...args) =>
