@@ -30,7 +30,7 @@ import storage from "@/common/device-storage";
 export default {
   data: () => ({
     username: "",
-    baseURL: "https://" + storage.get("serverIP"),
+    baseURL: storage.get("serverIP"),
     authUrls: {
       facebook: "/auth/facebook",
       spotify: "/auth/spotify",
@@ -61,7 +61,7 @@ export default {
   computed: {},
 
   mounted: function () {
-    this.baseURL = "https://" + storage.get("serverIP");
+    this.baseURL = storage.get("serverIP");
   },
 };
 </script>

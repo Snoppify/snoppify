@@ -132,23 +132,23 @@
     <div class="soundboard">
       <button
         v-for="sound in [
-        'honk',
-        'applause',
-        'orgasm',
-        'whistle',
-        'yeah',
-        'wilhelm',
-        'airhorn',
-        'brrrap',
-        'rastafari',
-        'inception',
-        'mario1',
-        'mario2',
-        //'mario3',
-        //'yoshi1',
-        //'yoshi2',
-        //'yoshi3',
-      ]"
+          'honk',
+          'applause',
+          'orgasm',
+          'whistle',
+          'yeah',
+          'wilhelm',
+          'airhorn',
+          'brrrap',
+          'rastafari',
+          'inception',
+          'mario1',
+          'mario2',
+          //'mario3',
+          //'yoshi1',
+          //'yoshi2',
+          //'yoshi3',
+        ]"
         v-bind:key="sound"
         v-on:click="playSound(sound)"
         class="soundboard__btn snopp-btn"
@@ -263,7 +263,7 @@ export default {
       setTimeout(() => {
         QRCode.toCanvas(
           this.$refs.qrCanvas,
-          `http://${location.hostname}/new-user`,
+          process.env.VUE_APP_SERVER_URI + "/new-user",
           function (error) {
             if (error) console.error(error);
           },

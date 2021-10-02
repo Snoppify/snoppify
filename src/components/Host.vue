@@ -7,6 +7,8 @@
         <b>{{ error }}</b>
       </p>
 
+      {{ baseURL + authUrls.spotifyLogin }}
+
       <div v-if="!user.host">
         <form
           v-bind:action="baseURL + authUrls.spotifyLogin"
@@ -300,7 +302,7 @@ export default {
       partySearchTerm: null,
       device: null,
       devices: null,
-      baseURL: "https://" + storage.get("serverIP"),
+      baseURL: storage.get("serverIP"),
       authUrls: {
         facebook: "/auth/facebook",
         spotify: "/auth/spotify-host",
@@ -473,7 +475,7 @@ export default {
   },
 
   mounted: function () {
-    this.baseURL = "https://" + storage.get("serverIP");
+    this.baseURL = storage.get("serverIP");
   },
 };
 </script>
