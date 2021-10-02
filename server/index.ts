@@ -33,6 +33,11 @@ const args = minimist(process.argv);
 // consts
 const rootDir = appRootPath + "/dist";
 
+// data directory
+if (!fs.existsSync("./data")) {
+    fs.mkdirSync("./data");
+}
+
 const useHttps = false;
 let httpServer: https.Server | http.Server;
 if (useHttps) {
