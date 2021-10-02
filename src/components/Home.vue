@@ -132,23 +132,23 @@
     <div class="soundboard">
       <button
         v-for="sound in [
-          'honk',
-          'applause',
-          'orgasm',
-          'whistle',
-          'yeah',
-          'wilhelm',
-          'airhorn',
-          'brrrap',
-          'rastafari',
-          'inception',
-          'mario1',
-          'mario2',
-          'mario3',
-          'yoshi1',
-          'yoshi2',
-          'yoshi3',
-        ]"
+        'honk',
+        'applause',
+        'orgasm',
+        'whistle',
+        'yeah',
+        'wilhelm',
+        'airhorn',
+        'brrrap',
+        'rastafari',
+        'inception',
+        'mario1',
+        'mario2',
+        //'mario3',
+        //'yoshi1',
+        //'yoshi2',
+        //'yoshi3',
+      ]"
         v-bind:key="sound"
         v-on:click="playSound(sound)"
         class="soundboard__btn snopp-btn"

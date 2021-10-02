@@ -19,7 +19,7 @@ import passportInit from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { createSnoppifyHost, getSnoppifyHost } from "./spotify";
+import { getSnoppifyHost } from "./spotify";
 
 //@ts-ignore
 dotenv.config();
@@ -104,9 +104,12 @@ socket.io.use(sharedsession(mysession));
 
 app.use("*", (req, _, next) => {
     // add the host to the request
-    if (req.user?.partyId) {
-        req.snoppifyHost = getSnoppifyHost(req.user.partyId);
-    }
+    // if (req.user?.partyId) {
+    //     req.snoppifyHost = getSnoppifyHost(req.user.partyId);
+    // }
+
+    req.snoppifyHost = getSnoppifyHost("hehe");
+
     next();
 });
 

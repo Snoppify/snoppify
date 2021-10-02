@@ -8,6 +8,10 @@
 		<button>GO!</button>
     </form>-->
     <h1>Sign in with</h1>
+    <form v-bind:action="getAuthUrl('google')" class="auth auth--google">
+      <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
+      <input type="submit" value="Google" />
+    </form>
     <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Facebook" />
@@ -30,6 +34,7 @@ export default {
     authUrls: {
       facebook: "/auth/facebook",
       spotify: "/auth/spotify",
+      google: "/auth/google",
     },
   }),
 
@@ -111,6 +116,11 @@ export default {
 
   &--facebook input {
     background: #4266b2;
+    color: white;
+  }
+
+  &--google input {
+    background: #ea4335;
     color: white;
   }
 

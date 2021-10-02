@@ -11,8 +11,9 @@ export type SnoppifyHost = {
     controller: SpotifyController;
 };
 
-export { createSnoppifyHost, getSnoppifyHost };
+export { createSnoppifyHost, getSnoppifyHost, getLatestSnoppifyHost };
 
+let latestHost: SnoppifyHost = {} as any;
 
 const activeHosts: {
     [hostId: string]: SnoppifyHost;
@@ -24,6 +25,8 @@ const createSnoppifyHost = (opts: {
     refreshToken: string;
     hostId: string;
 }) => {
+    // if (latestHost) return latestHost;
+
     const api = createSpotifyAPI();
 
     // Set the access token on the API object to use it in later calls
@@ -44,11 +47,20 @@ const createSnoppifyHost = (opts: {
     } as SnoppifyHost;
 
     activeHosts[opts.hostId] = host;
+    latestHost = host;
 
     return host;
 }
 
 const getSnoppifyHost = (id: string) => {
-    return activeHosts[id];
+    // return activeHosts[id];
+    return getLatestSnoppifyHost();
 }
+
+/**
+ * returns the latest created host
+ * 
+ * OBS!!! VÄLDIGT FULHACK!!!
+ */
+const getLatestSnoppifyHost = () => latestHost
 

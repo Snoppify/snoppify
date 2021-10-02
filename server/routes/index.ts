@@ -8,11 +8,12 @@ import socket from "../socket";
 import { createSnoppifyHost, getSnoppifyHost } from "../spotify";
 import { SpotifyPlaybackAPI, spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import refreshTokenTpl from "./refresh-token-template";
+import { PassportStatic } from "passport";
 
 const spotifyAPI = createSpotifyAPI().init();;
 
-const spotify = createSnoppifyHost({} as any);
-const spotifyPlaybackApi = new SpotifyPlaybackAPI(spotify.api);
+const getGlobalSnoppifyHost = () => getSnoppifyHost("asd");
+// const spotifyPlaybackApi = new SpotifyPlaybackAPI(getGlobalSnoppifyHost().api);
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ const checkStr = (str: any) => {
     throw new Error("Not a string: " + JSON.stringify(str));
 };
 
-export default function (passport) {
+export default function (passport: PassportStatic) {
     // spotifyPlaybackApi.init(spotify.api);
 
     let tmp_host_data = {};
@@ -466,7 +467,7 @@ export default function (passport) {
 
         if (!req.body.uri) {
             // unset backup playlist
-            spotify.controller
+            getGlobalSnoppifyHost().controller
                 .removeBackupPlaylist();
 
             res.status(200).end();
@@ -480,28 +481,28 @@ export default function (passport) {
             return;
         }
 
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .setBackupPlaylist({ id: playlist.id })
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/set-active-device", (req, res) => {
-        spotify.playbackAPI
+        getGlobalSnoppifyHost().playbackAPI
             .setActiveDevice(req.body.id)
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.get("/get-devices", (req, res) => {
-        spotify.playbackAPI
+        getGlobalSnoppifyHost().playbackAPI
             .getDevices()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.get("/get-track", (req, res) => {
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .getTrack(checkStr(req.query.trackId))
             .then(successHandler(res))
             .catch(errorHandler(res));
@@ -510,35 +511,35 @@ export default function (passport) {
     router.get("/get-playlists", (req, res) => { });
 
     router.post("/play", (req, res) => {
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .play(req.body.playlist)
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/pause", (req, res) => {
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .pause()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/play-next", (req, res) => {
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .playNext()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/empty-playlist", (req, res) => {
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .emptyPlaylist()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/empty-queue", (req, res) => {
-        spotify.controller
+        getGlobalSnoppifyHost().controller
             .emptyQueue()
             .then(successHandler(res))
             .catch(errorHandler(res));
@@ -546,16 +547,16 @@ export default function (passport) {
 
     router.get("/get-queue", (req, res) => {
         res.json({
-            data: spotify.controller.getQueue(),
+            data: getGlobalSnoppifyHost().controller.getQueue(),
         });
     });
 
     router.get("/info", (req, res) => {
         res.json({
-            party: spotify.controller.getCurrentParty(),
-            queue: spotify.controller.getQueue(),
-            currentTrack: spotify.controller.getCurrentTrack(),
-            backupPlaylist: spotify.controller.getBackupPlaylist(),
+            party: getGlobalSnoppifyHost().controller.getCurrentParty(),
+            queue: getGlobalSnoppifyHost().controller.getQueue(),
+            currentTrack: getGlobalSnoppifyHost().controller.getCurrentTrack(),
+            backupPlaylist: getGlobalSnoppifyHost().controller.getBackupPlaylist(),
         });
     });
 
@@ -574,7 +575,7 @@ export default function (passport) {
     });
 
     router.get("/get-host-playlists", (req, res) => {
-        spotify.api
+        getGlobalSnoppifyHost().api
             .getUserPlaylists("me", {
                 limit: +req.query.limit || 15,
                 offset: req.query.offset === undefined ? 0 : +req.query.offset,
@@ -605,6 +606,7 @@ export default function (passport) {
                     // spotify.init(req);
 
                     if (req.user.host.id) {
+                        console.log("set party")
                         spotify.controller.setParty(req.user.host);
                     }
                 }
@@ -652,6 +654,29 @@ export default function (passport) {
             req.user.partyId = req.query.partyId;
 
             console.log("Authed FACEBOOK user: ", req.user, req.query);
+
+            res.redirect("/party");
+            next();
+        }
+    );
+
+    // route for google authentication and login
+    // different scopes while logging in
+    router.get("/auth/google", (req, ...args) =>
+        passport.authenticate("google", {
+            scope: ['email', 'profile', 'https://www.googleapis.com/auth/plus.login'],
+            state: JSON.stringify(getPassportState(req)),
+        })(req, ...args),
+    );
+
+    // handle the callback after google has authenticated the user
+    // new test callback that looks more like the spotify one
+    router.get(
+        "/auth/google/callback",
+        passport.authenticate("google", { failureRedirect: "/new-user", }),
+        (req, res, next) => {
+            req.session.host = null;
+            req.user.partyId = req.query.partyId;
 
             res.redirect("/party");
             next();
@@ -735,8 +760,7 @@ export default function (passport) {
             scope: spotifyAPIScopes,
             failureRedirect: "/host",
         }),
-        function (req, res, next) {
-            console.log("/host-login/auth/spotify/callback", req);
+        (req, res, next) => {
             if (!req.user.host) {
                 req.user.host = {};
             }
@@ -756,7 +780,7 @@ export default function (passport) {
             return res.json({ error: "You need to be host!" });
         }
 
-        const party = spotify.controller.getCurrentParty();
+        const party = getGlobalSnoppifyHost().controller.getCurrentParty();
         if (!party) {
             res.status(500);
             return res.json({ error: "No party file/object" });
@@ -771,7 +795,7 @@ export default function (passport) {
             return res.status(403).end();
         }
 
-        const wifi = spotify.controller.getCurrentParty()?.wifi;
+        const wifi = getGlobalSnoppifyHost().controller.getCurrentParty()?.wifi;
         if (!wifi) {
             //return res.status(500).json({ error: "No wifi in the party object" });
             res.send(null);

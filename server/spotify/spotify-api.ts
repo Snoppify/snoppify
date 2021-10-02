@@ -9,26 +9,32 @@ export type SpotifyAPI = SpotifyWebApi & {
     onload: Promise<any>;
 };
 
-function refreshAccessToken(api: SpotifyAPI) {
-    setInterval(function () {
-        api.clientCredentialsGrant().then(
-            function (data: any) {
+let globalSpotifyAPI: SpotifyAPI;
+
+function initAccessTokenRefreshInterval(api: SpotifyAPI) {
+    setInterval(() => {
+        api.refreshAccessToken().then(
+            (data) => {
                 console.log("Updated access_token:", data.body.access_token);
                 // Save the access token so that it's used in future calls
                 api.setAccessToken(data.body.access_token);
             },
-            function (err: any) {
+            (err: any) => {
                 console.log(
                     "Something went wrong when retrieving an access token",
                     err,
                 );
             },
         );
-    }, 3000 * 1000);
+    }, 60 * 10 * 1000); // every 15 min
 }
 
 export function createSpotifyAPI() {
     let config = {} as ISnoppifyConfig;
+
+    if (globalSpotifyAPI) {
+        return globalSpotifyAPI;
+    }
 
     try {
         config = require(appRoot + "/snoppify-config.js");
@@ -48,22 +54,26 @@ export function createSpotifyAPI() {
         clientSecret: config.client_secret,
     }) as SpotifyAPI;
 
+    if (!globalSpotifyAPI) {
+        globalSpotifyAPI = api;
+    }
+
     api.config = config;
 
     api.init = () => {
         api.config = config;
 
-        api.onload = new Promise(function (resolve, reject) {
+        api.onload = new Promise<void>((resolve, reject) => {
             api.clientCredentialsGrant().then(
-                function (data: any) {
+                (data: any) => {
                     // Save the access token so that it's used in future calls
                     api.setAccessToken(data.body["access_token"]);
 
-                    refreshAccessToken(api);
+                    initAccessTokenRefreshInterval(api);
 
                     resolve();
                 },
-                function (err: any) {
+                (err: any) => {
                     console.log(
                         "Something went wrong when retrieving an access token",
                         err,
@@ -74,6 +84,8 @@ export function createSpotifyAPI() {
             );
         });
 
+        // Make sure init only does things the first time it gets called?
+        api.init = () => api
         return api;
     };
 

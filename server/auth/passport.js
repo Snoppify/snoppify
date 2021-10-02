@@ -1,5 +1,6 @@
 const FacebookStrategy = require("passport-facebook").Strategy;
 const SpotifyStrategy = require("passport-spotify").Strategy;
+const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 
 const User = require("../models/user");
 
@@ -100,6 +101,32 @@ module.exports = function(passport) {
                             profile.photos.length > 0
                                 ? profile.photos[0].value
                                 : null,
+                    },
+                    done,
+                );
+            },
+        ),
+    );
+
+    passport.use(
+        new GoogleStrategy(
+            {
+                clientID: config.googleAuth.clientID,
+                clientSecret: config.googleAuth.clientSecret,
+                callbackURL: config.googleAuth.callbackURL,
+            },
+
+            function(accessToken, refreshToken, expires_in, profile, done) {
+                findOrCreateUser(
+                    {
+                        id: profile.id,
+                        token: accessToken,
+                        username: profile.id,
+                        displayName: profile.displayName || profile.id,
+                        name: profile.name.givenName,
+                        profile: profile.photos.length > 0
+                            ? profile.photos[0].value
+                            : null,
                     },
                     done,
                 );
