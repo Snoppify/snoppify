@@ -7,7 +7,7 @@ export default {
     init: serverIP => {
         Vue.use(
             VueSocketio,
-            window.location.protocol + "//" + serverIP,
+            serverIP,
             store,
         );
     },
