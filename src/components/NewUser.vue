@@ -12,13 +12,13 @@
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Google" />
     </form>
-    <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
+    <!-- <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Facebook" />
     </form>
     <form v-bind:action="getAuthUrl('spotify')" class="auth auth--spotify">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
-      <input type="submit" value="Spotify" />
+      <input type="submit" value="Spotify" /> -->
     </form>
   </div>
 </template>
