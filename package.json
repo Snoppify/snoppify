@@ -84,9 +84,9 @@
     "eslint": "^4.19.1",
     "eslint-plugin-vue": "^4.7.1",
     "minimist": "^1.2.5",
-    "node-sass": "^4.14.1",
     "npm-watch": "^0.4.0",
     "prettier": "^1.19.1",
+    "sass": "^1.42.1",
     "sass-loader": "^7.3.1",
     "typescript": "^3.9.7",
     "vue-template-compiler": "^2.6.12"
