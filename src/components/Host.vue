@@ -14,7 +14,7 @@
           v-bind:action="baseURL + authUrls.spotifyLogin"
           class="auth auth--spotify"
         >
-          <input type="submit" value="Log in to your Spotify accouunt" />
+          <input type="submit" value="Log in to your Spotify account" />
         </form>
       </div>
 
