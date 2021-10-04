@@ -153,7 +153,6 @@ socket.io.on("connection", (sock: any) => {
 
     // console.log("SOCK SESSION:", sock.handshake.session);
 
-
     // need to do " as any" since handshake.session is added by
     // express-socket.io or passport or something
     // if ((sock.handshake as any).session.passport) {
@@ -177,12 +176,21 @@ socket.io.on("connection", (sock: any) => {
     //     }
     // });
 
+    User.find(sock.handshake.session.passport.user, (err, user) => {
+        sock.broadcast.emit("event", {
+            type: "newUser",
+            data: {
+                displayName: user.displayName,
+                profile: user.profile,
+            },
+        });
+    });
+
     sock.on("getTrack", (id: any) => {
         console.log("SOCK SESSION:", sock.handshake.session);
 
-        User.find(sock.handshake.session.passport.user, user => {
+        User.find(sock.handshake.session.passport.user, (err, user) => {
             const spotify = getSnoppifyHost(user.partyId);
-            console.log({ spotify });
 
             Promise.all([
                 spotify.api.getTracks([id]),
