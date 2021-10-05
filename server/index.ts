@@ -181,15 +181,17 @@ socket.io.on("connection", (sock: any) => {
     //     }
     // });
 
-    User.find(sock.handshake.session.passport.user, (err, user) => {
-        sock.broadcast.emit("event", {
-            type: "newUser",
-            data: {
-                displayName: user.displayName,
-                profile: user.profile,
-            },
+    if (sock.handshake.session.passport) {
+        User.find(sock.handshake.session.passport.user, (err, user) => {
+            sock.broadcast.emit("event", {
+                type: "newUser",
+                data: {
+                    displayName: user.displayName,
+                    profile: user.profile,
+                },
+            });
         });
-    });
+    }
 
     sock.on("getTrack", (id: any) => {
         console.log("SOCK SESSION:", sock.handshake.session);
