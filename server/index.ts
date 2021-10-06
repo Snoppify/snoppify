@@ -25,12 +25,18 @@ import { getSnoppifyHost } from "./spotify";
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 80;
 
 const LokiStore = connectLoki(session);
 const args = minimist(process.argv);
 
 // consts
 const rootDir = appRootPath + "/dist";
+
+// data directory
+if (!fs.existsSync("./data")) {
+    fs.mkdirSync("./data");
+}
 
 const useHttps = false;
 let httpServer: https.Server | http.Server;
@@ -54,7 +60,7 @@ const cookieparser = cookieParser();
 app.use(function (req, res, next) {
     let ipAddr = ip.address();
     var localhost = ipAddr + ":3000";
-    var remotehost = "http://snoppify.com";
+    var remotehost = "https://snoppify.com";
     var host = req.get("origin") || req.get("host");
     res.header("Access-Control-Allow-Origin", host);
     //res.header("Access-Control-Allow-Origin", "*");
@@ -213,7 +219,6 @@ socket.io.on("connection", (sock: any) => {
     });
 });
 
-const port = args.p || 3000;
 httpServer.listen(port, () => {
     let ipAddr = ip.address();
 

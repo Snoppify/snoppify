@@ -147,7 +147,7 @@ class SpotifyPlaybackAPI {
                 params: {
                     grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
                     code: code,
-                    redirect_uri: "http://localhost:3000/create-spotify-host",
+                    redirect_uri: process.env.SERVER_URI + "/create-spotify-host",
                 },
                 headers: {
                     Authorization: "Basic " + this.api.config.auth_token,
@@ -171,7 +171,7 @@ class SpotifyPlaybackAPI {
     getAuthUrl(state?, redirectUri?) {
         // Does this work?
         (this.api as any)._credentials.redirectUri =
-            redirectUri || "http://localhost:3000/create-spotify-host";
+            redirectUri || process.env.SERVER_URI + "/create-spotify-host";
 
         return this.api.createAuthorizeURL(scopes, state || "auth");
     }

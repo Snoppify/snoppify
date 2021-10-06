@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 import express, { Request as ExpressRequest } from "express";
 import ip, { address } from "ip";
 import { createSpotifyAPI } from "../spotify/spotify-api";
@@ -33,7 +37,7 @@ const redirectIfAuthenticated = function (req, res, next) {
 
 const getPassportState = (req: ExpressRequest, addressSuffix = "") => {
     return {
-        address: ip.address() + ":" + req.connection.localPort + addressSuffix,
+        address: process.env.SERVER_URI + addressSuffix,
         id: req.query.partyId
     };
 };
@@ -133,10 +137,10 @@ export default function (passport: PassportStatic) {
                     "refresh_token=" + data.body['refresh_token'],
                 ];
 
-                res.redirect("http://" + getPassportState(req, '/host?' + params.join("&")).address);
+                res.redirect(getPassportState(req, '/host?' + params.join("&")).address);
             }).catch(function () {
                 console.log("callback from the spotify api FAILED");
-                res.redirect("http://" + getPassportState(req, '/host?success=false').address);
+                res.redirect(getPassportState(req, '/host?success=false').address);
             });
 
         } else {
@@ -217,9 +221,10 @@ export default function (passport: PassportStatic) {
                     "access_token=" + data.body['access_token'],
                     "refresh_token=" + data.body['refresh_token'],
                 ];
-                res.redirect("http://" + getPassportState(req, '/host?' + params.join("&")).address);
+
+                res.redirect(getPassportState(req, + '/host?' + params.join("&")).address);
             }).catch(function (r) {
-                res.redirect("http://" + getPassportState(req, '/host?success=false').address);
+                res.redirect(getPassportState(req, '/host?success=false').address);
             });
 
         } else {
@@ -729,7 +734,7 @@ export default function (passport: PassportStatic) {
             state: JSON.stringify(getPassportState(req, "/host-login")),
             successRedirect: "/host",
             failureRedirect: "/host",
-        })(req, ...args),
+        })(req, ...args)
     );
 
     // handle the callback after spotify has authenticated the user
@@ -738,7 +743,12 @@ export default function (passport: PassportStatic) {
         passport.authenticate("spotify", { failureRedirect: "/new-user", }),
         (req, res, next) => {
             req.session.host = null;
-            req.user.partyId = req.query.partyId;
+            console.log(req.query.state);
+            try {
+                const data = JSON.parse(req.query.state as any);
+                console.log(data);
+                req.user.partyId = data.id;
+            } catch (e) { }
 
             console.log("Authed SPOTIFY user: ", req.user, req.query);
 
@@ -780,7 +790,8 @@ export default function (passport: PassportStatic) {
             req.user.host.status = 'pending';
 
             User.save(req.user, (err, data) => {
-                res.redirect('http://' + getPassportState(req, '/authenticate-spotify-host').address);
+                console.log("User saved (host login)");
+                res.redirect(getPassportState(req, '/authenticate-spotify-host').address);
             });
         }
     );

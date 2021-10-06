@@ -12,13 +12,13 @@
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Google" />
     </form>
-    <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
+    <!-- <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Facebook" />
     </form>
     <form v-bind:action="getAuthUrl('spotify')" class="auth auth--spotify">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
-      <input type="submit" value="Spotify" />
+      <input type="submit" value="Spotify" /> -->
     </form>
   </div>
 </template>
@@ -30,7 +30,7 @@ import storage from "@/common/device-storage";
 export default {
   data: () => ({
     username: "",
-    baseURL: "http://" + storage.get("serverIP") + ":3000",
+    baseURL: storage.get("serverIP"),
     authUrls: {
       facebook: "/auth/facebook",
       spotify: "/auth/spotify",
@@ -61,7 +61,7 @@ export default {
   computed: {},
 
   mounted: function () {
-    this.baseURL = "http://" + storage.get("serverIP") + ":3000";
+    this.baseURL = storage.get("serverIP");
   },
 };
 </script>
