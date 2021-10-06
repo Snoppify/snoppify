@@ -154,7 +154,10 @@ export default function (passport: PassportStatic) {
     // Spotify refresh token end point
     // NEW ROUTE
     router.get("/authenticate-spotify-host", (req, res) => {
-        if (req.query.access_token && req.query.refresh_token) {
+        const access_token = req.session?.spotify?.access_token || req.query.access_token;
+        const refresh_token = req.session?.spotify?.refresh_token || req.query.refresh_token;
+
+        if (access_token && refresh_token) {
             // finalize the host process
 
             // // TODO: should fetch old host data maybe
@@ -175,14 +178,14 @@ export default function (passport: PassportStatic) {
 
             const snoppifyHost = createSnoppifyHost({
                 owner: req.user.username,
-                accessToken: checkStr(req.query.access_token),
-                refreshToken: checkStr(req.query.refresh_token),
+                accessToken: checkStr(access_token),
+                refreshToken: checkStr(refresh_token),
                 hostId: "default", // this is a hack
             });
 
             req.session.spotify = {
-                access_token: req.query.access_token,
-                refresh_token: req.query.refresh_token,
+                access_token: access_token,
+                refresh_token: refresh_token,
             };
 
             User.save(req.user, () => {
@@ -204,11 +207,11 @@ export default function (passport: PassportStatic) {
                             delete req.user.host.name;
 
                             User.save(req.user, () => {
-                                res.status(200).end();
+                                res.status(301).redirect(getPassportState(req, '/host').address);
                             });
                         });
                 } else {
-                    res.status(200).end();
+                    res.status(301).redirect(getPassportState(req, '/host').address);
                 }
             });
 
@@ -222,14 +225,19 @@ export default function (passport: PassportStatic) {
                     "refresh_token=" + data.body['refresh_token'],
                 ];
 
-                res.redirect(getPassportState(req, + '/host?' + params.join("&")).address);
+                req.session.spotify = {
+                    access_token: data.body['access_token'],
+                    refresh_token: data.body['refresh_token'],
+                };
+
+                res.status(301).redirect(getPassportState(req, '/host?' + params.join("&")).address);
             }).catch(function (r) {
                 res.redirect(getPassportState(req, '/host?success=false').address);
             });
 
         } else {
             var url = spotifyAPI.createAuthorizeURL(spotifyAPIScopes, getPassportState(req, '/authenticate-spotify-host').address);
-            res.redirect(url);
+            res.status(301).redirect(url);
         }
     });
 
@@ -790,8 +798,7 @@ export default function (passport: PassportStatic) {
             req.user.host.status = 'pending';
 
             User.save(req.user, (err, data) => {
-                console.log("User saved (host login)");
-                res.redirect(getPassportState(req, '/authenticate-spotify-host').address);
+                res.status(301).redirect(getPassportState(req, '/authenticate-spotify-host').address);
             });
         }
     );
