@@ -183,6 +183,9 @@ socket.io.on("connection", (sock: any) => {
 
     if (sock.handshake.session.passport) {
         User.find(sock.handshake.session.passport.user, (err, user) => {
+            if (!user) {
+                return;
+            }
             sock.broadcast.emit("event", {
                 type: "newUser",
                 data: {
