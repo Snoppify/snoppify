@@ -50,7 +50,7 @@ export default {
     },
 
     getAuthUrl(service) {
-      return `${this.baseURL}${this.authUrls[service]}`;
+      return `${process.env.VUE_APP_SERVER_URI}${this.authUrls[service]}`;
     },
   },
 

@@ -6,14 +6,6 @@ const User = require("../models/user");
 
 const appRoot = require("app-root-path");
 
-// load the auth variables
-let config = {};
-try {
-    config = require(appRoot + "/snoppify-config.js");
-} catch (ex) {
-    console.log("No snoppify config file");
-}
-
 module.exports = function(passport) {
     // used to serialize the user for the session
     passport.serializeUser(function(user, done) {
@@ -30,11 +22,6 @@ module.exports = function(passport) {
     // code for login (use('local-login', new LocalStategy))
     // code for signup (use('local-signup', new LocalStategy))
 
-    if (!config.facebookAuth) {
-        console.log("No facebook auth");
-        return;
-    }
-
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
@@ -42,9 +29,9 @@ module.exports = function(passport) {
         new FacebookStrategy(
             {
                 // pull in our app id and secret from our auth.js file
-                clientID: config.facebookAuth.clientID,
-                clientSecret: config.facebookAuth.clientSecret,
-                callbackURL: config.facebookAuth.callbackURL,
+                clientID: process.env.FACEBOOK_CLIENT_ID,
+                clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+                callbackURL: process.env.SERVER_URI + "/auth/callback",
                 profileFields: [
                     "id",
                     "name",
@@ -84,12 +71,13 @@ module.exports = function(passport) {
     passport.use(
         new SpotifyStrategy(
             {
-                clientID: config.spotifyAuth.clientID,
-                clientSecret: config.spotifyAuth.clientSecret,
-                callbackURL: config.spotifyAuth.callbackURL,
+                clientID: process.env.SPOTIFY_CLIENT_ID,
+                clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+                callbackURL: process.env.SERVER_URI + "/auth/callback"
             },
 
             function(accessToken, refreshToken, expires_in, profile, done) {
+                console.log("create spotify user", profile.id);
                 findOrCreateUser(
                     {
                         id: profile.id,
@@ -111,9 +99,9 @@ module.exports = function(passport) {
     passport.use(
         new GoogleStrategy(
             {
-                clientID: config.googleAuth.clientID,
-                clientSecret: config.googleAuth.clientSecret,
-                callbackURL: config.googleAuth.callbackURL,
+                clientID: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                callbackURL: process.env.SERVER_URI + "/auth/callback"
             },
 
             function(accessToken, refreshToken, expires_in, profile, done) {

@@ -30,28 +30,40 @@ function initAccessTokenRefreshInterval(api: SpotifyAPI) {
 }
 
 export function createSpotifyAPI() {
-    let config = {} as ISnoppifyConfig;
+    let config = {
+        client_id: process.env.SPOTIFY_CLIENT_ID,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+        
+        auth_token: Buffer.from(
+            process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET,
+        ).toString("base64"),
+        refresh_token: "",
+        
+        owner: "",
+        playlist: "",
+
+        spotifyAuth: {
+            clientID: process.env.SPOTIFY_CLIENT_ID,
+            clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+        },
+        facebookAuth: {
+            clientID: process.env.SPOTIFY_CLIENT_ID,
+            clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+        },
+        googleAuth: {
+            clientID: process.env.SPOTIFY_CLIENT_ID,
+            clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+        },
+    } as ISnoppifyConfig;
 
     if (globalSpotifyAPI) {
         return globalSpotifyAPI;
     }
 
-    try {
-        config = require(appRoot + "/snoppify-config.js");
-
-        if (config.client_id && config.client_secret) {
-            config.auth_token = new Buffer(
-                config.client_id + ":" + config.client_secret,
-            ).toString("base64");
-        }
-    } catch (ex) {
-        throw new Error("No snoppify config file");
-    }
-
     const api = new SpotifyWebApi({
-        redirectUri: process.env.SERVER_URI + "/authenticate-spotify-host",
-        clientId: config.client_id,
-        clientSecret: config.client_secret,
+        redirectUri: process.env.SERVER_URI + "/auth/callback",
+        clientId: process.env.SPOTIFY_CLIENT_ID,
+        clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
     }) as SpotifyAPI;
 
     if (!globalSpotifyAPI) {

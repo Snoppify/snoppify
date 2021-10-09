@@ -171,7 +171,7 @@ class SpotifyPlaybackAPI {
     getAuthUrl(state?, redirectUri?) {
         // Does this work?
         (this.api as any)._credentials.redirectUri =
-            redirectUri || process.env.SERVER_URI + "/create-spotify-host";
+            redirectUri || process.env.SERVER_URI + "/auth/callback";
 
         return this.api.createAuthorizeURL(scopes, state || "auth");
     }

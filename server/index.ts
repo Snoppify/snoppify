@@ -58,9 +58,6 @@ const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
 app.use(function (req, res, next) {
-    let ipAddr = ip.address();
-    var localhost = ipAddr + ":3000";
-    var remotehost = "https://snoppify.com";
     var host = req.get("origin") || req.get("host");
     res.header("Access-Control-Allow-Origin", host);
     //res.header("Access-Control-Allow-Origin", "*");
