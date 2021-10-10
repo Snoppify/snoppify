@@ -5,9 +5,8 @@
   "scripts": {
     "start": "npm run server",
     "build": "npm run build-client && npm run build-server",
-    "serve": "vue-cli-service build --watch --port 8080",
-    "build-client": "npx vue-cli-service build --dest dist",
-    "build-client-dev": "npx vue-cli-service build --mode development --dest dist",
+    "serve": "npx vue-cli-service build --mode development --watch --port 3001",
+    "build-client": "npx vue-cli-service build --mode development --dest dist",
     "lint": "vue-cli-service lint",
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node server-dist/",
@@ -91,10 +90,10 @@
     "electron": "^7.3.3",
     "eslint": "^4.19.1",
     "eslint-plugin-vue": "^4.7.1",
-    "sass": "^1.42.1",
     "node-sass": "^5",
     "npm-watch": "^0.4.0",
     "prettier": "^1.19.1",
+    "sass": "^1.42.1",
     "sass-loader": "^10",
     "typescript": "^3.9.10",
     "vue-template-compiler": "^2.6.14"
