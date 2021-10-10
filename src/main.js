@@ -66,4 +66,4 @@ Vue.component("track-item", TrackItem);
 Vue.component("modal", Modal);
 
 // TODO: Move to after the server has been found
-socket.init(api.ip);
+socket.init();

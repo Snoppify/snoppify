@@ -7,6 +7,7 @@ export default {
     init: () => {
         Vue.use(
             VueSocketio,
+            process.env.VUE_APP_SERVER_URI,
             store,
         );
     },
