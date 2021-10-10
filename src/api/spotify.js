@@ -13,16 +13,6 @@ export default axios => ({
             },
         });
     },
-    createSpotifyHost(params) {
-        return axios.get("/create-spotify-host", {
-            params: params,
-        });
-    },
-    authenticateSpotifyHost(params) {
-        return axios.get("/authenticate-spotify-host", {
-            params: params,
-        });
-    },
     setActiveDevice(id) {
         return axios.post("/set-active-device", {
             id,

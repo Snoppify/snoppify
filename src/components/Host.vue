@@ -38,6 +38,10 @@
         <p>Authenticating...</p>
       </div>
 
+      <div v-if="authenticating">
+        <p>Authenticating host...</p>
+      </div>
+
       <div v-if="user.host && user.host.id">
         <p>ID: {{ user.host.id }}</p>
         <p>
@@ -295,6 +299,7 @@ export default {
     return {
       searchTerm: null,
       loading: false,
+      authenticating: false,
       error: null,
       playlists: null,
       backupUrl: null,
@@ -328,32 +333,7 @@ export default {
   },
 
   beforeMount: function () {
-    if (this.$route.query.access_token && this.$route.query.refresh_token) {
-      // complete the request chain
-      var state = this.$route.query.state || "host";
-      var params = {
-        access_token: this.$route.query.access_token,
-        refresh_token: this.$route.query.refresh_token,
-      };
-      var promise = null;
-
-      switch (state) {
-        case "host":
-          promise = api.spotify.createSpotifyHost(params);
-          break;
-        case "auth":
-          promise = api.spotify.authenticateSpotifyHost(params);
-          break;
-      }
-
-      promise
-        .then(() => {
-          window.location.href = "/host";
-        })
-        .catch(() => {
-          this.error = "something went wrong";
-        });
-    } else if (this.$route.query.success == "false") {
+    if (this.$route.query.success == "false") {
       this.error = "something went wrong";
     }
 

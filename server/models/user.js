@@ -131,6 +131,12 @@ export default class User {
             return callback(null);
         });
     }
+
+    static sanitize(user) {
+        // @ts-ignore: exlude _tokens field
+        const {_tokens, ...sanitized} = user;
+        return sanitized;
+    }
 }
 
 //User.users = [];

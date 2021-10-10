@@ -61,7 +61,7 @@ export function createSpotifyAPI() {
     }
 
     const api = new SpotifyWebApi({
-        redirectUri: process.env.SERVER_URI + "/auth/callback",
+        redirectUri: process.env.SERVER_URI + "/auth/spotify/callback",
         clientId: process.env.SPOTIFY_CLIENT_ID,
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
     }) as SpotifyAPI;

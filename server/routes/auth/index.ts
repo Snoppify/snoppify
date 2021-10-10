@@ -1,9 +1,10 @@
 import express, { Request as ExpressRequest } from "express";
 import { PassportStatic } from "passport";
 import { Buffer } from 'buffer';
+import User from "./../../models/user";
 
 const { spotifyAPIScopes } = require("./../../spotify/spotify-playback-api");
-const { getSnoppifyHost } = require("./../../spotify");
+const { getSnoppifyHost, authenticateSpotifyHost, createSpotifyHost } = require("./../../spotify");
 
 const router = express.Router();
 
@@ -25,9 +26,58 @@ const encodeStateObject = (obj = {}) => (
 const decodeState = (state = "") => {
     try {
         return JSON.parse(Buffer.from(String(state), "base64").toString());
-    } catch(_) {}
+    } catch (_) { }
     return null;
 }
+
+const authCallback = (req, res) => {
+    req.session.host = null;
+
+    const state = decodeState(String(req.query.state));
+
+    if (!state) {
+        res.redirect("/");
+        return;
+    }
+
+    switch (state.auth) {
+        case AUTH_STATE_GUEST:
+            req.session.host = null;
+            if (state.id) {
+                req.user.partyId = state.id;
+            }
+            res.redirect("/party");
+            break;
+        case AUTH_STATE_HOST_CREATE:
+            createSpotifyHost(req.user).then(() => {
+                // TODO: Is this needed?
+                req.session.spotify = {
+                    access_token: req.user._tokens.access_token,
+                    refresh_token: req.user._tokens.refresh_token,
+                };
+
+                res.redirect("/host");
+            }).catch((error) => {
+                console.log(error);
+                res.redirect("/host?success=false");
+            });
+            break;
+        case AUTH_STATE_HOST_LOGIN:
+            authenticateSpotifyHost(req.user).then(() => {
+                // TODO: Is this needed?
+                req.session.spotify = {
+                    access_token: req.user._tokens.access_token,
+                    refresh_token: req.user._tokens.refresh_token,
+                };
+
+                res.redirect("/host");
+            }).catch((error) => {
+                console.log(error);
+                res.redirect("/host?success=false");
+            });
+            break;
+    }
+};
 
 export default function (passport: PassportStatic) {
 
@@ -58,7 +108,7 @@ export default function (passport: PassportStatic) {
                 }
             }
 
-            res.json(req.user);
+            res.json(User.sanitize(req.user));
             res.end();
         } else {
             res.sendStatus(403);
@@ -86,6 +136,14 @@ export default function (passport: PassportStatic) {
         })(req, ...args),
     );
 
+    // handle the callback after facebook has authenticated the user
+    router.get("/auth/facebook/callback",
+        passport.authenticate("facebook", {
+            failureRedirect: process.env.SERVER_URI + "/host?success=false",
+        }),
+        authCallback
+    );
+
     // route for google authentication and login
     // different scopes while logging in
     router.get("/auth/google", (req, ...args) =>
@@ -96,6 +154,14 @@ export default function (passport: PassportStatic) {
                 auth: AUTH_STATE_GUEST,
             }),
         })(req, ...args),
+    );
+
+    // handle the callback after google has authenticated the user
+    router.get("/auth/google/callback",
+        passport.authenticate("google", {
+            failureRedirect: process.env.SERVER_URI + "/host?success=false",
+        }),
+        authCallback
     );
 
     // route for spotify authentication and login
@@ -118,7 +184,6 @@ export default function (passport: PassportStatic) {
                 id: req.query.partyId, // TODO: check if this is used
                 auth: AUTH_STATE_HOST_CREATE,
             }),
-            failureRedirect: process.env.SERVER_URI + "/host?success=false",
         })(req, ...args)
     });
 
@@ -130,39 +195,15 @@ export default function (passport: PassportStatic) {
                 id: req.query.partyId, // TODO: check if this is used
                 auth: AUTH_STATE_HOST_LOGIN,
             }),
-            failureRedirect: process.env.SERVER_URI + "/host?success=false",
         })(req, ...args)
     });
 
     // handle the callback after spotify has authenticated the user
-    router.get(
-        "/auth/callback",
-        (req, res) => {
-            req.session.host = null;
-
-            const state = decodeState(String(req.query.state));
-
-            if (!state) {
-                res.redirect("/");
-                return;
-            }
-
-            switch (state.auth) {
-                case AUTH_STATE_GUEST:
-                    req.session.host = null;
-                    if (state.id) {
-                        req.user.partyId = state.id;
-                    }
-                    res.redirect("/party");
-                    break;
-                case AUTH_STATE_HOST_CREATE:
-                    res.redirect("/create-spotify-host?code=" + req.query.code);
-                    break;
-                case AUTH_STATE_HOST_LOGIN:
-                    res.redirect("/authenticate-spotify-host?code=" + req.query.code);
-                    break;
-            }
-        },
+    router.get("/auth/spotify/callback",
+        passport.authenticate("spotify", {
+            failureRedirect: process.env.SERVER_URI + "/host?success=false",
+        }),
+        authCallback
     );
 
     return router;
