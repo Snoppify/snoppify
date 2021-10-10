@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "start": "npm run server",
-    "build": "npm run build-client && npm run build-server",
+    "build": "npm run build-client-prod && npm run build-server",
     "serve": "npx vue-cli-service build --mode development --watch --port 3001",
     "build-client": "npx vue-cli-service build --mode development --dest dist",
+    "build-client-prod": "npx vue-cli-service build --dest dist",
     "lint": "vue-cli-service lint",
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node server-dist/",
