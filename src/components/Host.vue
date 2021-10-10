@@ -307,7 +307,7 @@ export default {
       partySearchTerm: null,
       device: null,
       devices: null,
-      baseURL: storage.get("serverIP"),
+      baseURL: process.env.VUE_APP_SERVER_URI,
       authUrls: {
         facebook: "/auth/facebook",
         spotify: "/auth/spotify-host",
@@ -455,7 +455,7 @@ export default {
   },
 
   mounted: function () {
-    this.baseURL = storage.get("serverIP");
+    this.baseURL = process.env.VUE_APP_SERVER_URI;
   },
 };
 </script>

@@ -17,25 +17,11 @@ const api = {
     init,
 };
 
-let serverIP = process.env.VUE_APP_SERVER_URI;
-// storage.get("serverIP") ||
-// // don't do this on snoppify.com
-// (!location.hostname.includes("snoppify.com") && location.hostname);
+api.init();
 
-api.init(serverIP);
-
-function init(serverIP) {
-    api.ip = serverIP;
-
-    if (!serverIP) {
-        console.error("No server ip set");
-        return;
-    }
-
-    storage.set("serverIP", serverIP);
-
+function init() {
     const _axios = axios.create({
-        baseURL: serverIP,
+        baseURL: process.env.VUE_APP_SERVER_URI,
         timeout: 5000,
         withCredentials: true,
     });

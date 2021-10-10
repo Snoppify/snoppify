@@ -30,7 +30,7 @@ import storage from "@/common/device-storage";
 export default {
   data: () => ({
     username: "",
-    baseURL: storage.get("serverIP"),
+    baseURL: process.env.VUE_APP_SERVER_URI,
     authUrls: {
       facebook: "/auth/facebook",
       spotify: "/auth/spotify",
@@ -61,7 +61,7 @@ export default {
   computed: {},
 
   mounted: function () {
-    this.baseURL = storage.get("serverIP");
+    this.baseURL = process.env.VUE_APP_SERVER_URI;
   },
 };
 </script>
