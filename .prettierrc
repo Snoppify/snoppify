@@ -9,5 +9,6 @@
       }
     }
   ],
-  "semi": true
+  "semi": true,
+  "endOfLine": "auto"
 }

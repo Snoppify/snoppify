@@ -22,10 +22,12 @@ export default {
         },
 
         SOCKET_EVENT(state, data) {
+            var uVoter, uIssuer;
+
             switch (data.type) {
                 case "friend.vote":
-                    var uVoter = data.data.voter;
-                    var uIssuer = data.data.user;
+                    uVoter = data.data.voter;
+                    uIssuer = data.data.user;
                     // issuer
                     if (uIssuer.username == state.username) {
                         state.user.votes.received[uVoter.username] = data.data.votes;
@@ -46,8 +48,8 @@ export default {
                     }
                     break;
                 case "friend.new":
-                    var uVoter = data.data.voter;
-                    var uIssuer = data.data.user;
+                    uVoter = data.data.voter;
+                    uIssuer = data.data.user;
                     // issuer
                     if (uIssuer.username == state.username) {
                         state.user.friends = uIssuer.friends;
