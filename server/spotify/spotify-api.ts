@@ -53,7 +53,7 @@ export function createSpotifyAPI() {
     api.init = () => {
         api.config = config;
 
-        api.onload = new Promise(function(resolve, reject) {
+        api.onload = new Promise<void>(function(resolve, reject) {
             api.clientCredentialsGrant().then(
                 function(data: any) {
                     // Save the access token so that it's used in future calls

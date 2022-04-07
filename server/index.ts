@@ -1,3 +1,5 @@
+/*global SpotifyApi*/
+
 import appRootPath from "app-root-path";
 import bodyParser from "body-parser";
 import connectLoki from "connect-loki";

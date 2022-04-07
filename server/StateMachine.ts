@@ -1,3 +1,5 @@
+/*global SpotifyApi*/
+
 export interface StateMachineData<SN extends string, EN extends string> {
     states: StateMachineState<SN>[];
     data: Partial<StateMachineDataData<EN>>;

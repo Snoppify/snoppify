@@ -135,32 +135,32 @@ class SpotifyPlaybackAPI {
     getRefreshToken(code?): Promise<string> {
         return Promise.resolve(this.api.getRefreshToken());
 
-        return new Promise((resolve, reject) => {
-            axios({
-                method: "post",
-                url: "https://accounts.spotify.com/api/token",
-                params: {
-                    grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
-                    code: code,
-                    redirect_uri: "http://localhost:3000/create-spotify-host",
-                },
-                headers: {
-                    Authorization: "Basic " + this.api.config.auth_token,
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-            }).then(
-                r => {
-                    if (r.data && r.data.refresh_token) {
-                        resolve(r.data.refresh_token);
-                    } else {
-                        resolve();
-                    }
-                },
-                r => {
-                    reject(r);
-                },
-            );
-        });
+        // return new Promise((resolve, reject) => {
+        //     axios({
+        //         method: "post",
+        //         url: "https://accounts.spotify.com/api/token",
+        //         params: {
+        //             grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
+        //             code: code,
+        //             redirect_uri: "http://localhost:3000/create-spotify-host",
+        //         },
+        //         headers: {
+        //             Authorization: "Basic " + this.api.config.auth_token,
+        //             "Content-Type": "application/x-www-form-urlencoded",
+        //         },
+        //     }).then(
+        //         r => {
+        //             if (r.data && r.data.refresh_token) {
+        //                 resolve(r.data.refresh_token);
+        //             } else {
+        //                 resolve();
+        //             }
+        //         },
+        //         r => {
+        //             reject(r);
+        //         },
+        //     );
+        // });
     }
 
     getAuthUrl(state?, redirectUri?) {
@@ -202,3 +202,4 @@ class SpotifyPlaybackAPI {
 }
 
 export { SpotifyPlaybackAPI, scopes as spotifyAPIScopes };
+
