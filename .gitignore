@@ -43,3 +43,6 @@ snoppify-config.js
 .vscode
 .jsbeautifyrc
 jsconfig.json
+
+# jest
+server/coverage/

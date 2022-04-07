@@ -2,7 +2,12 @@ const fs = require("fs");
 const Queue = require("../Queue");
 
 export default class User {
-    static users;
+    static users: any[];
+    static usersFile: string;
+    
+    queue: any;
+    votes: any;
+    friends: any;
 
     constructor(data) {
         for (let key in data) {
@@ -62,7 +67,7 @@ export default class User {
         });
     }
 
-    static save(user, callback) {
+    static save(user?, callback?) {
         this.init(err => {
             if (err) {
                 return callback(err);
@@ -82,7 +87,7 @@ export default class User {
                     return User.saveToFile(callback);
                 });
             } else {
-                return User.saveToFile(callback || function() { });
+                return User.saveToFile(callback || function () { });
             }
         });
     }
@@ -124,7 +129,7 @@ export default class User {
             users: _users,
         });
 
-        return fs.writeFile(User.usersFile, json, "utf8", function(err) {
+        return fs.writeFile(User.usersFile, json, "utf8", function (err) {
             if (err) {
                 return callback(err);
             }
@@ -155,5 +160,3 @@ User.usersFile = "data/snoppify-users.json";
 
 // export the singleton API only
 // -----------------------------
-
-module.exports = User;
