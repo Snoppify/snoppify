@@ -4,7 +4,9 @@
       <div class="modal-wrapper">
         <div class="modal-container">
           <div slot="close-button">
-            <button class="modal-close-button" @click="$emit('close')">X</button>
+            <button class="modal-close-button" @click="$emit('close')">
+              X
+            </button>
           </div>
 
           <div class="modal-header">

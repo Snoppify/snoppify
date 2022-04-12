@@ -60,7 +60,7 @@ export default {
 
   computed: {},
 
-  mounted: function () {
+  mounted() {
     this.baseURL = process.env.VUE_APP_SERVER_URI;
   },
 };

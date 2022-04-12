@@ -187,9 +187,9 @@
 
 <script>
 import { mapGetters } from "vuex";
+import * as QRCode from "qrcode";
 import api from "../api";
 import codeWords from "../common/code-words";
-import * as QRCode from "qrcode";
 
 // components
 import SearchDropdown from "./SearchDropdown";
@@ -263,8 +263,8 @@ export default {
       setTimeout(() => {
         QRCode.toCanvas(
           this.$refs.qrCanvas,
-          process.env.VUE_APP_SERVER_URI + "/new-user",
-          function (error) {
+          `${process.env.VUE_APP_SERVER_URI}/new-user`,
+          (error) => {
             if (error) console.error(error);
           },
         );
@@ -288,28 +288,27 @@ export default {
     showFriends() {
       this.$store.dispatch("Messages/popup", {
         type: "deepsea",
-        html:
-          "<h2>Your friends:</h2>" +
-          (this.user.friends.length == 0 ? "<p>No friends yet :(</p>" : "") +
-          this.user.friends
-            .map((f) => {
-              var html = f.displayName;
-              var given = this.user.votes.given[f.username]
-                ? this.user.votes.given[f.username]
-                : 0;
-              var received = this.user.votes.received[f.username]
-                ? this.user.votes.received[f.username]
-                : 0;
-              if (given > received) {
-                html += " (you upvoted " + given + " times)";
-              } else if (received > given) {
-                html += " (upvoted you " + received + " times)";
-              } else {
-                html += " (" + received + " upvotes)";
-              }
-              return "<p>" + html + "</p>";
-            })
-            .join(""),
+        html: `<h2>Your friends:</h2>${
+          this.user.friends.length == 0 ? "<p>No friends yet :(</p>" : ""
+        }${this.user.friends
+          .map((f) => {
+            let html = f.displayName;
+            const given = this.user.votes.given[f.username]
+              ? this.user.votes.given[f.username]
+              : 0;
+            const received = this.user.votes.received[f.username]
+              ? this.user.votes.received[f.username]
+              : 0;
+            if (given > received) {
+              html += ` (you upvoted ${given} times)`;
+            } else if (received > given) {
+              html += ` (upvoted you ${received} times)`;
+            } else {
+              html += ` (${received} upvotes)`;
+            }
+            return `<p>${html}</p>`;
+          })
+          .join("")}`,
       });
     },
   },

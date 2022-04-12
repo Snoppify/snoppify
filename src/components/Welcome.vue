@@ -125,9 +125,9 @@ export default {
 
       const totalStart = Date.now();
 
-      getIP().then(ip => {
+      getIP().then((ip) => {
         console.log("got ip:", ip);
-        var _ip = ip.substr(0, ip.lastIndexOf(".") + 1);
+        const _ip = ip.substr(0, ip.lastIndexOf(".") + 1);
 
         this.timeSpentScanning = ((Date.now() - totalStart) / 1000).toFixed(1);
         const count = setInterval(() => {
@@ -148,24 +148,18 @@ export default {
           }
         };
 
-        const doRequest = index => {
-          const _url =
-            window.location.protocol +
-            "//" +
-            _ip +
-            index +
-            ":" +
-            port +
-            "/ping";
-          let start = Date.now();
+        const doRequest = (index) => {
+          const _url = window.location.protocol;
+          `//${_ip}${index}:${port}/ping`;
+          const start = Date.now();
 
           fetch(_url, {
             method: "get",
             signal: controller.signal,
           })
-            .then(res => {
+            .then((res) => {
               try {
-                res.json().then(json => {
+                res.json().then((json) => {
                   console.log(json);
                   if (!json.isHost) {
                     return onFail();
@@ -205,12 +199,12 @@ export default {
     },
   },
 
-  mounted: function() {
-    api.auth.auth().then(sessData => {
+  mounted() {
+    api.auth.auth().then((sessData) => {
       this.user = sessData;
     });
 
-    api.misc.info().then(data => {
+    api.misc.info().then((data) => {
       this.party = data.party;
     });
   },

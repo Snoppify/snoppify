@@ -281,10 +281,10 @@
 
 <script>
 import { mapGetters } from "vuex";
+import QRCode from "qrcode";
 import api from "../api";
 import debounce from "../common/debounce";
 import storage from "@/common/device-storage";
-import QRCode from "qrcode";
 
 export default {
   created() {
@@ -332,7 +332,7 @@ export default {
     }),
   },
 
-  beforeMount: function () {
+  beforeMount() {
     if (this.$route.query.success == "false") {
       this.error = "something went wrong";
     }
@@ -342,9 +342,7 @@ export default {
         api.spotify.getDevices().then((data) => {
           this.devices = data.devices;
 
-          var device = this.devices.find(function (d) {
-            return d.is_active;
-          });
+          const device = this.devices.find((d) => d.is_active);
           if (device) {
             this.device = device.id;
           }
@@ -409,7 +407,7 @@ export default {
     },
 
     changePartyName() {
-      var name = prompt("Change party name", this.user.host.name);
+      const name = prompt("Change party name", this.user.host.name);
       if (name) {
         api.spotify.setPartyName(name).then((data) => {
           location.reload();
@@ -454,7 +452,7 @@ export default {
     },
   },
 
-  mounted: function () {
+  mounted() {
     this.baseURL = process.env.VUE_APP_SERVER_URI;
   },
 };

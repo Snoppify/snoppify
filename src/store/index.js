@@ -10,36 +10,33 @@ import Messages from "./Messages";
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
-    state: {
-        io: {},
+  state: {
+    io: {},
+  },
+
+  modules: {
+    Spotify,
+    Session,
+    Events,
+    Queue,
+    Messages,
+  },
+
+  mutations: {
+    /**
+     * Commits "init" on the modules if the mutation is defined.
+     */
+    init(state) {
+      for (const m in this._modules.root._children) {
+        const module = this._modules.root._children[m];
+        if (module._rawModule.mutations && module._rawModule.mutations.init) {
+          module.context.commit("init");
+        }
+      }
     },
 
-    modules: {
-        Spotify,
-        Session,
-        Events,
-        Queue,
-        Messages,
+    setSocket(state, socket) {
+      state.io = socket;
     },
-
-    mutations: {
-        /**
-         * Commits "init" on the modules if the mutation is defined.
-         */
-        init(state) {
-            for (let m in this._modules.root._children) {
-                let module = this._modules.root._children[m];
-                if (
-                    module._rawModule.mutations &&
-                    module._rawModule.mutations["init"]
-                ) {
-                    module.context.commit("init");
-                }
-            }
-        },
-
-        setSocket(state, socket) {
-            state.io = socket;
-        },
-    },
+  },
 });
