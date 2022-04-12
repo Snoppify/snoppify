@@ -1,10 +1,9 @@
-import { Request } from "express";
 import SpotifyWebApi from "spotify-web-api-node";
-
+import User from "./../models/user";
 import { createSpotifyAPI, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";
-import User from "./../models/user";
+
 
 export type SnoppifyHost = {
     initialized: boolean;
@@ -20,6 +19,8 @@ export {
     authenticateSpotifyHost,
     createSpotifyHost,
 };
+
+export const GLOBAL_SNOPPIFY_HOST_ID = "GLOBAL_HOST_ID";
 
 let latestHost: SnoppifyHost = null as any;
 
@@ -67,8 +68,7 @@ const createSnoppifyHost = (opts: {
 }
 
 const getSnoppifyHost = (id: string) => {
-    // return activeHosts[id];
-    return getLatestSnoppifyHost();
+    return activeHosts[id];
 }
 
 /**
@@ -76,7 +76,7 @@ const getSnoppifyHost = (id: string) => {
  * 
  * OBS!!! VÄLDIGT FULHACK!!!
  */
-const getLatestSnoppifyHost = () => latestHost
+const getLatestSnoppifyHost = () => latestHost;
 
 /**
  * Throws an error if the provided param is not a string. Used for

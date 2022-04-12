@@ -21,7 +21,7 @@ import passportInit from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { getSnoppifyHost } from "./spotify";
+import { getSnoppifyHost, GLOBAL_SNOPPIFY_HOST_ID } from "./spotify";
 
 //@ts-ignore
 dotenv.config();
@@ -112,7 +112,7 @@ app.use("*", (req, _, next) => {
     //     req.snoppifyHost = getSnoppifyHost(req.user.partyId);
     // }
 
-    req.snoppifyHost = getSnoppifyHost("hehe");
+    req.snoppifyHost = getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 
     next();
 });
@@ -199,7 +199,8 @@ socket.io.on("connection", (sock: any) => {
         console.log("SOCK SESSION:", sock.handshake.session);
 
         User.find(sock.handshake.session.passport.user, (err, user) => {
-            const spotify = getSnoppifyHost(user.partyId);
+            // const spotify = getSnoppifyHost(user.partyId);
+            const spotify = getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 
             Promise.all([
                 spotify.api.getTracks([id]),

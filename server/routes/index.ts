@@ -9,7 +9,7 @@ import { createSpotifyAPI } from "../spotify/spotify-api";
 import codeWords from "../models/code-words";
 import User from "../models/user";
 import socket from "../socket";
-import { createSnoppifyHost, getSnoppifyHost } from "../spotify";
+import { createSnoppifyHost, getSnoppifyHost, GLOBAL_SNOPPIFY_HOST_ID } from "../spotify";
 import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import { PassportStatic } from "passport";
 
@@ -17,7 +17,7 @@ import routesAuthIndex from "./auth";
 
 const spotifyAPI = createSpotifyAPI().init();
 
-const getGlobalSnoppifyHost = () => getSnoppifyHost("asd");
+const getGlobalSnoppifyHost = () => getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 // const spotifyPlaybackApi = new SpotifyPlaybackAPI(getGlobalSnoppifyHost().api);
 
 const router = express.Router();
