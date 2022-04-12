@@ -127,7 +127,7 @@ class SpotifyPlaybackAPI {
       if (this.accessToken && time < expireTime) {
         resolve(this.accessToken);
       } else {
-        return this.api.refreshAccessToken().then((data) => {
+        this.api.refreshAccessToken().then((data) => {
           this.accessToken = data.body.access_token;
           // Save the access token so that it's used in future calls
           this.api.setAccessToken(this.accessToken);
@@ -138,7 +138,7 @@ class SpotifyPlaybackAPI {
     });
   }
 
-  getRefreshToken(code?): Promise<string> {
+  getRefreshToken(/* code? */): Promise<string> {
     return Promise.resolve(this.api.getRefreshToken());
 
     // return new Promise<string | null>((resolve, reject) => {
@@ -198,8 +198,8 @@ class SpotifyPlaybackAPI {
           },
           data,
           params,
-        }).then((data) => {
-          resolve(data.data);
+        }).then((response) => {
+          resolve(response.data);
         }, reject);
       }, reject);
     });

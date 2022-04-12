@@ -1,4 +1,3 @@
-import SpotifyWebApi from "spotify-web-api-node";
 import User from "../models/user";
 import { createSpotifyAPI, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
@@ -27,11 +26,11 @@ const activeHosts: {
   [hostId: string]: SnoppifyHost;
 } = {};
 
-const spotifyAPI = new SpotifyWebApi({
-  redirectUri: `${process.env.SERVER_URI}/auth/spotify/callback`,
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-}) as SpotifyAPI;
+// const spotifyAPI = new SpotifyWebApi({
+//   redirectUri: `${process.env.SERVER_URI}/auth/spotify/callback`,
+//   clientId: process.env.SPOTIFY_CLIENT_ID,
+//   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+// }) as SpotifyAPI;
 
 const createSnoppifyHost = (opts: {
   owner: string;
@@ -85,8 +84,10 @@ const checkStr = (str: any) => {
   throw new Error(`Not a string: ${JSON.stringify(str)}`);
 };
 
-const authenticateSpotifyHost = (user: any) =>
-  new Promise<void>((resolve, reject) => {
+const authenticateSpotifyHost = (incomingUser: any) =>
+  new Promise<void>((resolve) => {
+    const user = { ...incomingUser };
+
     const { access_token } = user._tokens;
     const { refresh_token } = user._tokens;
 
@@ -125,8 +126,10 @@ const authenticateSpotifyHost = (user: any) =>
     });
   });
 
-const createSpotifyHost = (user: any) =>
+const createSpotifyHost = (incomingUser: any) =>
   new Promise<void>((resolve, reject) => {
+    const user = { ...incomingUser };
+
     const { access_token } = user._tokens;
     const { refresh_token } = user._tokens;
 
@@ -144,7 +147,7 @@ const createSpotifyHost = (user: any) =>
     if (!user.host) {
       user.host = {};
     }
-    for (const key in hostData) {
+    for (const key of Object.keys(hostData)) {
       user.host[key] = hostData[key];
     }
 

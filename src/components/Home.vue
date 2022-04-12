@@ -192,8 +192,7 @@ import api from "../api";
 import codeWords from "../common/code-words";
 
 // components
-import SearchDropdown from "./SearchDropdown";
-import TrackItem from "./TrackItem";
+import SearchDropdown from "./SearchDropdown.vue";
 
 export default {
   components: {
@@ -204,7 +203,7 @@ export default {
     return {
       searchQuery: "",
       showShareModal: false,
-      snoppiCode: codeWords.getCode(location.hostname),
+      snoppiCode: codeWords.getCode(window.location.hostname),
     };
   },
 
@@ -289,7 +288,7 @@ export default {
       this.$store.dispatch("Messages/popup", {
         type: "deepsea",
         html: `<h2>Your friends:</h2>${
-          this.user.friends.length == 0 ? "<p>No friends yet :(</p>" : ""
+          this.user.friends.length === 0 ? "<p>No friends yet :(</p>" : ""
         }${this.user.friends
           .map((f) => {
             let html = f.displayName;

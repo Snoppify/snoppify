@@ -4,8 +4,7 @@ const storage = window.localStorage;
 
 export default {
   set(key, value) {
-    value = JSON.stringify(value);
-    storage.setItem(prefix(key), value);
+    storage.setItem(prefix(key), JSON.stringify(value));
   },
 
   get(key) {

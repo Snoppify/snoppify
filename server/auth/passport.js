@@ -2,10 +2,9 @@ const FacebookStrategy = require("passport-facebook").Strategy;
 const SpotifyStrategy = require("passport-spotify").Strategy;
 const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 
-const appRoot = require("app-root-path");
 const User = require("../models/user");
 
-module.exports = function (passport) {
+module.exports = function authPassport(passport) {
   // used to serialize the user for the session
   passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -128,9 +127,9 @@ function findOrCreateUser(data, done) {
       // user found, update data
       Object.assign(user, data);
 
-      user.save((err) => {
-        if (err) {
-          throw err;
+      user.save((_err) => {
+        if (_err) {
+          throw _err;
         }
 
         return done(null, user);
@@ -140,14 +139,16 @@ function findOrCreateUser(data, done) {
       const newUser = new User(data);
 
       // save our user to the database
-      newUser.save((err) => {
-        if (err) {
-          throw err;
+      newUser.save((_err) => {
+        if (_err) {
+          throw _err;
         }
 
         // if successful, return the new user
         return done(null, newUser);
       });
     }
+
+    return undefined;
   });
 }

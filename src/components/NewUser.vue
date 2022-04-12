@@ -25,7 +25,6 @@
 
 <script>
 import api from "../api";
-import storage from "@/common/device-storage";
 
 export default {
   data: () => ({

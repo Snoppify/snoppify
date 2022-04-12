@@ -1,6 +1,6 @@
-import express, { Request as ExpressRequest } from "express";
-import { PassportStatic } from "passport";
 import { Buffer } from "buffer";
+import express from "express";
+import { PassportStatic } from "passport";
 import User from "../../models/user";
 
 const { spotifyAPIScopes } = require("../../spotify/spotify-playback-api");
@@ -16,10 +16,10 @@ const AUTH_STATE_GUEST = "guest";
 const AUTH_STATE_HOST_CREATE = "host";
 const AUTH_STATE_HOST_LOGIN = "host-login";
 
-const getPassportState = (req: ExpressRequest, addressSuffix = "") => ({
-  address: process.env.SERVER_URI + addressSuffix,
-  id: req.query.partyId,
-});
+// const getPassportState = (req: ExpressRequest, addressSuffix = "") => ({
+//   address: process.env.SERVER_URI + addressSuffix,
+//   id: req.query.partyId,
+// });
 
 const encodeStateObject = (obj = {}) =>
   Buffer.from(JSON.stringify(obj)).toString("base64");
@@ -27,7 +27,9 @@ const encodeStateObject = (obj = {}) =>
 const decodeState = (state = "") => {
   try {
     return JSON.parse(Buffer.from(String(state), "base64").toString());
-  } catch (_) {}
+  } catch (_) {
+    //
+  }
   return null;
 };
 
@@ -81,10 +83,12 @@ const authCallback = (req, res) => {
           res.redirect("/host?success=false");
         });
       break;
+    default:
+      throw new Error(`Unsupported auth state: ${state.auth}`);
   }
 };
 
-export default function (passport: PassportStatic) {
+export default function routesAuthIndex(passport: PassportStatic) {
   router.get("/auth", (req, res) => {
     // if user is authenticated in the session, carry on
 

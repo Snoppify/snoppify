@@ -4,7 +4,7 @@ module.exports = {
     node: true,
     jest: true,
   },
-  ignorePatterns: ["dist/", "data/", "server-dist/"],
+  ignorePatterns: ["dist/", "data/", "server-dist/", "electron/"],
   extends: [
     "eslint:recommended",
     "plugin:vue/essential",
@@ -22,13 +22,29 @@ module.exports = {
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-unused-vars": [
       "warn",
-      { vars: "all", args: "after-used", ignoreRestSiblings: false },
+      { vars: "all", args: "after-used", ignoreRestSiblings: true },
     ],
     "vue/multi-word-component-names": "off",
     "@typescript-eslint/quotes": ["error", "double"],
     "linebreak-style": "off", // handled as "auto" by prettier
     "no-underscore-dangle": "off",
     "no-else-return": "off",
+    eqeqeq: "warn",
+    "@typescript-eslint/no-use-before-define": ["error", "nofunc"],
+    "prefer-destructuring": ["error", { object: true, array: false }],
+    "no-restricted-syntax": "off",
+    "no-return-assign": ["error", "except-parens"],
+    "import/prefer-default-export": "off",
+    "@typescript-eslint/naming-convention": [
+      "error",
+      {
+        selector: "variable",
+        modifiers: ["destructured"],
+        format: null,
+      },
+    ],
+    "no-plusplus": "off",
+    "no-cond-assign": ["error", "except-parens"],
   },
   overrides: [
     {

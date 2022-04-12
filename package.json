@@ -8,7 +8,7 @@
     "serve": "npx vue-cli-service build --mode development --watch --port 3001",
     "build-client": "npx vue-cli-service build --mode development --dest dist",
     "build-client-prod": "npx vue-cli-service build --dest dist",
-    "lint": "vue-cli-service lint",
+    "lint": "eslint --cache ./",
     "test": "jest",
     "build-server": "tsc --build tsconfig.server.json",
     "server": "node server-dist/",
@@ -53,6 +53,8 @@
     "fingerprintjs2": "^1.8.1",
     "howler": "^2.2.3",
     "ip": "^1.1.5",
+    "minimist": "^1.2.6",
+    "mkdirp": "^1.0.4",
     "passport": "^0.5",
     "passport-facebook": "^2.1.1",
     "passport-google-oauth": "^2.0.0",
@@ -105,7 +107,6 @@
     "husky": "^7.0.4",
     "jest": "^27.5.1",
     "lint-staged": "^12.3.7",
-    "minimist": "^1.2.5",
     "npm-watch": "^0.4.0",
     "prettier": "^2.6.2",
     "sass": "^1.42.1",
@@ -116,7 +117,7 @@
     "vue-template-compiler": "^2.6.12"
   },
   "lint-staged": {
-    "*.{js,ts}": "eslint --cache --fix",
+    "*.{js,ts,vue}": "eslint --cache --fix",
     "*.{js,ts,html,vue,css,md}": "prettier --write"
   }
 }

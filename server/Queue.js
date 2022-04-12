@@ -93,7 +93,7 @@ module.exports = class Queue {
    */
   get(item) {
     if (!item) {
-      return;
+      return undefined;
     }
 
     return this.queue.find(

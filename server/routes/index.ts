@@ -1,49 +1,46 @@
-import express, { Request as ExpressRequest } from "express";
-import ip, { address } from "ip";
+import express from "express";
 import { PassportStatic } from "passport";
-import { createSpotifyAPI } from "../spotify/spotify-api";
-
-import codeWords from "../models/code-words";
 import User from "../models/user";
 import socket from "../socket";
 import {
-  createSnoppifyHost,
+  // createSnoppifyHost,
   getSnoppifyHost,
   GLOBAL_SNOPPIFY_HOST_ID,
 } from "../spotify";
-import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
-
+import { createSpotifyAPI } from "../spotify/spotify-api";
+// import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
 
 if (process.env.NODE_ENV !== "production") {
+  // eslint-disable-next-line global-require
   require("dotenv").config();
 }
 
-const spotifyAPI = createSpotifyAPI().init();
+/* const spotifyAPI = */ createSpotifyAPI().init();
 
 const getGlobalSnoppifyHost = () => getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 // const spotifyPlaybackApi = new SpotifyPlaybackAPI(getGlobalSnoppifyHost().api);
 
 const router = express.Router();
 
-const isAuthenticated = function (req, res, next) {
-  // if user is authenticated in the session, call the next() to call the next request handler
-  // Passport adds this method to request object. A middleware is allowed to add properties to
-  // request and response objects
-  if (req.isAuthenticated()) return next();
-  // if the user is not authenticated then redirect him to the login page
-  res.redirect("/new-user");
-};
+// const isAuthenticated = function (req, res, next) {
+//   // if user is authenticated in the session, call the next() to call the next request handler
+//   // Passport adds this method to request object. A middleware is allowed to add properties to
+//   // request and response objects
+//   if (req.isAuthenticated()) return next();
+//   // if the user is not authenticated then redirect him to the login page
+//   res.redirect("/new-user");
+// };
 
-const redirectIfAuthenticated = function (req, res, next) {
-  if (req.isAuthenticated()) return res.redirect("/party");
-  next();
-};
+// const redirectIfAuthenticated = function (req, res, next) {
+//   if (req.isAuthenticated()) return res.redirect("/party");
+//   next();
+// };
 
-const getPassportState = (req: ExpressRequest, addressSuffix = "") => ({
-  address: process.env.SERVER_URI + addressSuffix,
-  id: req.query.partyId,
-});
+// const getPassportState = (req: ExpressRequest, addressSuffix = "") => ({
+//   address: process.env.SERVER_URI + addressSuffix,
+//   id: req.query.partyId,
+// });
 
 /**
  * Throws an error if the provided param is not a string. Used for
@@ -55,12 +52,10 @@ const checkStr = (str: any) => {
   throw new Error(`Not a string: ${JSON.stringify(str)}`);
 };
 
-export default function (passport: PassportStatic) {
+export default function routes(passport: PassportStatic) {
   // spotifyPlaybackApi.init(spotify.api);
 
   router.use(routesAuthIndex(passport));
-
-  const tmp_host_data = {};
 
   function successHandler(res) {
     return (r) => res.status(200).send(r);
@@ -91,16 +86,11 @@ export default function (passport: PassportStatic) {
   function extractPlaylistId(string) {
     let id;
 
-    [/spotify:playlist:(.+)/, /.?open\.spotify\.com\/playlist\/([^\?]+)/].find(
+    [/spotify:playlist:(.+)/, /.?open\.spotify\.com\/playlist\/([^?]+)/].find(
       (pattern) => string.match(pattern) && (id = string.match(pattern)[1]),
     );
 
-    if (id) {
-      return {
-        id,
-      };
-    }
-    return null;
+    return id ? { id } : null;
   }
 
   function isHost(req) {
@@ -144,11 +134,13 @@ export default function (passport: PassportStatic) {
     const query = checkStr(req.query.query) || "";
 
     if (query == "") {
-      return res.send({
+      res.send({
         tracks: {
           items: [],
         },
       });
+
+      return;
     }
 
     const extractedId = extractId(query);
@@ -177,11 +169,13 @@ export default function (passport: PassportStatic) {
       snoppifyHost.api
         .searchTracks(query)
         .then((data) => {
-          data.body.tracks.items = data.body.tracks.items.map(
+          const result = { ...data.body };
+
+          result.tracks.items = data.body.tracks.items.map(
             (track) => snoppifyHost.controller.queue.get(track) || track,
           );
 
-          res.send(data.body);
+          res.send(result);
         })
         .catch(errorHandler(res));
     }
@@ -340,7 +334,7 @@ export default function (passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.get("/get-playlists", (req, res) => {});
+  router.get("/get-playlists", () => {});
 
   router.post("/play", (req, res) => {
     getGlobalSnoppifyHost()
@@ -426,16 +420,18 @@ export default function (passport: PassportStatic) {
       .finally(() => res.send());
   });
 
-  router.post("/wifi", (req, res, next) => {
+  router.post("/wifi", (req, res) => {
     if (!isHost(req)) {
       res.status(401);
-      return res.json({ error: "You need to be host!" });
+      res.json({ error: "You need to be host!" });
+      return;
     }
 
     const party = getGlobalSnoppifyHost().controller.getCurrentParty();
     if (!party) {
       res.status(500);
-      return res.json({ error: "No party file/object" });
+      res.json({ error: "No party file/object" });
+      return;
     }
 
     party.wifi = req.body;
@@ -444,9 +440,10 @@ export default function (passport: PassportStatic) {
     );
   });
 
-  router.get("/wifi", (req, res, next) => {
+  router.get("/wifi", (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(403).end();
+      res.status(403).end();
+      return;
     }
 
     const wifi = getGlobalSnoppifyHost().controller.getCurrentParty()?.wifi;

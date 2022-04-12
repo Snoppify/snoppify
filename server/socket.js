@@ -12,7 +12,7 @@ global[SOCKET_SOCKETS_KEY] = {};
 // define the singleton API
 // ------------------------
 
-var singleton = function socket(http) {
+const singleton = function socket(http) {
   global[SOCKET_KEY] = socketio(http);
   return singleton;
 };

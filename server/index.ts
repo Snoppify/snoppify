@@ -14,9 +14,7 @@ import fs from "fs";
 import http from "http";
 import https from "https";
 import ip from "ip";
-import minimist from "minimist";
 import passport from "passport";
-
 import passportInit from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
@@ -30,7 +28,6 @@ const app = express();
 const port = process.env.PORT || 80;
 
 const LokiStore = connectLoki(session);
-const args = minimist(process.argv);
 
 // consts
 const rootDir = `${appRootPath}/dist`;
@@ -88,7 +85,6 @@ app.use(
 app.use(cookieparser);
 app.use(express.static(rootDir));
 
-let sessionStore;
 const mysession = session({
   secret: "spotify är sh1t, snoppify är bra!",
   resave: false,
@@ -96,9 +92,11 @@ const mysession = session({
   cookie: {
     secure: false,
   },
-  store: (sessionStore = new LokiStore({
+  store: new LokiStore({
     ttl: 3600 * 24,
-  })),
+  }) as any,
+  // need to be `any` since LokiStore is not a complete store according
+  // to TS
 });
 app.use(mysession);
 app.use(passport.initialize());
@@ -122,7 +120,7 @@ expressDebug(app, {});
 
 const routes = routesIndex(passport);
 app.use("/", routes);
-const isHosting = false;
+// const isHosting = false;
 
 app.use("/ping", (_, res) => {
   res.json({
@@ -196,7 +194,7 @@ socket.io.on("connection", (sock: any) => {
   sock.on("getTrack", (id: any) => {
     console.log("SOCK SESSION:", sock.handshake.session);
 
-    User.find(sock.handshake.session.passport.user, (err, user) => {
+    User.find(sock.handshake.session.passport.user, () => {
       // const spotify = getSnoppifyHost(user.partyId);
       const spotify = getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 
@@ -213,7 +211,7 @@ socket.io.on("connection", (sock: any) => {
 
           sock.emit("getTrack", JSON.stringify(track));
         })
-        .catch((data) => {
+        .catch(() => {
           sock.emit("getTrack", null);
         });
     });
@@ -226,5 +224,7 @@ httpServer.listen(port, () => {
   console.log(`Serving http${useHttps ? "s" : ""}://${ipAddr}:${port}`);
 
   // send message to electron app
-  process.send && process.send("SERVER_STARTED");
+  if (process.send) {
+    process.send("SERVER_STARTED");
+  }
 });

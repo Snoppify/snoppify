@@ -72,7 +72,7 @@ class SpotifyController {
         // file does not exist
         if (err) {
           if (!opts || !opts.mainPlaylist) {
-            reject("A main playlist is required");
+            reject(new Error("A main playlist is required"));
             return;
           }
 
@@ -150,43 +150,52 @@ class SpotifyController {
 
           this.getUserData(user, (err: any, userData: any) => {
             if (err) {
-              return reject(err);
+              reject(err);
+              return;
             }
 
             if (!track) {
-              return reject({
+              // eslint-disable-next-line prefer-promise-reject-errors
+              reject({
                 response: {
                   status: 404,
                   statusText: "Track not found",
                 },
               });
+              return;
             }
 
             if (this.queue.get(trackId)) {
-              return reject({
+              // eslint-disable-next-line prefer-promise-reject-errors
+              reject({
                 response: {
                   status: 400,
                   statusText: "Track already added",
                 },
               });
+              return;
             }
 
             if (userData.queue.get(trackId)) {
-              return reject({
+              // eslint-disable-next-line prefer-promise-reject-errors
+              reject({
                 response: {
                   status: 400,
                   statusText: "You have already added this track",
                 },
               });
+              return;
             }
 
             if (userData.queue.size == this.maxQueueSize) {
-              return reject({
+              // eslint-disable-next-line prefer-promise-reject-errors
+              reject({
                 response: {
                   status: 400,
                   statusText: `You cannot add more than ${this.maxQueueSize} tracks`,
                 },
               });
+              return;
             }
 
             track.snoppify = {
@@ -233,6 +242,7 @@ class SpotifyController {
         }
 
         if (!track || track.snoppify.issuer.username != user) {
+          // eslint-disable-next-line prefer-promise-reject-errors
           return reject({
             response: {
               status: 404,
@@ -242,6 +252,7 @@ class SpotifyController {
         }
 
         if (!this.queue.remove(track)) {
+          // eslint-disable-next-line prefer-promise-reject-errors
           return reject({
             response: {
               status: 500,
@@ -265,7 +276,7 @@ class SpotifyController {
         this.saveQueue();
         this.saveUsers();
 
-        resolve();
+        return resolve();
       });
     });
   }
@@ -275,21 +286,25 @@ class SpotifyController {
       const track = this.queue.get(trackId);
 
       if (!track) {
-        return reject({
+        // eslint-disable-next-line prefer-promise-reject-errors
+        reject({
           response: {
             status: 404,
             statusText: "No such track",
           },
         });
+        return;
       }
 
       if (track.snoppify.votes.indexOf(user) != -1) {
-        return reject({
+        // eslint-disable-next-line prefer-promise-reject-errors
+        reject({
           response: {
             status: 400,
             statusText: "You have already voted",
           },
         });
+        return;
       }
 
       track.snoppify.votes.push(user);
@@ -324,12 +339,14 @@ class SpotifyController {
       const track = this.queue.get(trackId);
 
       if (!track) {
-        return reject({
+        // eslint-disable-next-line prefer-promise-reject-errors
+        reject({
           response: {
             status: 404,
             statusText: "No such track",
           },
         });
+        return;
       }
 
       const i = track.snoppify.votes.indexOf(user);
@@ -366,8 +383,10 @@ class SpotifyController {
     const issuerId = track.snoppify.issuer.id;
 
     // get voter
-    User.find(voterId, (err, uVoter) => {
+    User.find(voterId, (err, foundVoterUser) => {
       if (err) return;
+
+      const uVoter = { ...foundVoterUser };
 
       if (!uVoter.votes.given[issuerId]) {
         uVoter.votes.given[issuerId] = 0;
@@ -376,8 +395,10 @@ class SpotifyController {
       uVoter.votes.givenTotal += vote;
 
       // get issuer
-      User.find(issuerId, (err, uIssuer) => {
-        if (err) return;
+      User.find(issuerId, (_err, foundIssuerUser) => {
+        if (_err) return;
+
+        const uIssuer = { ...foundIssuerUser };
 
         if (!uIssuer.votes.received[voterId]) {
           uIssuer.votes.received[voterId] = 0;
@@ -432,8 +453,8 @@ class SpotifyController {
         public: true,
       })
       .then((data) => {
-        delete data.body.tracks;
-        this.mainPlaylist = data.body;
+        const { tracks, ...body } = data.body;
+        this.mainPlaylist = body;
 
         this.saveQueue();
 
@@ -449,8 +470,8 @@ class SpotifyController {
     return this.api
       .getPlaylist(id)
       .then((data) => {
-        delete data.body.tracks;
-        this.mainPlaylist = data.body;
+        const { tracks, ...body } = data.body;
+        this.mainPlaylist = body;
 
         this.saveQueue();
 
@@ -466,7 +487,7 @@ class SpotifyController {
 
   updateMainPlaylist(opts: { name: string }): Promise<{ name?: string }> {
     if (!this.mainPlaylist) {
-      return Promise.reject("ERR: No main playlist");
+      return Promise.reject(new Error("ERR: No main playlist"));
     }
 
     const params = {
@@ -482,7 +503,8 @@ class SpotifyController {
     return this.api.getPlaylist(id).then((data) => {
       this.backupQueue = new Queue({
         id: "id",
-        queue: data.body.tracks.items.map((track: any) => {
+        queue: data.body.tracks.items.map((_track: any) => {
+          const track = _track;
           track.track.snoppify = {
             issuer: {
               id: "1337",
@@ -497,9 +519,9 @@ class SpotifyController {
         }),
       });
 
-      delete data.body.tracks;
+      const { tracks, ...body } = data.body;
 
-      this.backupPlaylist = data.body;
+      this.backupPlaylist = body;
 
       this.saveQueue();
 
@@ -532,7 +554,7 @@ class SpotifyController {
       }
     }
 
-    return this.addToPlaylist(track).then((r) => {
+    return this.addToPlaylist(track).then(() => {
       if (track) {
         // save issuer for later
         this.history.add(track);
@@ -641,7 +663,7 @@ class SpotifyController {
 
       this.queue.clear();
 
-      for (const user in User.users) {
+      for (const user of User.users) {
         const u = User.users[user];
         u.clear();
       }
@@ -676,14 +698,14 @@ class SpotifyController {
         this.api.getAudioFeaturesForTracks([trackId]),
       ])
         .then((data) => {
-          const track: SpotifyApi.TrackObjectFull & {
+          const trackObject: SpotifyApi.TrackObjectFull & {
             audio_features?: SpotifyApi.AudioFeaturesObject;
           } = data[0].body.tracks[0];
 
           // console.log(JSON.stringify(track, null, 2));
-          track.audio_features = data[1].body.audio_features[0];
+          trackObject.audio_features = data[1].body.audio_features[0];
 
-          resolve(track);
+          resolve(trackObject);
         })
         .catch((data) => {
           reject(data);
@@ -771,12 +793,12 @@ class SpotifyController {
 
         if (player) {
           const status = {
-            progress: this.getTimeString(player.progress_ms),
+            progress: getTimeString(player.progress_ms),
             duration: "",
             fraction: 0,
           };
           if (player.item) {
-            status.duration = this.getTimeString(player.item.duration_ms);
+            status.duration = getTimeString(player.item.duration_ms);
             status.fraction = player.progress_ms / player.item.duration_ms;
           }
           this.sendEvent("player", {
@@ -793,21 +815,7 @@ class SpotifyController {
       });
   }
 
-  private getTimeString(ms: number) {
-    let s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    s -= m * 60;
-    return `${this.toNumberString(m)}:${this.toNumberString(s)}`;
-  }
-
-  private toNumberString(n: number) {
-    let s = `${n}`;
-    if (s.length == 1) {
-      s = `0${s}`;
-    }
-    return s;
-  }
-
+  // eslint-disable-next-line class-methods-use-this
   private sendEvent(type: string, data: any) {
     if (!socket.io) {
       console.log("No socket");
@@ -829,26 +837,15 @@ class SpotifyController {
     return null;
   }
 
-  /**
-   * Earliest timestamp first
-   */
-  private orderByTimestamp(a: any, b: any) {
-    if (!a.snoppify || !b.snoppify) {
-      return a.snoppify ? -1 : 1;
-    }
-    return a.snoppify.timestamp - b.snoppify.timestamp;
-  }
-
   private rebuildQueueOrder() {
     let list: any[] = [];
     let maxVotes = -1;
 
     // fetch all tracks with votes with inital order by addition
-    const tracks = true;
     let tracksCount = this.queue.size;
     for (let i = 0; i < this.queue.size; i++) {
       const sublist = [];
-      for (const user in User.users) {
+      for (const user of User.users) {
         const u = User.users[user];
 
         const t = u.queue.getAt(i);
@@ -867,7 +864,7 @@ class SpotifyController {
           }
         }
       }
-      sublist.sort(this.orderByTimestamp);
+      sublist.sort(orderByTimestamp);
       list = list.concat(sublist);
 
       if (tracksCount <= 0) {
@@ -915,10 +912,12 @@ class SpotifyController {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private getUserData(user: any, callback: (...args: any[]) => any) {
     User.find(user, callback);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private saveUsers() {
     User.save();
   }
@@ -926,7 +925,7 @@ class SpotifyController {
   /// /////
 
   private init() {
-    this.api.onload.then((data) => {
+    this.api.onload.then(() => {
       if (this.mainPlaylist) {
         this.setMainPlaylist({ id: this.mainPlaylist.id });
       }
@@ -950,7 +949,7 @@ class SpotifyController {
 
     this.states.after(() => {
       // clear events
-      for (const ev in this.states.data.events) {
+      for (const ev of Object.keys(this.states.data.events)) {
         this.states.data.events[ev] = false;
       }
     });
@@ -1039,4 +1038,31 @@ class SpotifyController {
       }
     });
   }
+}
+
+// Util functions
+
+function toNumberString(n: number) {
+  let s = `${n}`;
+  if (s.length == 1) {
+    s = `0${s}`;
+  }
+  return s;
+}
+
+function getTimeString(ms: number) {
+  let s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  s -= m * 60;
+  return `${toNumberString(m)}:${toNumberString(s)}`;
+}
+
+/**
+ * Earliest timestamp first
+ */
+function orderByTimestamp(a: any, b: any) {
+  if (!a.snoppify || !b.snoppify) {
+    return a.snoppify ? -1 : 1;
+  }
+  return a.snoppify.timestamp - b.snoppify.timestamp;
 }

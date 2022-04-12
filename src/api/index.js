@@ -1,7 +1,5 @@
 import axios from "axios";
-import storage from "@/common/device-storage";
 import { store } from "@/store";
-
 import auth from "./auth";
 import misc from "./misc";
 import queue from "./queue";

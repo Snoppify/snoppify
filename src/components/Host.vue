@@ -283,8 +283,6 @@
 import { mapGetters } from "vuex";
 import QRCode from "qrcode";
 import api from "../api";
-import debounce from "../common/debounce";
-import storage from "@/common/device-storage";
 
 export default {
   created() {
@@ -397,7 +395,7 @@ export default {
     },
 
     setBackupPlaylist(uri) {
-      api.queue.setBackupPlaylist(uri).catch((r) => {
+      api.queue.setBackupPlaylist(uri).catch(() => {
         this.$store.dispatch("Messages/toast", {
           type: "alert",
           html: "Could not set playlist. Did you really paste a playlist URL?",
@@ -409,8 +407,8 @@ export default {
     changePartyName() {
       const name = prompt("Change party name", this.user.host.name);
       if (name) {
-        api.spotify.setPartyName(name).then((data) => {
-          location.reload();
+        api.spotify.setPartyName(name).then(() => {
+          window.location.reload();
         });
       }
     },
@@ -420,15 +418,15 @@ export default {
         .then((r) => {
           this.partyResult = r.result;
         })
-        .catch((r) => {
+        .catch(() => {
           this.partyResult = null;
         });
     },
     setParty(id) {
       api.queue
         .setParty(id)
-        .then((r) => {
-          location.reload();
+        .then(() => {
+          window.location.reload();
         })
         .catch((r) => {
           console.log(r);

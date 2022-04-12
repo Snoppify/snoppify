@@ -12,10 +12,9 @@ export default class User {
 
   friends: any;
 
-  constructor(data) {
-    for (const key in data) {
-      this[key] = data[key];
-    }
+  constructor(data: User) {
+    Object.keys(data).forEach((key) => (this[key] = data[key]));
+
     this.queue = new Queue({
       id: "id",
       queue: data.queue,
@@ -73,9 +72,9 @@ export default class User {
         return callback(err);
       }
       if (user) {
-        User.findIndex(user.id, (err, index) => {
-          if (err) {
-            return callback(err);
+        User.findIndex(user.id, (_err, index) => {
+          if (_err) {
+            return callback(_err);
           }
           if (index == -1) {
             // add user
@@ -89,6 +88,8 @@ export default class User {
       } else {
         return User.saveToFile(callback || (() => {}));
       }
+
+      return undefined;
     });
   }
 
@@ -105,7 +106,7 @@ export default class User {
       try {
         const users = JSON.parse(data);
         if (!users.users) {
-          throw "Invalid format";
+          throw new Error("Invalid format");
         }
         User.users = users.users.map((user) => new User(user));
       } catch (e) {
@@ -113,17 +114,19 @@ export default class User {
       }
       return callback(null);
     });
+
+    return undefined;
   }
 
   static saveToFile(callback) {
-    const _users = [];
+    const users = [];
     User.users.forEach((user) => {
-      const _user = JSON.parse(JSON.stringify(user));
-      _user.queue = user.queue.queue;
-      _users.push(_user);
+      const userCopy = JSON.parse(JSON.stringify(user));
+      userCopy.queue = user.queue.queue;
+      users.push(userCopy);
     });
     const json = JSON.stringify({
-      users: _users,
+      users,
     });
 
     return fs.writeFile(User.usersFile, json, "utf8", (err) => {
@@ -135,7 +138,6 @@ export default class User {
   }
 
   static sanitize(user) {
-    // @ts-ignore: exlude _tokens field
     const { _tokens, ...sanitized } = user;
     return sanitized;
   }

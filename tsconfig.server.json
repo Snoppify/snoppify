@@ -3,5 +3,6 @@
   "compilerOptions": {
     "outDir": "server-dist/"
   },
-  "include": ["server/**/*"]
+  "include": ["server/**/*"],
+  "exclude": ["src/**/*"]
 }

@@ -19,6 +19,7 @@ const special = {
   "192.168.0.30": "cool party john",
 };
 const specialInverted = Object.keys(special).reduce((obj, key) => {
+  // eslint-disable-next-line no-param-reassign
   obj[special[key]] = key;
   return obj;
 }, {});
@@ -546,7 +547,7 @@ function getCode(ip) {
   if (special[ip]) {
     return special[ip];
   }
-  const a = ip.split(".").map((e) => parseInt(e));
+  const a = ip.split(".").map((e) => parseInt(e, 10));
   return a
     .map((e, i) => {
       if (prio[i][e]) {

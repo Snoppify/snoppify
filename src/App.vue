@@ -13,7 +13,7 @@
 import api from "@/api";
 
 // components
-import Messages from "./components/Messages";
+import Messages from "./components/Messages.vue";
 
 export default {
   components: {
@@ -21,13 +21,14 @@ export default {
   },
 
   created() {
-    api.initialized &&
+    if (api.initialized) {
       this.getInfo().then((res) => {
         this.$store.commit("Queue/SET_QUEUE", res.queue);
         this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
         this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);
         this.$store.dispatch("Session/GET_WIFI_QR");
       });
+    }
   },
 
   methods: {

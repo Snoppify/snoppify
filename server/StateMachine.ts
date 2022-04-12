@@ -87,7 +87,7 @@ export class StateMachine<StateName extends string, EventName extends string> {
       }
     });
     if (next) {
-      let data;
+      let nextState: StateMachineState<string>;
 
       // debug for issue #14
       if (next.target == "playSong") {
@@ -95,7 +95,7 @@ export class StateMachine<StateName extends string, EventName extends string> {
       }
 
       if (next.target) {
-        data = this.get(next.target);
+        nextState = this.get(next.target);
 
         this.setState(next.target);
 
@@ -106,7 +106,7 @@ export class StateMachine<StateName extends string, EventName extends string> {
       if (next.event) {
         next.event();
       }
-      this.emitAfter(data);
+      this.emitAfter(nextState);
     }
   }
 

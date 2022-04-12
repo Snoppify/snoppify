@@ -88,7 +88,7 @@ export default {
       });
     },
 
-    blurSearch(event) {
+    blurSearch() {
       this.$nextTick(() => {
         this.show = false;
         this.result = null;
@@ -102,7 +102,7 @@ export default {
           console.log(r, this);
           this.result = r;
         })
-        .catch((r) => {
+        .catch(() => {
           this.result = null;
         })
         .finally(() => {
@@ -120,7 +120,7 @@ export default {
       this.debounceSearch(e);
     },
 
-    queueTrack(track) {
+    queueTrack() {
       this.$nextTick(() => {
         this.blurSearch();
       });

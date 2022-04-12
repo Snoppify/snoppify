@@ -1,8 +1,10 @@
+import { SessionData } from "express-session";
 import { SnoppifyHost } from "../spotify";
 
 declare module "express-serve-static-core" {
   interface Request {
     snoppifyHost?: SnoppifyHost;
+    session?: SessionData;
   }
 }
 
