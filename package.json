@@ -52,7 +52,6 @@
     "fingerprintjs2": "^1.8.1",
     "howler": "^2.2.3",
     "ip": "^1.1.5",
-    "minimist": "^1.2.5",
     "passport": "^0.5",
     "passport-facebook": "^2.1.1",
     "passport-google-oauth": "^2.0.0",
@@ -91,12 +90,12 @@
     "electron": "^7.3.3",
     "eslint": "^4.19.1",
     "eslint-plugin-vue": "^4.7.1",
-    "node-sass": "^5",
+    "minimist": "^1.2.5",
     "npm-watch": "^0.4.0",
     "prettier": "^1.19.1",
     "sass": "^1.42.1",
-    "sass-loader": "^10",
-    "typescript": "^3.9.10",
-    "vue-template-compiler": "^2.6.14"
+    "sass-loader": "^7.3.1",
+    "typescript": "^3.9.7",
+    "vue-template-compiler": "^2.6.12"
   }
 }
