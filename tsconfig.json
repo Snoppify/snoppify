@@ -21,6 +21,8 @@
   },
   "include": [
     "src/**/*",
-    ".eslintrc.js" // Needed to please eslint 🤷
+    // Needed to please eslint 🤷
+    ".eslintrc.js",
+    "*.js"
   ]
 }
