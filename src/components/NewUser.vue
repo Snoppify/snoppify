@@ -19,7 +19,7 @@
     <form v-bind:action="getAuthUrl('spotify')" class="auth auth--spotify">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Spotify" /> -->
-    </form>
+    <!-- </form> -->
   </div>
 </template>
 
