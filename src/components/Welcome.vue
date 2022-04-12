@@ -34,7 +34,7 @@
           </div>
         </div>
 
-        <div class="start-input">
+        <!-- <div class="start-input">
           <div class="start-input__text">
             <input v-model="hostIP" placeholder="Host IP or SnoppiCode" />
           </div>
@@ -43,7 +43,7 @@
           <div class="start-input__text">
             <input v-model="partyId" placeholder="Party id" />
           </div>
-        </div>
+        </div> -->
 
         <button class="start-btn start-btn__join" @click="onJoinClick()">
           Join
@@ -92,7 +92,6 @@ export default {
     isScanning: false,
     timeSpentScanning: 0,
     foundHost: false,
-    hostIP: storage.get("serverIP"),
     partyId: null,
   }),
 
@@ -102,17 +101,18 @@ export default {
       this.$router.push({ name: "home" });
     },
     onJoinClick() {
-      if (this.hostIP.match(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/)) {
-        api.init(this.hostIP);
-      } else {
-        var ip = codeWords.getIP(this.hostIP);
-        if (!ip) {
-          console.error("Invalid IP or host code");
-          return;
-        }
+      // if (this.hostIP.match(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/)) {
+      //   api.init(this.hostIP);
+      // } else {
+      //   var ip = codeWords.getIP(this.hostIP);
+      //   if (!ip) {
+      //     console.error("Invalid IP or host code");
+      //     return;
+      //   }
 
-        api.init(ip);
-      }
+      //   api.init(ip);
+      // }
+      api.init();
 
       this.showServerForm = true;
 
@@ -177,8 +177,8 @@ export default {
                   alert("you are connected my friend");
 
                   // store sever ip while authing
-                  storage.set("serverIP", _ip + index);
-                  api.init(_ip + index);
+                  // storage.set("serverIP", _ip + index);
+                  api.init();
 
                   this.$router.push({ name: "newUser" });
 

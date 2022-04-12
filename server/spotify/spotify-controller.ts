@@ -2,13 +2,13 @@
 
 import * as fs from "fs";
 import mkdirp from "mkdirp";
-
 import User from "../models/user";
 import Queue from "../Queue";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";
 import { createStateMachine, SnoppifyStateMachine } from "./spotify-states";
+
 
 export { SpotifyController };
 
@@ -55,7 +55,8 @@ class SpotifyController {
         this.currentParty = party;
 
         return new Promise((resolve, reject) => {
-            var filename = "data/snoppify-party-" + party.id + ".json";
+            // var filename = "data/snoppify-party-" + party.id + ".json";
+            var filename = this.queueFile;
 
             // load saved party
             fs.readFile(filename, "utf8", (err, data) => {
@@ -703,7 +704,7 @@ class SpotifyController {
         this.playlist = this.mainPlaylist;
 
         return new Promise<void>((resolve, reject) => {
-            if (track) {
+            if (this.playlist && track) {
                 let uri =
                     typeof track == "string" ? "spotify:track:" + track : track.uri;
 

@@ -37,6 +37,7 @@ class SpotifyPlaybackAPI {
 
     constructor(api: SpotifyAPI) {
         this.api = api;
+        this.accessToken = api.getAccessToken();
     }
 
     play(opts: PlayOptions = {}) {
@@ -109,7 +110,7 @@ class SpotifyPlaybackAPI {
     }
 
     getDevices() {
-        return this.setAPITokens().then(function () {
+        return this.setAPITokens().then(() => {
             return this.api.getMyDevices().then(r => r.body);
         });
     }
@@ -119,6 +120,9 @@ class SpotifyPlaybackAPI {
     getAccessToken(): Promise<string> {
         return new Promise((resolve, reject) => {
             let time = (Date.now() - refreshTime) / 1000;
+
+            // console.log("this.accestoken", this.accessToken, { time, expireTime })
+
             if (this.accessToken && time < expireTime) {
                 resolve(this.accessToken);
             } else {
@@ -126,6 +130,7 @@ class SpotifyPlaybackAPI {
                     this.accessToken = data.body.access_token;
                     // Save the access token so that it's used in future calls
                     this.api.setAccessToken(this.accessToken);
+                    refreshTime = Date.now();
                     resolve(this.accessToken);
                 }, reject);
             }
@@ -135,14 +140,14 @@ class SpotifyPlaybackAPI {
     getRefreshToken(code?): Promise<string> {
         return Promise.resolve(this.api.getRefreshToken());
 
-        // return new Promise((resolve, reject) => {
+        // return new Promise<string | null>((resolve, reject) => {
         //     axios({
         //         method: "post",
         //         url: "https://accounts.spotify.com/api/token",
         //         params: {
         //             grant_type: "authorization_code", // client_credentials, authorization_code or refresh_token
         //             code: code,
-        //             redirect_uri: "http://localhost:3000/create-spotify-host",
+        //             redirect_uri: process.env.SERVER_URI + "/create-spotify-host",
         //         },
         //         headers: {
         //             Authorization: "Basic " + this.api.config.auth_token,
@@ -153,7 +158,7 @@ class SpotifyPlaybackAPI {
         //             if (r.data && r.data.refresh_token) {
         //                 resolve(r.data.refresh_token);
         //             } else {
-        //                 resolve();
+        //                 resolve(null);
         //             }
         //         },
         //         r => {
@@ -166,7 +171,7 @@ class SpotifyPlaybackAPI {
     getAuthUrl(state?, redirectUri?) {
         // Does this work?
         (this.api as any)._credentials.redirectUri =
-            redirectUri || "http://localhost:3000/create-spotify-host";
+            redirectUri || process.env.SERVER_URI + "/auth/spotify/callback";
 
         return this.api.createAuthorizeURL(scopes, state || "auth");
     }

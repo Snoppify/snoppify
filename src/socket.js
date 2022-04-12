@@ -4,10 +4,10 @@ import VueSocketio from "vue-socket.io";
 import { store } from "./store";
 
 export default {
-    init: serverIP => {
+    init: () => {
         Vue.use(
             VueSocketio,
-            window.location.protocol + "//" + serverIP + ":3000",
+            process.env.VUE_APP_SERVER_URI,
             store,
         );
     },

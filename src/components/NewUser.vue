@@ -8,13 +8,17 @@
 		<button>GO!</button>
     </form>-->
     <h1>Sign in with</h1>
-    <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
+    <form v-bind:action="getAuthUrl('google')" class="auth auth--google">
+      <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
+      <input type="submit" value="Google" />
+    </form>
+    <!-- <form v-bind:action="getAuthUrl('facebook')" class="auth auth--facebook">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Facebook" />
     </form>
     <form v-bind:action="getAuthUrl('spotify')" class="auth auth--spotify">
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
-      <input type="submit" value="Spotify" />
+      <input type="submit" value="Spotify" /> -->
     </form>
   </div>
 </template>
@@ -26,10 +30,11 @@ import storage from "@/common/device-storage";
 export default {
   data: () => ({
     username: "",
-    baseURL: "http://" + storage.get("serverIP") + ":3000",
+    baseURL: process.env.VUE_APP_SERVER_URI,
     authUrls: {
       facebook: "/auth/facebook",
       spotify: "/auth/spotify",
+      google: "/auth/google",
     },
   }),
 
@@ -37,15 +42,15 @@ export default {
     createUser() {
       api.auth
         .newUser(this.username)
-        .then(rep => {
+        .then((rep) => {
           this.$store.commit("Session/SET_SESSION", rep);
           this.$router.push("/party");
         })
-        .catch(err => console.log(err));
+        .catch((err) => console.log(err));
     },
 
     getAuthUrl(service) {
-      return `${this.baseURL}${this.authUrls[service]}`;
+      return `${process.env.VUE_APP_SERVER_URI}${this.authUrls[service]}`;
     },
   },
 
@@ -55,8 +60,8 @@ export default {
 
   computed: {},
 
-  mounted: function() {
-    this.baseURL = "http://" + storage.get("serverIP") + ":3000";
+  mounted: function () {
+    this.baseURL = process.env.VUE_APP_SERVER_URI;
   },
 };
 </script>
@@ -111,6 +116,11 @@ export default {
 
   &--facebook input {
     background: #4266b2;
+    color: white;
+  }
+
+  &--google input {
+    background: #ea4335;
     color: white;
   }
 

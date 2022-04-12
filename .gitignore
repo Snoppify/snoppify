@@ -25,6 +25,7 @@ yarn-error.log*
 
 # dotenv environment variables file
 .env
+.env.production
 
 # client serve directory
 public/
@@ -37,7 +38,7 @@ session-store.db
 data/
 
 # Snoppify
-snoppify-config.js
+#snoppify-config.js
 
 # editorconfigs
 .vscode

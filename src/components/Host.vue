@@ -7,12 +7,14 @@
         <b>{{ error }}</b>
       </p>
 
+      {{ baseURL + authUrls.spotifyLogin }}
+
       <div v-if="!user.host">
         <form
           v-bind:action="baseURL + authUrls.spotifyLogin"
           class="auth auth--spotify"
         >
-          <input type="submit" value="Log in to your Spotify accouunt" />
+          <input type="submit" value="Log in to your Spotify account" />
         </form>
       </div>
 
@@ -34,6 +36,10 @@
 
       <div v-if="user.host && user.host.status == 'pending'">
         <p>Authenticating...</p>
+      </div>
+
+      <div v-if="authenticating">
+        <p>Authenticating host...</p>
       </div>
 
       <div v-if="user.host && user.host.id">
@@ -155,7 +161,9 @@
             Note: this will generate a QR code but it will not be encrypted or
             anything. Anyone could "steeeaaal" this 🙄
           </p>
-          <div style="padding:20px; border:1px solid #666; border-radius:5px;">
+          <div
+            style="padding: 20px; border: 1px solid #666; border-radius: 5px"
+          >
             <p>UPDATE:</p>
             <form action @submit="setWifiCredentials">
               <label>
@@ -282,7 +290,7 @@ export default {
   created() {
     // this.genWifiQR();
     this.$store.watch(
-      state => state.Session.wifiQR,
+      (state) => state.Session.wifiQR,
       () => this.genWifiQR(),
     );
   },
@@ -291,6 +299,7 @@ export default {
     return {
       searchTerm: null,
       loading: false,
+      authenticating: false,
       error: null,
       playlists: null,
       backupUrl: null,
@@ -298,7 +307,7 @@ export default {
       partySearchTerm: null,
       device: null,
       devices: null,
-      baseURL: "http://" + storage.get("serverIP") + ":3000",
+      baseURL: process.env.VUE_APP_SERVER_URI,
       authUrls: {
         facebook: "/auth/facebook",
         spotify: "/auth/spotify-host",
@@ -323,42 +332,17 @@ export default {
     }),
   },
 
-  beforeMount: function() {
-    if (this.$route.query.access_token && this.$route.query.refresh_token) {
-      // complete the request chain
-      var state = this.$route.query.state || "host";
-      var params = {
-        access_token: this.$route.query.access_token,
-        refresh_token: this.$route.query.refresh_token,
-      };
-      var promise = null;
-
-      switch (state) {
-        case "host":
-          promise = api.spotify.createSpotifyHost(params);
-          break;
-        case "auth":
-          promise = api.spotify.authenticateSpotifyHost(params);
-          break;
-      }
-
-      promise
-        .then(() => {
-          window.location.href = "/host";
-        })
-        .catch(() => {
-          this.error = "something went wrong";
-        });
-    } else if (this.$route.query.success == "false") {
+  beforeMount: function () {
+    if (this.$route.query.success == "false") {
       this.error = "something went wrong";
     }
 
     if (this.user && this.user.host) {
       if (this.user.host.id) {
-        api.spotify.getDevices().then(data => {
+        api.spotify.getDevices().then((data) => {
           this.devices = data.devices;
 
-          var device = this.devices.find(function(d) {
+          var device = this.devices.find(function (d) {
             return d.is_active;
           });
           if (device) {
@@ -373,7 +357,7 @@ export default {
 
   methods: {
     createSpotifyHost: () => {
-      api.spotify.createSpotifyHost().then(r => {
+      api.spotify.createSpotifyHost().then((r) => {
         window.location.href = r.url;
       });
     },
@@ -415,7 +399,7 @@ export default {
     },
 
     setBackupPlaylist(uri) {
-      api.queue.setBackupPlaylist(uri).catch(r => {
+      api.queue.setBackupPlaylist(uri).catch((r) => {
         this.$store.dispatch("Messages/toast", {
           type: "alert",
           html: "Could not set playlist. Did you really paste a playlist URL?",
@@ -427,7 +411,7 @@ export default {
     changePartyName() {
       var name = prompt("Change party name", this.user.host.name);
       if (name) {
-        api.spotify.setPartyName(name).then(data => {
+        api.spotify.setPartyName(name).then((data) => {
           location.reload();
         });
       }
@@ -435,33 +419,33 @@ export default {
     searchParties() {
       api.queue
         .searchParties(this.partySearchTerm)
-        .then(r => {
+        .then((r) => {
           this.partyResult = r.result;
         })
-        .catch(r => {
+        .catch((r) => {
           this.partyResult = null;
         });
     },
     setParty(id) {
       api.queue
         .setParty(id)
-        .then(r => {
+        .then((r) => {
           location.reload();
         })
-        .catch(r => {
+        .catch((r) => {
           console.log(r);
         });
     },
     setWifiCredentials(e) {
       e.preventDefault();
-      api.axios.post("wifi", this.wifiCredentials).then(string => {
+      api.axios.post("wifi", this.wifiCredentials).then((string) => {
         this.$store.commit("Session/SET_WIFI_QR", string);
         this.genWifiQR(string);
       });
     },
     genWifiQR(qr = this.wifiQR) {
       setTimeout(() => {
-        QRCode.toCanvas(this.$refs.wifiCanvas, qr, err => {
+        QRCode.toCanvas(this.$refs.wifiCanvas, qr, (err) => {
           if (err) {
             console.error(err);
           }
@@ -470,8 +454,8 @@ export default {
     },
   },
 
-  mounted: function() {
-    this.baseURL = "http://" + storage.get("serverIP") + ":3000";
+  mounted: function () {
+    this.baseURL = process.env.VUE_APP_SERVER_URI;
   },
 };
 </script>

@@ -30,14 +30,14 @@ export interface ISnoppifyConfig {
     /**
      * facebook auth
      */
-    facebookAuth: IAuthInfo & {
-        profileURL: string;
-        profileFields: ['id', 'email', 'name'] // For requesting permissions from Facebook API
-    };
+    facebookAuth: IAuthInfo;
+    /**
+     * google auth
+     */
+    googleAuth: IAuthInfo;
 };
 
 export interface IAuthInfo {
     clientID: string;
     clientSecret: string;
-    callbackURL: string;
 }

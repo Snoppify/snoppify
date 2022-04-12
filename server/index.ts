@@ -21,18 +21,24 @@ import passportInit from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { createSnoppifyHost, getSnoppifyHost } from "./spotify";
+import { getSnoppifyHost } from "./spotify";
 
 //@ts-ignore
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 80;
 
 const LokiStore = connectLoki(session);
 const args = minimist(process.argv);
 
 // consts
 const rootDir = appRootPath + "/dist";
+
+// data directory
+if (!fs.existsSync("./data")) {
+    fs.mkdirSync("./data");
+}
 
 const useHttps = false;
 let httpServer: https.Server | http.Server;
@@ -54,9 +60,6 @@ const cookieparser = cookieParser();
 
 // save this, don't know if it can be useful in teh future
 app.use(function (req, res, next) {
-    let ipAddr = ip.address();
-    var localhost = ipAddr + ":3000";
-    var remotehost = "http://snoppify.com";
     var host = req.get("origin") || req.get("host");
     res.header("Access-Control-Allow-Origin", host);
     //res.header("Access-Control-Allow-Origin", "*");
@@ -105,9 +108,12 @@ socket.io.use(sharedsession(mysession));
 
 app.use("*", (req, _, next) => {
     // add the host to the request
-    if (req.user?.partyId) {
-        req.snoppifyHost = getSnoppifyHost(req.user.partyId);
-    }
+    // if (req.user?.partyId) {
+    //     req.snoppifyHost = getSnoppifyHost(req.user.partyId);
+    // }
+
+    req.snoppifyHost = getSnoppifyHost("hehe");
+
     next();
 });
 
@@ -151,7 +157,6 @@ socket.io.on("connection", (sock: any) => {
 
     // console.log("SOCK SESSION:", sock.handshake.session);
 
-
     // need to do " as any" since handshake.session is added by
     // express-socket.io or passport or something
     // if ((sock.handshake as any).session.passport) {
@@ -175,12 +180,26 @@ socket.io.on("connection", (sock: any) => {
     //     }
     // });
 
+    if (sock.handshake.session.passport) {
+        User.find(sock.handshake.session.passport.user, (err, user) => {
+            if (!user) {
+                return;
+            }
+            sock.broadcast.emit("event", {
+                type: "newUser",
+                data: {
+                    displayName: user.displayName,
+                    profile: user.profile,
+                },
+            });
+        });
+    }
+
     sock.on("getTrack", (id: any) => {
         console.log("SOCK SESSION:", sock.handshake.session);
 
-        User.find(sock.handshake.session.passport.user, user => {
+        User.find(sock.handshake.session.passport.user, (err, user) => {
             const spotify = getSnoppifyHost(user.partyId);
-            console.log({ spotify });
 
             Promise.all([
                 spotify.api.getTracks([id]),
@@ -204,7 +223,6 @@ socket.io.on("connection", (sock: any) => {
     });
 });
 
-const port = args.p || 3000;
 httpServer.listen(port, () => {
     let ipAddr = ip.address();
 

@@ -1,17 +1,10 @@
 const FacebookStrategy = require("passport-facebook").Strategy;
 const SpotifyStrategy = require("passport-spotify").Strategy;
+const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 
 const User = require("../models/user");
 
 const appRoot = require("app-root-path");
-
-// load the auth variables
-let config = {};
-try {
-    config = require(appRoot + "/snoppify-config.js");
-} catch (ex) {
-    console.log("No snoppify config file");
-}
 
 module.exports = function(passport) {
     // used to serialize the user for the session
@@ -29,11 +22,6 @@ module.exports = function(passport) {
     // code for login (use('local-login', new LocalStategy))
     // code for signup (use('local-signup', new LocalStategy))
 
-    if (!config.facebookAuth) {
-        console.log("No facebook auth");
-        return;
-    }
-
     // =========================================================================
     // FACEBOOK ================================================================
     // =========================================================================
@@ -41,9 +29,9 @@ module.exports = function(passport) {
         new FacebookStrategy(
             {
                 // pull in our app id and secret from our auth.js file
-                clientID: config.facebookAuth.clientID,
-                clientSecret: config.facebookAuth.clientSecret,
-                callbackURL: config.facebookAuth.callbackURL,
+                clientID: process.env.FACEBOOK_CLIENT_ID,
+                clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+                callbackURL: process.env.SERVER_URI + "/auth/facebook/callback",
                 profileFields: [
                     "id",
                     "name",
@@ -83,9 +71,39 @@ module.exports = function(passport) {
     passport.use(
         new SpotifyStrategy(
             {
-                clientID: config.spotifyAuth.clientID,
-                clientSecret: config.spotifyAuth.clientSecret,
-                callbackURL: config.spotifyAuth.callbackURL,
+                clientID: process.env.SPOTIFY_CLIENT_ID,
+                clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+                callbackURL: process.env.SERVER_URI + "/auth/spotify/callback"
+            },
+
+            function(access_token, refresh_token, expires_in, profile, done) {
+                console.log("create spotify user", profile.id);
+                findOrCreateUser(
+                    {
+                        id: profile.id,
+                        username: profile.id,
+                        displayName: profile.displayName || profile.id,
+                        name: profile.name,
+                        profile: profile.photos.length > 0
+                            ? profile.photos[0].value
+                            : null,
+                        _tokens: {
+                            access_token: access_token,
+                            refresh_token: refresh_token,
+                        },
+                    },
+                    done,
+                );
+            },
+        ),
+    );
+
+    passport.use(
+        new GoogleStrategy(
+            {
+                clientID: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                callbackURL: process.env.SERVER_URI + "/auth/google/callback"
             },
 
             function(accessToken, refreshToken, expires_in, profile, done) {
@@ -95,11 +113,10 @@ module.exports = function(passport) {
                         token: accessToken,
                         username: profile.id,
                         displayName: profile.displayName || profile.id,
-                        name: profile.name,
-                        profile:
-                            profile.photos.length > 0
-                                ? profile.photos[0].value
-                                : null,
+                        name: profile.name.givenName,
+                        profile: profile.photos.length > 0
+                            ? profile.photos[0].value
+                            : null,
                     },
                     done,
                 );
@@ -121,7 +138,16 @@ function findOrCreateUser(data, done) {
 
         // if the user is found, then log them in
         if (user) {
-            return done(null, user); // user found, return that user
+            // user found, update data
+            Object.assign(user, data);
+
+            user.save(function(err) {
+                if (err) {
+                    throw err;
+                }
+
+                return done(null, user);
+            });
         } else {
             // if there is no user found with that facebook id, create them
             var newUser = new User(data);
