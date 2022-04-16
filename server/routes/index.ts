@@ -5,14 +5,14 @@ import { createSpotifyAPI } from "../spotify/spotify-api";
 import codeWords from "../models/code-words";
 import User from "../models/user";
 import socket from "../socket";
-import { createSnoppifyHost, getSnoppifyHost } from "../spotify";
+import { createSnoppifyHost, getSnoppifyHost, SnoppifyHost } from "../spotify";
 import { SpotifyPlaybackAPI, spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import refreshTokenTpl from "./refresh-token-template";
 
-const spotifyAPI = createSpotifyAPI().init();;
+const spotifyAPI = createSpotifyAPI().init();
 
-const spotify = createSnoppifyHost({} as any);
-const spotifyPlaybackApi = new SpotifyPlaybackAPI(spotify.api);
+const rootSnoppify = createSnoppifyHost({ hostId: "root" } as any);
+const spotifyPlaybackApi = new SpotifyPlaybackAPI(rootSnoppify.api);
 
 const router = express.Router();
 
@@ -228,6 +228,8 @@ export default function (passport) {
 
     function errorHandler(res) {
         return r => {
+            console.log("SOMETHING WENT WRONG:", r);
+
             if (!r || !r.response) {
                 let status = r && r.status ? r.status : 500;
                 return res.status(status).send(r);
@@ -464,9 +466,11 @@ export default function (passport) {
             return;
         }
 
+        const snoppify = getStoredHostFromRequest(req);
+
         if (!req.body.uri) {
             // unset backup playlist
-            spotify.controller
+            snoppify.controller
                 .removeBackupPlaylist();
 
             res.status(200).end();
@@ -480,28 +484,28 @@ export default function (passport) {
             return;
         }
 
-        spotify.controller
+        snoppify.controller
             .setBackupPlaylist({ id: playlist.id })
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/set-active-device", (req, res) => {
-        spotify.playbackAPI
+        getStoredHostFromRequest(req).playbackAPI
             .setActiveDevice(req.body.id)
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.get("/get-devices", (req, res) => {
-        spotify.playbackAPI
+        getStoredHostFromRequest(req).playbackAPI
             .getDevices()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.get("/get-track", (req, res) => {
-        spotify.controller
+        getStoredHostFromRequest(req).controller
             .getTrack(checkStr(req.query.trackId))
             .then(successHandler(res))
             .catch(errorHandler(res));
@@ -510,35 +514,35 @@ export default function (passport) {
     router.get("/get-playlists", (req, res) => { });
 
     router.post("/play", (req, res) => {
-        spotify.controller
+        getStoredHostFromRequest(req).controller
             .play(req.body.playlist)
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/pause", (req, res) => {
-        spotify.controller
+        getStoredHostFromRequest(req).controller
             .pause()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/play-next", (req, res) => {
-        spotify.controller
+        getStoredHostFromRequest(req).controller
             .playNext()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/empty-playlist", (req, res) => {
-        spotify.controller
+        getStoredHostFromRequest(req).controller
             .emptyPlaylist()
             .then(successHandler(res))
             .catch(errorHandler(res));
     });
 
     router.post("/empty-queue", (req, res) => {
-        spotify.controller
+        getStoredHostFromRequest(req).controller
             .emptyQueue()
             .then(successHandler(res))
             .catch(errorHandler(res));
@@ -546,16 +550,18 @@ export default function (passport) {
 
     router.get("/get-queue", (req, res) => {
         res.json({
-            data: spotify.controller.getQueue(),
+            data: getStoredHostFromRequest(req).controller.getQueue(),
         });
     });
 
     router.get("/info", (req, res) => {
+        const snoppify = getStoredHostFromRequest(req);
+
         res.json({
-            party: spotify.controller.getCurrentParty(),
-            queue: spotify.controller.getQueue(),
-            currentTrack: spotify.controller.getCurrentTrack(),
-            backupPlaylist: spotify.controller.getBackupPlaylist(),
+            party: snoppify?.controller.getCurrentParty(),
+            queue: snoppify?.controller.getQueue(),
+            currentTrack: snoppify?.controller.getCurrentTrack(),
+            backupPlaylist: snoppify?.controller.getBackupPlaylist(),
         });
     });
 
@@ -574,7 +580,7 @@ export default function (passport) {
     });
 
     router.get("/get-host-playlists", (req, res) => {
-        spotify.api
+        getStoredHostFromRequest(req).api
             .getUserPlaylists("me", {
                 limit: +req.query.limit || 15,
                 offset: req.query.offset === undefined ? 0 : +req.query.offset,
@@ -592,21 +598,38 @@ export default function (passport) {
         // if user is authenticated in the session, carry on
 
         if (req.isAuthenticated() && req.user) {
-            const spotify = getSnoppifyHost(req.user.partyId);
+            console.log("want something for this user:", req.user);
 
-            if (!spotify.initialized && req.user.host && req.user.host.status == 'success') {
+            const snoppify = getSnoppifyHost(req.user.partyId);
+
+            if (!snoppify?.initialized && req.user.host && req.user.host.status == 'success') {
                 if (!req.session.spotify) {
                     console.log("could not initialize");
-                } else {
+                } else if (snoppify) {
                     // Set the access token on the API object to use it in later calls
-                    spotify.api.setAccessToken(req.session.spotify.access_token);
-                    spotify.api.setRefreshToken(req.session.spotify.refresh_token);
+                    snoppify.api.setAccessToken(req.session.spotify.access_token);
+                    snoppify.api.setRefreshToken(req.session.spotify.refresh_token);
 
                     // spotify.init(req);
 
                     if (req.user.host.id) {
-                        spotify.controller.setParty(req.user.host);
+                        snoppify.controller.setParty(req.user.host);
                     }
+                } else {
+                    // TODO: Create new host from session info???? try it
+                    // otherwise we can't restore sessions after server restart
+                    console.log(req.session.spotify);
+                    console.log(req.user.host);
+
+                    const newHost = createSnoppifyHost({
+                        owner: req.user.username,
+                        accessToken: req.session.spotify.access_token,
+                        refreshToken: req.session.spotify.refresh_token,
+                        hostId: req.user.host.id,
+                    });
+                    
+                    newHost.controller.setParty(req.user.host);
+                    
                 }
             }
 
@@ -747,7 +770,7 @@ export default function (passport) {
             return res.json({ error: "You need to be host!" });
         }
 
-        const party = spotify.controller.getCurrentParty();
+        const party = getStoredHostFromRequest(req).controller.getCurrentParty();
         if (!party) {
             res.status(500);
             return res.json({ error: "No party file/object" });
@@ -762,7 +785,7 @@ export default function (passport) {
             return res.status(403).end();
         }
 
-        const wifi = spotify.controller.getCurrentParty()?.wifi;
+        const wifi = getStoredHostFromRequest(req)?.controller.getCurrentParty()?.wifi;
         if (!wifi) {
             //return res.status(500).json({ error: "No wifi in the party object" });
             res.send(null);
@@ -773,4 +796,8 @@ export default function (passport) {
     });
 
     return router;
+}
+
+function getStoredHostFromRequest(req: Express.Request): SnoppifyHost {
+    return getSnoppifyHost(req.user?.partyId);
 }

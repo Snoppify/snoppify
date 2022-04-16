@@ -700,7 +700,7 @@ class SpotifyController {
     private addToPlaylist(track: string | { uri: string }) {
         this.playlist = this.mainPlaylist;
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             if (track) {
                 let uri =
                     typeof track == "string" ? "spotify:track:" + track : track.uri;

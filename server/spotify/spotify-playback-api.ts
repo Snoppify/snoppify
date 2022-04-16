@@ -109,7 +109,7 @@ class SpotifyPlaybackAPI {
     }
 
     getDevices() {
-        return this.setAPITokens().then(function () {
+        return this.setAPITokens().then( () => {
             return this.api.getMyDevices().then(r => r.body);
         });
     }

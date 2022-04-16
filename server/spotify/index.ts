@@ -43,12 +43,16 @@ const createSnoppifyHost = (opts: {
         controller
     } as SnoppifyHost;
 
+    console.log("create host:", opts);
+    
     activeHosts[opts.hostId] = host;
 
     return host;
 }
 
 const getSnoppifyHost = (id: string) => {
+    console.log("Get host with id: ",id,"\n parties with ids:", Object.keys(activeHosts));
+    
     return activeHosts[id];
 }
 
