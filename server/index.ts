@@ -19,7 +19,8 @@ import { passportInit } from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { getSnoppifyHost, GLOBAL_SNOPPIFY_HOST_ID } from "./spotify";
+import { getSnoppifyHost } from "./spotify";
+import { backendSpotifyAPIClient } from "./spotify/spotify-api";
 
 // @ts-ignore
 dotenv.config();
@@ -106,11 +107,9 @@ socket.io.use(sharedsession(mysession));
 
 app.use("*", (req, _, next) => {
   // add the host to the request
-  // if (req.user?.partyId) {
-  //     req.snoppifyHost = getSnoppifyHost(req.user.partyId);
-  // }
-
-  req.snoppifyHost = getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
+  if (req.user?.partyId) {
+    req.snoppifyHost = getSnoppifyHost(req.user.partyId);
+  }
 
   next();
 });
@@ -195,13 +194,13 @@ socket.io.on("connection", (sock: any) => {
     console.log("SOCK SESSION:", sock.handshake.session);
 
     User.find(sock.handshake.session.passport.user, () => {
-      // const spotify = getSnoppifyHost(user.partyId);
-      const spotify = getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
-
-      Promise.all([
-        spotify.api.getTracks([id]),
-        spotify.api.getAudioFeaturesForTracks([id]),
-      ])
+      backendSpotifyAPIClient
+        .then((spotifyApi) =>
+          Promise.all([
+            spotifyApi.getTracks([id]),
+            spotifyApi.getAudioFeaturesForTracks([id]),
+          ]),
+        )
         .then((data) => {
           const track: SpotifyApi.TrackObjectFull & {
             audio_features?: SpotifyApi.AudioFeaturesObject;

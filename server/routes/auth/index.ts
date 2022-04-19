@@ -2,12 +2,7 @@ import { Buffer } from "buffer";
 import express, { Request } from "express";
 import { PassportStatic } from "passport";
 import User from "../../models/user";
-import {
-  authenticateSpotifyHost,
-  createSpotifyHost,
-  getSnoppifyHost,
-  GLOBAL_SNOPPIFY_HOST_ID,
-} from "../../spotify";
+import { authenticateSpotifyHost, createSpotifyHost } from "../../spotify";
 import { spotifyAPIScopes } from "../../spotify/spotify-playback-api";
 
 const router = express.Router();
@@ -94,7 +89,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
 
     if (req.isAuthenticated() && req.user) {
       // const spotify = getSnoppifyHost(req.user.partyId);
-      const spotify = getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
+      const spotify = req.snoppifyHost;
 
       if (!spotify) {
         res.sendStatus(401);
