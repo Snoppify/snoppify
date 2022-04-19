@@ -99,7 +99,7 @@ const authenticateSpotifyHost = (incomingUser: any) =>
       owner: user.username,
       accessToken: checkStr(access_token),
       refreshToken: checkStr(refresh_token),
-      hostId: "default", // this is a hack
+      hostId: GLOBAL_SNOPPIFY_HOST_ID, // this is a hack
     });
 
     User.save(user, () => {

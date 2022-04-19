@@ -29,10 +29,6 @@ export default class User {
     this.friends = data.friends || [];
   }
 
-  save(callback) {
-    return User.save(this, callback);
-  }
-
   clear() {
     this.queue.clear();
     this.votes = {

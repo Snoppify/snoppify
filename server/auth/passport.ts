@@ -1,10 +1,12 @@
-const FacebookStrategy = require("passport-facebook").Strategy;
-const SpotifyStrategy = require("passport-spotify").Strategy;
-const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
+// const FacebookStrategy = require("passport-facebook").Strategy;
+// const SpotifyStrategy = require("passport-spotify").Strategy;
+// const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
+import { Strategy as FacebookStrategy } from "passport-facebook";
+import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
+import { Strategy as SpotifyStrategy } from "passport-spotify";
+import User from "../models/user";
 
-const User = require("../models/user");
-
-module.exports = function authPassport(passport) {
+export function passportInit(passport) {
   // used to serialize the user for the session
   passport.serializeUser((user, done) => {
     done(null, user.id);
@@ -73,8 +75,8 @@ module.exports = function authPassport(passport) {
             id: profile.id,
             username: profile.id,
             displayName: profile.displayName || profile.id,
-            name: profile.name,
-            profile: profile.photos.length > 0 ? profile.photos[0].value : null,
+            name: profile.displayName,
+            profile: profile.photos.length > 0 ? profile.photos[0] : null,
             _tokens: {
               access_token,
               refresh_token,
@@ -94,7 +96,7 @@ module.exports = function authPassport(passport) {
         callbackURL: `${process.env.SERVER_URI}/auth/google/callback`,
       },
 
-      (accessToken, refreshToken, expires_in, profile, done) => {
+      (accessToken, refreshToken, profile, done) => {
         findOrCreateUser(
           {
             id: profile.id,
@@ -109,7 +111,7 @@ module.exports = function authPassport(passport) {
       },
     ),
   );
-};
+}
 
 // private functions
 
@@ -127,7 +129,7 @@ function findOrCreateUser(data, done) {
       // user found, update data
       Object.assign(user, data);
 
-      user.save((_err) => {
+      User.save(user, (_err) => {
         if (_err) {
           throw _err;
         }
@@ -139,7 +141,7 @@ function findOrCreateUser(data, done) {
       const newUser = new User(data);
 
       // save our user to the database
-      newUser.save((_err) => {
+      User.save(newUser, (_err) => {
         if (_err) {
           throw _err;
         }
