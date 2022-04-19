@@ -1,5 +1,5 @@
 import { Buffer } from "buffer";
-import express from "express";
+import express, { Request } from "express";
 import { PassportStatic } from "passport";
 import User from "../../models/user";
 
@@ -33,7 +33,7 @@ const decodeState = (state = "") => {
   return null;
 };
 
-const authCallback = (req, res) => {
+const authCallback = (req: Request, res) => {
   req.session.host = null;
 
   const state = decodeState(String(req.query.state));
