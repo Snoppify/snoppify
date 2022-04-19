@@ -16,7 +16,11 @@
 
     <!-- popups -->
     <transition name="popups-backdrop">
-      <div v-if="popups.length > 0" class="popups-backdrop" v-on:click="dismissPopup()"></div>
+      <div
+        v-if="popups.length > 0"
+        class="popups-backdrop"
+        v-on:click="dismissPopup()"
+      ></div>
     </transition>
     <transition-group name="popups-body" tag="div" class="messages-container">
       <div
@@ -27,7 +31,11 @@
         v-on:click="dismissPopup()"
       >
         <span v-if="popup.message">{{ popup.message }}</span>
-        <div class="popups-body__html" v-if="popup.html" v-html="popup.html"></div>
+        <div
+          class="popups-body__html"
+          v-if="popup.html"
+          v-html="popup.html"
+        ></div>
       </div>
     </transition-group>
   </div>

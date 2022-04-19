@@ -12,21 +12,21 @@ global[SOCKET_SOCKETS_KEY] = {};
 // define the singleton API
 // ------------------------
 
-var singleton = function socket(http) {
-    global[SOCKET_KEY] = socketio(http);
-    return singleton;
+const singleton = function socket(http) {
+  global[SOCKET_KEY] = socketio(http);
+  return singleton;
 };
 
 Object.defineProperty(singleton, "io", {
-    get: function() {
-        return global[SOCKET_KEY];
-    },
+  get() {
+    return global[SOCKET_KEY];
+  },
 });
 
 Object.defineProperty(singleton, "sockets", {
-    get: function() {
-        return global[SOCKET_SOCKETS_KEY];
-    },
+  get() {
+    return global[SOCKET_SOCKETS_KEY];
+  },
 });
 
 // ensure the API is never changed

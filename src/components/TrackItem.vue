@@ -52,8 +52,8 @@
 
 <script>
 import { mapGetters } from "vuex";
-import api from "../api";
 import Vue from "vue";
+import api from "../api";
 
 export default {
   props: {
@@ -81,7 +81,8 @@ export default {
 
       console.log("vote");
 
-      let func, i;
+      let func;
+      let i;
       if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
         func = "vote";
         track.snoppify.votes.push(this.username);

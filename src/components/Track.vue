@@ -18,7 +18,12 @@
       <div class="track_info">
         <div class="track_snoppify">
           <div v-if="!track.snoppify">
-            <button v-on:click="queueTrack(track)" class="snopp-btn snopp-btn--light">Queue track</button>
+            <button
+              v-on:click="queueTrack(track)"
+              class="snopp-btn snopp-btn--light"
+            >
+              Queue track
+            </button>
           </div>
 
           <div v-if="track.snoppify">
@@ -35,7 +40,10 @@
                 }"
                 v-on:click="vote(track)"
               >
-                <div class="arrow-up" v-if="track.snoppify.votes.length > 0"></div>
+                <div
+                  class="arrow-up"
+                  v-if="track.snoppify.votes.length > 0"
+                ></div>
                 <div>{{ track.snoppify.votes.length }}</div>
               </span>
             </p>
@@ -45,7 +53,9 @@
               "
               v-on:click="dequeueTrack(track)"
               class="snopp-btn snopp-btn--light"
-            >Dequeue track</button>
+            >
+              Dequeue track
+            </button>
           </div>
 
           <hr />
@@ -104,7 +114,7 @@ export default {
 
   methods: {
     getTrack() {
-      api.spotify.getTrack(this.id).then(r => {
+      api.spotify.getTrack(this.id).then((r) => {
         this.track = r;
       });
     },
@@ -120,7 +130,8 @@ export default {
         return;
       }
 
-      let func, i;
+      let func;
+      let i;
       if ((i = track.snoppify.votes.indexOf(this.username)) == -1) {
         func = "vote";
         track.snoppify.votes.push(this.username);

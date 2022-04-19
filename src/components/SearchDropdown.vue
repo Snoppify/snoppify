@@ -14,12 +14,18 @@
         type="button"
         v-if="show"
         v-on:click.stop.prevent="blurSearch"
-      >&times;</button>
+      >
+        &times;
+      </button>
       <!-- <button type="submit">Search</button> -->
     </form>
 
     <transition name="search-backdrop">
-      <div v-if="show" class="search-backdrop" v-on:click.stop.prevent="blurSearch"></div>
+      <div
+        v-if="show"
+        class="search-backdrop"
+        v-on:click.stop.prevent="blurSearch"
+      ></div>
     </transition>
 
     <div class="search-results" v-if="show">
@@ -27,7 +33,10 @@
         <div v-if="!result" class="search-results__info">
           <p>Search by text or paste a spotify link</p>
         </div>
-        <div v-if="result && result.tracks.items.length == 0" class="search-results__info">
+        <div
+          v-if="result && result.tracks.items.length == 0"
+          class="search-results__info"
+        >
           <p>Nothing here :(</p>
         </div>
         <ul v-if="result && result.tracks.items.length > 0" class="search-list">
@@ -37,16 +46,20 @@
         </ul>
       </div>
       <div v-show="loading" class="search-results__info">
-        <img src="@/assets/spinner.svg" alt="LOADING SPINER" class="search-results__spinner" />
+        <img
+          src="@/assets/spinner.svg"
+          alt="LOADING SPINER"
+          class="search-results__spinner"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import api from "../api";
 import debounce from "../common/debounce";
-import { mapGetters } from "vuex";
 
 export default {
   props: {},
@@ -75,21 +88,21 @@ export default {
       });
     },
 
-    blurSearch(event) {
+    blurSearch() {
       this.$nextTick(() => {
         this.show = false;
         this.result = null;
       });
     },
 
-    debounceSearch: debounce(function(e) {
+    debounceSearch: debounce(function (e) {
       api.spotify
         .search(e.target.value)
-        .then(r => {
+        .then((r) => {
           console.log(r, this);
           this.result = r;
         })
-        .catch(r => {
+        .catch(() => {
           this.result = null;
         })
         .finally(() => {
@@ -107,7 +120,7 @@ export default {
       this.debounceSearch(e);
     },
 
-    queueTrack(track) {
+    queueTrack() {
       this.$nextTick(() => {
         this.blurSearch();
       });

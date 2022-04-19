@@ -1,7 +1,7 @@
 {
-    "extends": "../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "../electron-dist",
-    },
-    "include": ["./**/*"],
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../electron-dist"
+  },
+  "include": ["./**/*"]
 }

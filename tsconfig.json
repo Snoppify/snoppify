@@ -11,6 +11,14 @@
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
     },
-    "typeRoots": ["./node_modules/@types", "server/ts"]
-  }
+    "typeRoots": ["./node_modules/@types", "server/ts"],
+    "outDir": "dist"
+  },
+  "include": [
+    "src/**/*",
+    "server/**/*",
+    // Needed to please eslint 🤷
+    ".eslintrc.js",
+    "*.js"
+  ]
 }

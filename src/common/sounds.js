@@ -16,52 +16,52 @@ import wilhelm from "../assets/sounds/wilhelm.wav";
 import yeah from "../assets/sounds/yeah.wav";
 
 export default {
-    honk: {
-        sound: [honk]
-    },
-    applause: {
-        sound: [applause]
-    },
-    orgasm: {
-        sound: [orgasm]
-    },
-    whistle: {
-        sound: [whistle]
-    },
-    yeah: {
-        sound: [yeah]
-    },
-    wilhelm: {
-        sound: [wilhelm]
-    },
-    airhorn: {
-        sound: [airhorn]
-    },
-    brrrap: {
-        sound: [brrrap]
-    },
-    rastafari: {
-        sound: [rastafari]
-    },
-    inception: {
-        sound: [inception]
-    },
-    mario1: {
-        sound: [mario1]
-    },
-    mario2: {
-        sound: [mario2]
-    },
-    mario3: {
-        sound: [mario3]
-    },
-    yoshi1: {
-        sound: [yoshi1]
-    },
-    yoshi2: {
-        sound: [yoshi2]
-    },
-    yoshi3: {
-        sound: [yoshi3]
-    },
+  honk: {
+    sound: [honk],
+  },
+  applause: {
+    sound: [applause],
+  },
+  orgasm: {
+    sound: [orgasm],
+  },
+  whistle: {
+    sound: [whistle],
+  },
+  yeah: {
+    sound: [yeah],
+  },
+  wilhelm: {
+    sound: [wilhelm],
+  },
+  airhorn: {
+    sound: [airhorn],
+  },
+  brrrap: {
+    sound: [brrrap],
+  },
+  rastafari: {
+    sound: [rastafari],
+  },
+  inception: {
+    sound: [inception],
+  },
+  mario1: {
+    sound: [mario1],
+  },
+  mario2: {
+    sound: [mario2],
+  },
+  mario3: {
+    sound: [mario3],
+  },
+  yoshi1: {
+    sound: [yoshi1],
+  },
+  yoshi2: {
+    sound: [yoshi2],
+  },
+  yoshi3: {
+    sound: [yoshi3],
+  },
 };

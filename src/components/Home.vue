@@ -9,7 +9,11 @@
     <h1 v-else>Paused</h1>
 
     <div class="current-track" v-if="currentTrack">
-      <img v-if="currentTrack.album" :src="currentTrack.album.images[1].url" alt />
+      <img
+        v-if="currentTrack.album"
+        :src="currentTrack.album.images[1].url"
+        alt
+      />
       <div class="current-track__track-info">
         <div class="title">{{ currentTrack.name }}</div>
         <div class="artist">
@@ -30,7 +34,9 @@
         <div class="user">
           <div class="title">Added by</div>
           <div class="name">{{ currentTrack.snoppify.issuer.displayName }}</div>
-          <div class="upvotes">{{ currentTrack.snoppify.votes.length }} upvotes</div>
+          <div class="upvotes">
+            {{ currentTrack.snoppify.votes.length }} upvotes
+          </div>
         </div>
       </div>
     </div>
@@ -63,7 +69,7 @@
         v-on:click="showFriends()"
         class="friends-button"
       >
-        Show your {{user.friends.length}}
+        Show your {{ user.friends.length }}
         <span v-if="user.friends.length == 1">friend</span>
         <span v-else>friends</span>
       </button>
@@ -75,10 +81,16 @@
       <h1>Share the party!</h1>
       <p>
         <button
-          style="margin:auto; "
+          style="margin: auto"
           class="snopp-btn"
-          @click="showShareModal = true; generateShareQR(); generateWifiQR();"
-        >Share party!</button>
+          @click="
+            showShareModal = true;
+            generateShareQR();
+            generateWifiQR();
+          "
+        >
+          Share party!
+        </button>
       </p>
       <modal v-if="showShareModal" @close="showShareModal = false">
         <!--
@@ -87,7 +99,7 @@
         -->
         <div slot="body">
           <h1>SnoppiCode</h1>
-          <p class="share-snoppi-code">{{snoppiCode}}</p>
+          <p class="share-snoppi-code">{{ snoppiCode }}</p>
           <h1>Join the party!</h1>
           <div class="share-qr-code">
             <canvas ref="qrCanvas"></canvas>
@@ -120,27 +132,29 @@
     <div class="soundboard">
       <button
         v-for="sound in [
-        'honk',
-        'applause',
-        'orgasm',
-        'whistle',
-        'yeah',
-        'wilhelm',
-        'airhorn',
-        'brrrap',
-        'rastafari',
-        'inception',
-        'mario1',
-        'mario2',
-        'mario3',
-        'yoshi1',
-        'yoshi2',
-        'yoshi3',
-      ]"
+          'honk',
+          'applause',
+          'orgasm',
+          'whistle',
+          'yeah',
+          'wilhelm',
+          'airhorn',
+          'brrrap',
+          'rastafari',
+          'inception',
+          'mario1',
+          'mario2',
+          //'mario3',
+          //'yoshi1',
+          //'yoshi2',
+          //'yoshi3',
+        ]"
         v-bind:key="sound"
         v-on:click="playSound(sound)"
         class="soundboard__btn snopp-btn"
-      >{{ sound }}</button>
+      >
+        {{ sound }}
+      </button>
     </div>
 
     <div v-if="user.admin">
@@ -163,9 +177,7 @@
         Backup playlist:
         <span v-if="backupPlaylist">
           <b>{{ backupPlaylist.name }}</b>
-          ({{
-          backupPlaylist.owner.display_name
-          }})
+          ({{ backupPlaylist.owner.display_name }})
         </span>
         <span v-else>(not set)</span>
       </p>
@@ -175,13 +187,12 @@
 
 <script>
 import { mapGetters } from "vuex";
+import * as QRCode from "qrcode";
 import api from "../api";
 import codeWords from "../common/code-words";
-import * as QRCode from "qrcode";
 
 // components
-import SearchDropdown from "./SearchDropdown";
-import TrackItem from "./TrackItem";
+import SearchDropdown from "./SearchDropdown.vue";
 
 export default {
   components: {
@@ -192,7 +203,7 @@ export default {
     return {
       searchQuery: "",
       showShareModal: false,
-      snoppiCode: codeWords.getCode(location.hostname),
+      snoppiCode: codeWords.getCode(window.location.hostname),
     };
   },
 
@@ -251,8 +262,8 @@ export default {
       setTimeout(() => {
         QRCode.toCanvas(
           this.$refs.qrCanvas,
-          `http://${location.hostname}:3000/new-user`,
-          function(error) {
+          `${process.env.VUE_APP_SERVER_URI}/new-user`,
+          (error) => {
             if (error) console.error(error);
           },
         );
@@ -265,7 +276,7 @@ export default {
       }
 
       setTimeout(() => {
-        QRCode.toCanvas(this.$refs.wifiQRCanvas, this.wifiQR, err => {
+        QRCode.toCanvas(this.$refs.wifiQRCanvas, this.wifiQR, (err) => {
           if (err) {
             console.error(err);
           }
@@ -276,28 +287,27 @@ export default {
     showFriends() {
       this.$store.dispatch("Messages/popup", {
         type: "deepsea",
-        html:
-          "<h2>Your friends:</h2>" +
-          (this.user.friends.length == 0 ? "<p>No friends yet :(</p>" : "") +
-          this.user.friends
-            .map(f => {
-              var html = f.displayName;
-              var given = this.user.votes.given[f.username]
-                ? this.user.votes.given[f.username]
-                : 0;
-              var received = this.user.votes.received[f.username]
-                ? this.user.votes.received[f.username]
-                : 0;
-              if (given > received) {
-                html += " (you upvoted " + given + " times)";
-              } else if (received > given) {
-                html += " (upvoted you " + received + " times)";
-              } else {
-                html += " (" + received + " upvotes)";
-              }
-              return "<p>" + html + "</p>";
-            })
-            .join(""),
+        html: `<h2>Your friends:</h2>${
+          this.user.friends.length === 0 ? "<p>No friends yet :(</p>" : ""
+        }${this.user.friends
+          .map((f) => {
+            let html = f.displayName;
+            const given = this.user.votes.given[f.username]
+              ? this.user.votes.given[f.username]
+              : 0;
+            const received = this.user.votes.received[f.username]
+              ? this.user.votes.received[f.username]
+              : 0;
+            if (given > received) {
+              html += ` (you upvoted ${given} times)`;
+            } else if (received > given) {
+              html += ` (upvoted you ${received} times)`;
+            } else {
+              html += ` (${received} upvotes)`;
+            }
+            return `<p>${html}</p>`;
+          })
+          .join("")}`,
       });
     },
   },
