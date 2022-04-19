@@ -925,25 +925,23 @@ class SpotifyController {
   /// /////
 
   private init() {
-    this.api.onload.then(() => {
-      if (this.mainPlaylist) {
-        this.setMainPlaylist({ id: this.mainPlaylist.id });
-      }
+    if (this.mainPlaylist) {
+      this.setMainPlaylist({ id: this.mainPlaylist.id });
+    }
 
-      if (this.backupPlaylist) {
-        this.setBackupPlaylist({ id: this.backupPlaylist.id });
-      }
+    if (this.backupPlaylist) {
+      this.setBackupPlaylist({ id: this.backupPlaylist.id });
+    }
 
-      if (this.mainPlaylist) {
-        this.reloadPlaylist();
-      }
+    if (this.mainPlaylist) {
+      this.reloadPlaylist();
+    }
 
-      if (this.api.getCredentials().refreshToken) {
-        setInterval(() => {
-          this.pollPlayerStatus();
-        }, this.pollTimeout);
-      }
-    });
+    if (this.api.getCredentials().refreshToken) {
+      setInterval(() => {
+        this.pollPlayerStatus();
+      }, this.pollTimeout);
+    }
 
     this.states = createStateMachine();
 

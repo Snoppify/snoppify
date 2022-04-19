@@ -126,6 +126,7 @@ async function createBackendClient(): Promise<SpotifyAPI> {
   api.setAccessToken(grantResponse.access_token);
 
   api.close = initAccessTokenRefreshInterval(api);
+  api.config = {} as ISnoppifyConfig;
 
   return api;
 }
@@ -137,7 +138,7 @@ async function createBackendClient(): Promise<SpotifyAPI> {
 export function createSpotifyAPIUserClient(opts: {
   accessToken: string;
   refreshToken: string;
-}): SpotifyWebApi {
+}): SpotifyAPI {
   const api = new SpotifyWebApi({
     redirectUri: `${process.env.SERVER_URI}/auth/spotify/callback`,
     clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -146,7 +147,8 @@ export function createSpotifyAPIUserClient(opts: {
     refreshToken: opts.refreshToken,
   }) as SpotifyAPI;
 
-  initAccessTokenRefreshInterval(api);
+  api.close = initAccessTokenRefreshInterval(api);
+  api.config = {} as ISnoppifyConfig;
 
   return api;
 }
