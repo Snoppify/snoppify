@@ -1,16 +1,22 @@
+import dotenv from "dotenv";
 import SpotifyWebApi from "spotify-web-api-node";
 import { ISnoppifyConfig } from "./snoppify-config.interface";
+
+// @ts-ignore
+dotenv.config();
 
 export type SpotifyAPI = SpotifyWebApi & {
   init: () => SpotifyAPI;
   config: ISnoppifyConfig;
   onload: Promise<any>;
+  /** Closes the api client */
+  close: () => void;
 };
 
 let globalSpotifyAPI: SpotifyAPI;
 
 function initAccessTokenRefreshInterval(api: SpotifyAPI) {
-  setInterval(() => {
+  const intervalId = setInterval(() => {
     api.refreshAccessToken().then(
       (data) => {
         console.log("Updated access_token:", data.body.access_token);
@@ -25,6 +31,8 @@ function initAccessTokenRefreshInterval(api: SpotifyAPI) {
       },
     );
   }, 60 * 10 * 1000); // every 15 min
+
+  return () => clearInterval(intervalId);
 }
 
 export function createSpotifyAPI() {
@@ -101,3 +109,46 @@ export function createSpotifyAPI() {
 
   return api;
 }
+
+/**
+ * Creates a spotify api instance for use on the backend server
+ */
+async function createBackendClient(): Promise<SpotifyAPI> {
+  const api = new SpotifyWebApi({
+    redirectUri: `${process.env.SERVER_URI}/auth/spotify/callback`,
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  }) as SpotifyAPI;
+
+  const { body: grantResponse } = await api.clientCredentialsGrant();
+
+  // Save the access token so that it's used in future calls
+  api.setAccessToken(grantResponse.access_token);
+
+  api.close = initAccessTokenRefreshInterval(api);
+
+  return api;
+}
+
+/**
+ * Creates a new spotify api instance with auth for a specific user,
+ * i.e. the party host.
+ */
+export function createSpotifyAPIUserClient(opts: {
+  accessToken: string;
+  refreshToken: string;
+}): SpotifyWebApi {
+  const api = new SpotifyWebApi({
+    redirectUri: `${process.env.SERVER_URI}/auth/spotify/callback`,
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    accessToken: opts.accessToken,
+    refreshToken: opts.refreshToken,
+  }) as SpotifyAPI;
+
+  initAccessTokenRefreshInterval(api);
+
+  return api;
+}
+
+export const backendSpotifyAPIClient = createBackendClient();
