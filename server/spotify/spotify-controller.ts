@@ -846,7 +846,7 @@ class SpotifyController {
     for (let i = 0; i < this.queue.size; i++) {
       const sublist = [];
       for (const user of User.users) {
-        const u = User.users[user];
+        const u = user;
 
         const t = u.queue.getAt(i);
         if (t) {
