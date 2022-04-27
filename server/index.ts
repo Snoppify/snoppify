@@ -6,7 +6,6 @@ import connectLoki from "connect-loki";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
-import expressDebug from "express-debug";
 import fallback from "express-history-api-fallback";
 import session from "express-session";
 import sharedsession from "express-socket.io-session";
@@ -115,7 +114,6 @@ app.use("*", (req, _, next) => {
 });
 
 passportInit(passport);
-expressDebug(app, {});
 
 const routes = routesIndex(passport);
 app.use("/", routes);
