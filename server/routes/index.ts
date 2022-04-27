@@ -2,11 +2,6 @@ import express from "express";
 import { PassportStatic } from "passport";
 import User from "../models/user";
 import socket from "../socket";
-import {
-  // createSnoppifyHost,
-  getSnoppifyHost,
-  GLOBAL_SNOPPIFY_HOST_ID,
-} from "../spotify";
 import { createSpotifyAPI } from "../spotify/spotify-api";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
@@ -18,7 +13,7 @@ if (process.env.NODE_ENV !== "production") {
 
 /* const spotifyAPI = */ createSpotifyAPI().init();
 
-const getGlobalSnoppifyHost = () => getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
+// const getGlobalSnoppifyHost = () => getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 // const spotifyPlaybackApi = new SpotifyPlaybackAPI(getGlobalSnoppifyHost().api);
 
 const router = express.Router();
@@ -63,6 +58,8 @@ export default function routes(passport: PassportStatic) {
 
   function errorHandler(res) {
     return (r) => {
+      console.error("routes/index errorHandler:", res.body, r);
+
       if (!r || !r.response) {
         const status = r && r.status ? r.status : 500;
         return res.status(status).send(r);
@@ -289,7 +286,7 @@ export default function routes(passport: PassportStatic) {
 
     if (!req.body.uri) {
       // unset backup playlist
-      getGlobalSnoppifyHost().controller.removeBackupPlaylist();
+      req.snoppifyHost.controller.removeBackupPlaylist();
 
       res.status(200).end();
       return;
@@ -302,21 +299,21 @@ export default function routes(passport: PassportStatic) {
       return;
     }
 
-    getGlobalSnoppifyHost()
-      .controller.setBackupPlaylist({ id: playlist.id })
+    req.snoppifyHost.controller
+      .setBackupPlaylist({ id: playlist.id })
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/set-active-device", (req, res) => {
-    getGlobalSnoppifyHost()
-      .playbackAPI.setActiveDevice(req.body.id)
+    req.snoppifyHost.playbackAPI
+      .setActiveDevice(req.body.id)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.get("/get-devices", (req, res) => {
-    const host = getGlobalSnoppifyHost();
+    const host = req.snoppifyHost;
     if (!host) {
       res.status(400).send();
       return;
@@ -328,8 +325,8 @@ export default function routes(passport: PassportStatic) {
   });
 
   router.get("/get-track", (req, res) => {
-    getGlobalSnoppifyHost()
-      .controller.getTrack(checkStr(req.query.trackId))
+    req.snoppifyHost.controller
+      .getTrack(checkStr(req.query.trackId))
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
@@ -337,48 +334,48 @@ export default function routes(passport: PassportStatic) {
   router.get("/get-playlists", () => {});
 
   router.post("/play", (req, res) => {
-    getGlobalSnoppifyHost()
-      .controller.play(req.body.playlist)
+    req.snoppifyHost.controller
+      .play(req.body.playlist)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/pause", (req, res) => {
-    getGlobalSnoppifyHost()
-      .controller.pause()
+    req.snoppifyHost.controller
+      .pause()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/play-next", (req, res) => {
-    getGlobalSnoppifyHost()
-      .controller.playNext()
+    req.snoppifyHost.controller
+      .playNext()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/empty-playlist", (req, res) => {
-    getGlobalSnoppifyHost()
-      .controller.emptyPlaylist()
+    req.snoppifyHost.controller
+      .emptyPlaylist()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/empty-queue", (req, res) => {
-    getGlobalSnoppifyHost()
-      .controller.emptyQueue()
+    req.snoppifyHost.controller
+      .emptyQueue()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.get("/get-queue", (req, res) => {
     res.json({
-      data: getGlobalSnoppifyHost().controller.getQueue(),
+      data: req.snoppifyHost.controller.getQueue(),
     });
   });
 
   router.get("/info", (req, res) => {
-    const host = getGlobalSnoppifyHost();
+    const host = req.snoppifyHost;
     if (!host) {
       res.status(400).send();
       return;
@@ -406,8 +403,8 @@ export default function routes(passport: PassportStatic) {
   });
 
   router.get("/get-host-playlists", (req, res) => {
-    getGlobalSnoppifyHost()
-      .api.getUserPlaylists("me", {
+    req.snoppifyHost.api
+      .getUserPlaylists("me", {
         limit: +req.query.limit || 15,
         offset: req.query.offset === undefined ? 0 : +req.query.offset,
       })
@@ -427,7 +424,7 @@ export default function routes(passport: PassportStatic) {
       return;
     }
 
-    const party = getGlobalSnoppifyHost().controller.getCurrentParty();
+    const party = req.snoppifyHost.controller.getCurrentParty();
     if (!party) {
       res.status(500);
       res.json({ error: "No party file/object" });
@@ -446,7 +443,7 @@ export default function routes(passport: PassportStatic) {
       return;
     }
 
-    const wifi = getGlobalSnoppifyHost().controller.getCurrentParty()?.wifi;
+    const wifi = req.snoppifyHost.controller.getCurrentParty()?.wifi;
     if (!wifi) {
       // return res.status(500).json({ error: "No wifi in the party object" });
       res.send(null);

@@ -34,7 +34,7 @@
           </div>
         </div>
 
-        <!-- <div class="start-input">
+        <div class="start-input">
           <div class="start-input__text">
             <input v-model="hostIP" placeholder="Host IP or SnoppiCode" />
           </div>
@@ -43,7 +43,7 @@
           <div class="start-input__text">
             <input v-model="partyId" placeholder="Party id" />
           </div>
-        </div> -->
+        </div>
 
         <button class="start-btn start-btn__join" @click="onJoinClick()">
           Join

@@ -1,5 +1,6 @@
+import { Request as ExpressRequest } from "express";
 import User from "../models/user";
-import { createSpotifyAPI, SpotifyAPI } from "./spotify-api";
+import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";
 
@@ -11,26 +12,18 @@ export type SnoppifyHost = {
 };
 
 export {
-  createSnoppifyHost,
-  getSnoppifyHost,
-  getLatestSnoppifyHost,
   authenticateSpotifyHost,
+  createSnoppifyHost,
   createSpotifyHost,
+  getSnoppifyHost,
+  getSnoppifyHostForUser,
 };
 
 export const GLOBAL_SNOPPIFY_HOST_ID = "GLOBAL_HOST_ID";
 
-let latestHost: SnoppifyHost = null as any;
-
 const activeHosts: {
   [hostId: string]: SnoppifyHost;
 } = {};
-
-// const spotifyAPI = new SpotifyWebApi({
-//   redirectUri: `${process.env.SERVER_URI}/auth/spotify/callback`,
-//   clientId: process.env.SPOTIFY_CLIENT_ID,
-//   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-// }) as SpotifyAPI;
 
 const createSnoppifyHost = (opts: {
   owner: string;
@@ -38,16 +31,12 @@ const createSnoppifyHost = (opts: {
   refreshToken: string;
   hostId: string;
 }) => {
-  // if (latestHost) return latestHost;
+  const api = createSpotifyAPIUserClient({
+    accessToken: opts.accessToken,
+    refreshToken: opts.refreshToken,
+  });
 
-  const api = createSpotifyAPI();
-
-  // Set the access token on the API object to use it in later calls
   api.config.owner = opts.owner;
-  api.setAccessToken(opts.accessToken);
-  api.setRefreshToken(opts.refreshToken);
-
-  api.init();
 
   const playbackAPI = new SpotifyPlaybackAPI(api);
   const controller = new SpotifyController({ api, playbackAPI });
@@ -60,19 +49,13 @@ const createSnoppifyHost = (opts: {
   } as SnoppifyHost;
 
   activeHosts[opts.hostId] = host;
-  latestHost = host;
 
   return host;
 };
 
 const getSnoppifyHost = (id: string) => activeHosts[id];
-
-/**
- * returns the latest created host
- *
- * OBS!!! VÄLDIGT FULHACK!!!
- */
-const getLatestSnoppifyHost = () => latestHost;
+const getSnoppifyHostForUser = (user: ExpressRequest["user"]) =>
+  getSnoppifyHost(user?.partyId || user?.id);
 
 /**
  * Throws an error if the provided param is not a string. Used for
@@ -99,7 +82,7 @@ const authenticateSpotifyHost = (incomingUser: any) =>
       owner: user.username,
       accessToken: checkStr(access_token),
       refreshToken: checkStr(refresh_token),
-      hostId: GLOBAL_SNOPPIFY_HOST_ID, // this is a hack
+      hostId: user.host.id || user.id,
     });
 
     User.save(user, () => {

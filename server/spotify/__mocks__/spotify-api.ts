@@ -5,3 +5,9 @@ export const createSpotifyAPI = jest.fn().mockImplementation(() => ({
   setRefreshToken: () => {},
   init: () => {},
 }));
+export const createSpotifyAPIUserClient = jest.fn().mockImplementation(() => ({
+  config: {},
+  setAccessToken: () => {},
+  setRefreshToken: () => {},
+  init: () => {},
+}));
