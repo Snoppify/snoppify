@@ -1,5 +1,7 @@
+import { Votes } from "./Votes";
+
 const fs = require("fs");
-const Queue = require("../../Queue");
+const Queue = require("../Queue/Queue");
 
 export default class User {
   static users: any[];
@@ -8,9 +10,23 @@ export default class User {
 
   queue: any;
 
-  votes: any;
+  votes: Votes;
 
   friends: any;
+
+  id: string;
+
+  username: string;
+
+  displayName: string;
+
+  name: string;
+
+  /**
+   * Profile picture uri
+   * TODO: Rename
+   */
+  profile: string;
 
   constructor(data: User) {
     Object.keys(data).forEach((key) => (this[key] = data[key]));
