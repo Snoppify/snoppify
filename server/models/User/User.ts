@@ -1,5 +1,5 @@
 const fs = require("fs");
-const Queue = require("../Queue");
+const Queue = require("../../Queue");
 
 export default class User {
   static users: any[];

@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import express, { Request } from "express";
 import { PassportStatic } from "passport";
-import User from "../../models/user";
+import User from "../../models/User/User";
 import { authenticateSpotifyHost, createSpotifyHost } from "../../spotify";
 import { spotifyAPIScopes } from "../../spotify/spotify-playback-api";
 

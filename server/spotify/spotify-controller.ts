@@ -2,7 +2,7 @@
 
 import * as fs from "fs";
 import mkdirp from "mkdirp";
-import User from "../models/user";
+import User from "../models/User/User";
 import Queue from "../Queue";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";

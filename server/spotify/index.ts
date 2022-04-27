@@ -1,5 +1,5 @@
 import { Request as ExpressRequest } from "express";
-import User from "../models/user";
+import User from "../models/User/User";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";

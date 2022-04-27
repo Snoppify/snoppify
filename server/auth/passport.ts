@@ -4,7 +4,7 @@
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
 import { Strategy as SpotifyStrategy } from "passport-spotify";
-import User from "../models/user";
+import User from "../models/User/User";
 
 export function passportInit(passport) {
   // used to serialize the user for the session

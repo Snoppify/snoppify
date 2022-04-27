@@ -1,6 +1,6 @@
 import express from "express";
 import { PassportStatic } from "passport";
-import User from "../models/user";
+import User from "../models/User/User";
 import socket from "../socket";
 import { createSpotifyAPI } from "../spotify/spotify-api";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";

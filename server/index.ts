@@ -15,7 +15,7 @@ import https from "https";
 import ip from "ip";
 import passport from "passport";
 import { passportInit } from "./auth/passport";
-import User from "./models/user";
+import User from "./models/User/User";
 import routesIndex from "./routes";
 import socketIO from "./socket";
 import { getSnoppifyHostForUser } from "./spotify";
