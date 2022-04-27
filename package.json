@@ -24,8 +24,10 @@
       "patterns": [
         "server-dist",
         "snoppify-config.js",
-        ".env"
-      ]
+        ".env",
+        "package.json"
+      ],
+      "delay": 1000
     },
     "quiet": false
   },
