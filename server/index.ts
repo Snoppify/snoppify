@@ -18,7 +18,7 @@ import { passportInit } from "./auth/passport";
 import User from "./models/user";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { getSnoppifyHost } from "./spotify";
+import { getSnoppifyHostForUser } from "./spotify";
 import { backendSpotifyAPIClient } from "./spotify/spotify-api";
 
 // @ts-ignore
@@ -106,17 +106,13 @@ socket.io.use(sharedsession(mysession));
 
 app.use("*", (req, _, next) => {
   // add the host to the request
-  if (req.user?.partyId) {
-    req.snoppifyHost = getSnoppifyHost(req.user.partyId);
-  }
-
+  req.snoppifyHost = getSnoppifyHostForUser(req.user);
   next();
 });
 
 passportInit(passport);
 
-const routes = routesIndex(passport);
-app.use("/", routes);
+app.use("/", routesIndex(passport));
 // const isHosting = false;
 
 app.use("/ping", (_, res) => {

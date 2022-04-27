@@ -58,6 +58,8 @@ export default function routes(passport: PassportStatic) {
 
   function errorHandler(res) {
     return (r) => {
+      console.error("routes/index errorHandler:", res.body, r);
+
       if (!r || !r.response) {
         const status = r && r.status ? r.status : 500;
         return res.status(status).send(r);

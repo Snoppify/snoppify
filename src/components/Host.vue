@@ -43,7 +43,7 @@
       </div>
 
       <div v-if="user.host && user.host.id">
-        <p>ID: {{ user.host.id }}</p>
+        <p>ID: <input type="text" disabled :value="user.host.id" /></p>
         <p>
           Name: {{ user.host.name }}
           <input type="button" v-on:click="changePartyName()" value="change" />

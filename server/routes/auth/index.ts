@@ -8,7 +8,7 @@ import { spotifyAPIScopes } from "../../spotify/spotify-playback-api";
 const router = express.Router();
 
 const AUTH_STATE_GUEST = "guest";
-const AUTH_STATE_HOST_CREATE = "host";
+const AUTH_STATE_HOST_CREATE_PARTY = "host";
 const AUTH_STATE_HOST_LOGIN = "host-login";
 
 // const getPassportState = (req: ExpressRequest, addressSuffix = "") => ({
@@ -46,8 +46,9 @@ const authCallback = (req: Request, res) => {
       }
       res.redirect("/party");
       break;
-    case AUTH_STATE_HOST_CREATE:
+    case AUTH_STATE_HOST_CREATE_PARTY:
       createSpotifyHost(req.user)
+        // TODO: Replace with api endpoint
         .then(() => {
           // TODO: Is this needed?
           req.session.spotify = {
@@ -192,7 +193,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
       scope: spotifyAPIScopes,
       state: encodeStateObject({
         id: req.query.partyId, // TODO: check if this is used
-        auth: AUTH_STATE_HOST_CREATE,
+        auth: AUTH_STATE_HOST_CREATE_PARTY,
       }),
     })(req, ...args),
   );

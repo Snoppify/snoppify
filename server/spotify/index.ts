@@ -1,3 +1,4 @@
+import { Request as ExpressRequest } from "express";
 import User from "../models/user";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
@@ -11,10 +12,11 @@ export type SnoppifyHost = {
 };
 
 export {
-  createSnoppifyHost,
-  getSnoppifyHost,
   authenticateSpotifyHost,
+  createSnoppifyHost,
   createSpotifyHost,
+  getSnoppifyHost,
+  getSnoppifyHostForUser,
 };
 
 export const GLOBAL_SNOPPIFY_HOST_ID = "GLOBAL_HOST_ID";
@@ -52,6 +54,8 @@ const createSnoppifyHost = (opts: {
 };
 
 const getSnoppifyHost = (id: string) => activeHosts[id];
+const getSnoppifyHostForUser = (user: ExpressRequest["user"]) =>
+  getSnoppifyHost(user?.partyId || user?.id);
 
 /**
  * Throws an error if the provided param is not a string. Used for
@@ -78,7 +82,7 @@ const authenticateSpotifyHost = (incomingUser: any) =>
       owner: user.username,
       accessToken: checkStr(access_token),
       refreshToken: checkStr(refresh_token),
-      hostId: user.host.id,
+      hostId: user.host.id || user.id,
     });
 
     User.save(user, () => {
