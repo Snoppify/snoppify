@@ -2,8 +2,8 @@
 
 import * as fs from "fs";
 import mkdirp from "mkdirp";
+import Queue from "../models/Queue/Queue";
 import User from "../models/User/User";
-import Queue from "../Queue";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";
