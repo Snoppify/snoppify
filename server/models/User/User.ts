@@ -1,7 +1,7 @@
+import { Queue } from "../Queue/Queue";
 import { Votes } from "./Votes";
 
 const fs = require("fs");
-const Queue = require("../Queue/Queue");
 
 export default class User {
   static users: any[];
