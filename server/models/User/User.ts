@@ -1,34 +1,15 @@
+import { readFile, writeFile } from "fs";
 import { Queue } from "../Queue/Queue";
-import { Votes } from "./Votes";
+import { UserBase } from "./UserBase";
 
-const fs = require("fs");
-
-export default class User {
-  static users: any[];
+export default class User extends UserBase {
+  static users: User[];
 
   static usersFile: string;
 
-  queue: any;
-
-  votes: Votes;
-
-  friends: any;
-
-  id: string;
-
-  username: string;
-
-  displayName: string;
-
-  name: string;
-
-  /**
-   * Profile picture uri
-   * TODO: Rename
-   */
-  profile: string;
-
   constructor(data: User) {
+    super();
+
     Object.keys(data).forEach((key) => (this[key] = data[key]));
 
     this.queue = new Queue({
@@ -110,7 +91,7 @@ export default class User {
       return callback();
     }
     // load saved user data
-    fs.readFile(User.usersFile, "utf8", (err, data) => {
+    readFile(User.usersFile, "utf8", (err, data) => {
       if (err) {
         User.users = [];
         return User.saveToFile(callback);
@@ -141,7 +122,7 @@ export default class User {
       users,
     });
 
-    return fs.writeFile(User.usersFile, json, "utf8", (err) => {
+    return writeFile(User.usersFile, json, "utf8", (err) => {
       if (err) {
         return callback(err);
       }

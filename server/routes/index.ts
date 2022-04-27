@@ -148,16 +148,12 @@ export default function routes(passport: PassportStatic) {
       snoppifyHost.api
         .getTracks([extractedId])
         .then((data) => {
-          let track = data.body.tracks[0];
-          const queueTrack = snoppifyHost.controller.queue.get(track);
-
-          if (track && queueTrack) {
-            track = queueTrack;
-          }
+          const trackFull = data.body.tracks[0];
+          const queueTrack = snoppifyHost.controller.queue.get(trackFull);
 
           res.send({
             tracks: {
-              items: track ? [track] : [],
+              items: queueTrack ? [queueTrack] : [],
             },
           });
         })
@@ -168,11 +164,15 @@ export default function routes(passport: PassportStatic) {
         .then((data) => {
           const result = { ...data.body };
 
-          result.tracks.items = data.body.tracks.items.map(
-            (track) => snoppifyHost.controller.queue.get(track) || track,
-          );
-
-          res.send(result);
+          res.send({
+            ...result,
+            tracks: {
+              ...result.tracks,
+              items: data.body.tracks.items.map(
+                (track) => snoppifyHost.controller.queue.get(track) || track,
+              ),
+            },
+          });
         })
         .catch(errorHandler(res));
     }

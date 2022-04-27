@@ -2,7 +2,8 @@
 
 import * as fs from "fs";
 import mkdirp from "mkdirp";
-import Queue from "../models/Queue/Queue";
+import { Queue } from "../models/Queue/Queue";
+import { QueueTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
@@ -136,17 +137,11 @@ class SpotifyController {
   }
 
   queueTrack(user: any /* User */, trackId: string) {
-    return new Promise((resolve, reject) => {
+    return new Promise<QueueTrack>((resolve, reject) => {
       this.api
         .getTracks([trackId])
         .then((r) => {
-          const track: SpotifyApi.TrackObjectFull & {
-            snoppify?: {
-              issuer: any;
-              votes: any[];
-              timestamp: number;
-            };
-          } = r.body.tracks[0];
+          const track = r.body.tracks[0];
 
           this.getUserData(user, (err: any, userData: any) => {
             if (err) {
@@ -198,16 +193,19 @@ class SpotifyController {
               return;
             }
 
-            track.snoppify = {
-              issuer: userData,
-              votes: [],
-              timestamp: Date.now(),
+            const queueTrack: QueueTrack = {
+              ...track,
+              snoppify: {
+                issuer: userData,
+                votes: [],
+                timestamp: Date.now(),
+              },
             };
 
             // TODO: check if queue is empty and if track should be playing?
-            this.queue.add(track);
+            this.queue.add(queueTrack);
             userData.queue.add({
-              id: track.id,
+              id: queueTrack.id,
             });
 
             this.rebuildQueueOrder();
@@ -218,14 +216,14 @@ class SpotifyController {
 
             socket.io.local.emit("queue", {
               queue: this.queue.queue,
-              addedTracks: [track],
+              addedTracks: [queueTrack],
               removedTracks: [],
             });
 
             this.saveQueue();
             this.saveUsers();
 
-            resolve(track);
+            resolve(queueTrack);
           });
         })
         .catch(reject);
@@ -664,8 +662,7 @@ class SpotifyController {
       this.queue.clear();
 
       for (const user of User.users) {
-        const u = User.users[user];
-        u.clear();
+        user.clear();
       }
 
       this.saveQueue();

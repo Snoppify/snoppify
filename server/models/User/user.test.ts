@@ -1,4 +1,4 @@
-import Queue from "../Queue/Queue";
+import { Queue } from "../Queue/Queue";
 import User from "./User";
 
 describe("User", () => {
@@ -15,7 +15,7 @@ function assertValidNewUser(newUser: User) {
   expect(newUser.displayName).toBe(newUserData().displayName);
   expect(newUser.id).toBe(newUserData().id);
   expect(newUser.queue).toStrictEqual(
-    new Queue({ id: "id", queue: [{ id: "SONG_ID" }] }),
+    new Queue({ id: "id", queue: [{ id: "SONG_ID" }] as any }),
   );
   expect(newUser.friends).toStrictEqual([]);
   expect(newUser.votes).toStrictEqual({
