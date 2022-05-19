@@ -51,6 +51,12 @@ describe("User", () => {
     await initUserService();
 
     expect(User.users).toStrictEqual([]);
+    expect(fs.writeFile).toBeCalledWith(
+      expect.any(String),
+      JSON.stringify({ users: [] }),
+      "utf8",
+      expect.any(Function),
+    );
   });
 
   it("saves new user to storage", async () => {
