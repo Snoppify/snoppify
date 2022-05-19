@@ -66,8 +66,6 @@ describe("User", () => {
   });
 
   it("saves new user to storage", (done) => {
-    resetMocks();
-
     User.init(() => {
       const newUser = new User(fullUserData());
 
@@ -89,6 +87,23 @@ describe("User", () => {
         }
       });
     });
+  });
+
+  it("updates existing user when saving", async () => {
+    await initUserService();
+
+    const newUser = new User(fullUserData());
+
+    await saveUser(newUser);
+
+    newUser.username = "New username";
+
+    await saveUser(newUser);
+
+    return expect(findUser(newUser.id)).resolves.toHaveProperty(
+      "username",
+      "New username",
+    );
   });
 });
 
@@ -164,4 +179,36 @@ function resetMocks() {
       cb();
     },
   );
+}
+
+/** Promisify User.save  */
+async function saveUser(user: User) {
+  return new Promise<void>((resolve, reject) => {
+    User.save(user, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/** Promisify User.find */
+async function findUser(id: string) {
+  return new Promise((resolve, reject) => {
+    User.find(id, (err: any, user: User) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(user);
+      }
+    });
+  });
+}
+
+async function initUserService() {
+  return new Promise<void>((resolve, reject) => {
+    User.init((err) => (err ? reject() : resolve()));
+  });
 }
