@@ -91,7 +91,7 @@ export default class User extends UserBase {
     });
   }
 
-  static init(callback) {
+  static init(callback: (err?: null) => void) {
     if (typeof User.users !== "undefined") {
       return callback();
     }

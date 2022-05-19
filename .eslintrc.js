@@ -48,7 +48,11 @@ module.exports = {
         project: ["./tsconfig.json", "./tsconfig.server.json"],
       },
       rules: Object.assign({}, commonRules, {
-        "@typescript-eslint/quotes": ["error", "double"],
+        "@typescript-eslint/quotes": [
+          "error",
+          "double",
+          { allowTemplateLiterals: true },
+        ],
         "@typescript-eslint/no-use-before-define": ["error", "nofunc"],
         "@typescript-eslint/naming-convention": [
           "error",

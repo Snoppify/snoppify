@@ -1,7 +1,17 @@
+import fs from "fs";
 import { Queue } from "../Queue/Queue";
 import User from "./User";
 
+jest.mock("fs", () => ({
+  readFile: jest.fn(),
+  writeFile: jest.fn(),
+}));
+
 describe("User", () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
   it("creates a User from minimal input data", () => {
     const newUser = new User(minimalUserData());
 
@@ -20,6 +30,24 @@ describe("User", () => {
     newUser.clear();
 
     assertValidNewMinimalUser(newUser);
+  });
+
+  it("inits from user storage", (done) => {
+    (fs.readFile as unknown as jest.Mock).mockImplementation(
+      (path, encoding, cb) => {
+        cb(null, userDataFileContents());
+      },
+    );
+
+    User.init((err) => {
+      try {
+        expect(err).toBe(null);
+        expect(User.users[0]).toBeInstanceOf(User);
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
   });
 });
 
@@ -75,4 +103,8 @@ function assertValidNewFullUser(newUser: User) {
   );
   expect(newUser.friends).toStrictEqual(expetedUserData.friends);
   expect(newUser.votes).toStrictEqual(expetedUserData.votes);
+}
+
+function userDataFileContents() {
+  return `{"users":[{"name":"NAME","username":"USERNAME","displayName":"DISPLAY_NAME","id":"ID","queue":[{"id":"SONG_ID"}],"votes":{"received":{"OTHER_USER_ID_1":1},"given":{"OTHER_USER_ID_1":1,"OTHER_USER_ID_2":2},"receivedTotal":1,"givenTotal":3},"friends":[{"name":"Friend Name","userName":"coolguy1123"}]}]}`;
 }
