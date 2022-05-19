@@ -33,60 +33,42 @@ describe("User", () => {
     assertValidNewMinimalUser(newUser);
   });
 
-  it("inits from user storage", (done) => {
+  it("inits from user storage", async () => {
     (fs.readFile as unknown as jest.Mock).mockImplementation(
       (path, encoding, cb) => {
         cb(null, userDataFileContents());
       },
     );
 
-    User.init((err) => {
-      try {
-        expect(err).toBe(null);
-        expect(User.users[0]).toBeInstanceOf(User);
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
+    await initUserService();
+
+    expect(User.users[0]).toBeInstanceOf(User);
   });
 
-  it("inits correctly when no existing file", (done) => {
+  it("inits correctly when no existing file", async () => {
     expect(User.users).toBeUndefined();
 
-    User.init((err) => {
-      try {
-        expect(err).toBeNull();
-        expect(User.users).toStrictEqual([]);
-        done();
-      } catch (error) {
-        done(error);
-      }
-    });
+    await initUserService();
+
+    expect(User.users).toStrictEqual([]);
   });
 
-  it("saves new user to storage", (done) => {
-    User.init(() => {
-      const newUser = new User(fullUserData());
+  it("saves new user to storage", async () => {
+    await initUserService();
 
-      expect(User.users).toStrictEqual([]);
+    const newUser = new User(fullUserData());
 
-      User.save(newUser, (err) => {
-        try {
-          expect(err).toBeNull();
-          expect(User.users[0]).toBe(newUser);
-          expect(fs.writeFile).toBeCalledWith(
-            expect.any(String),
-            userDataFileContents(),
-            "utf8",
-            expect.any(Function),
-          );
-          done();
-        } catch (error) {
-          done(error);
-        }
-      });
-    });
+    expect(User.users).toStrictEqual([]);
+
+    await saveUser(newUser);
+
+    expect(User.users[0]).toBe(newUser);
+    expect(fs.writeFile).toBeCalledWith(
+      expect.any(String),
+      userDataFileContents(),
+      "utf8",
+      expect.any(Function),
+    );
   });
 
   it("updates existing user when saving", async () => {
@@ -100,7 +82,7 @@ describe("User", () => {
 
     await saveUser(newUser);
 
-    return expect(findUser(newUser.id)).resolves.toHaveProperty(
+    await expect(findUser(newUser.id)).resolves.toHaveProperty(
       "username",
       "New username",
     );
