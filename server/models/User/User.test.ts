@@ -51,6 +51,20 @@ describe("User", () => {
     });
   });
 
+  it("inits correctly when no existing file", (done) => {
+    expect(User.users).toBeUndefined();
+
+    User.init((err) => {
+      try {
+        expect(err).toBeNull();
+        expect(User.users).toStrictEqual([]);
+        done();
+      } catch (error) {
+        done(error);
+      }
+    });
+  });
+
   it("saves new user to storage", (done) => {
     resetMocks();
 
