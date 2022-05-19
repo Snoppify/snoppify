@@ -84,14 +84,16 @@ describe("User", () => {
 
     await saveUser(newUser);
 
-    newUser.username = "New username";
+    const newUser2 = new User({ ...fullUserData(), username: "New username" });
 
-    await saveUser(newUser);
+    await saveUser(newUser2);
 
     await expect(findUser(newUser.id)).resolves.toHaveProperty(
       "username",
       "New username",
     );
+
+    expect(User.users.length).toBe(1);
   });
 });
 
