@@ -54,7 +54,7 @@ export default class User extends UserBase {
     });
   }
 
-  static findIndex(id, callback) {
+  private static findIndex(id, callback) {
     this.init((err) => {
       if (err) {
         return callback(err, null);
@@ -64,7 +64,7 @@ export default class User extends UserBase {
     });
   }
 
-  static save(user?, callback?) {
+  static save(user?, callback?: (err?: any) => void) {
     this.init((err) => {
       if (err) {
         return callback(err);
@@ -91,7 +91,7 @@ export default class User extends UserBase {
     });
   }
 
-  static init(callback: (err?: null) => void) {
+  static init(callback: (err?: any) => void) {
     if (typeof User.users !== "undefined") {
       return callback();
     }
@@ -116,7 +116,7 @@ export default class User extends UserBase {
     return undefined;
   }
 
-  static saveToFile(callback) {
+  private static saveToFile(callback: (err?: any) => void) {
     const users = [];
     User.users.forEach((user) => {
       const userCopy = JSON.parse(JSON.stringify(user));

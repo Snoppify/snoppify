@@ -9,7 +9,8 @@ jest.mock("fs", () => ({
 
 describe("User", () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    resetMocks();
+    User.users = undefined;
   });
 
   it("creates a User from minimal input data", () => {
@@ -47,6 +48,32 @@ describe("User", () => {
       } catch (error) {
         done(error);
       }
+    });
+  });
+
+  it("saves new user to storage", (done) => {
+    resetMocks();
+
+    User.init(() => {
+      const newUser = new User(fullUserData());
+
+      expect(User.users).toStrictEqual([]);
+
+      User.save(newUser, (err) => {
+        try {
+          expect(err).toBeNull();
+          expect(User.users[0]).toBe(newUser);
+          expect(fs.writeFile).toBeCalledWith(
+            expect.any(String),
+            userDataFileContents(),
+            "utf8",
+            expect.any(Function),
+          );
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
     });
   });
 });
@@ -107,4 +134,20 @@ function assertValidNewFullUser(newUser: User) {
 
 function userDataFileContents() {
   return `{"users":[{"name":"NAME","username":"USERNAME","displayName":"DISPLAY_NAME","id":"ID","queue":[{"id":"SONG_ID"}],"votes":{"received":{"OTHER_USER_ID_1":1},"given":{"OTHER_USER_ID_1":1,"OTHER_USER_ID_2":2},"receivedTotal":1,"givenTotal":3},"friends":[{"name":"Friend Name","userName":"coolguy1123"}]}]}`;
+}
+
+function resetMocks() {
+  jest.resetAllMocks();
+
+  (fs.readFile as unknown as jest.Mock).mockImplementation(
+    (path, encoding, cb) => {
+      cb("no file");
+    },
+  );
+
+  (fs.writeFile as unknown as jest.Mock).mockImplementation(
+    (path, data, encoding, cb) => {
+      cb();
+    },
+  );
 }
