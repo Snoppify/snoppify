@@ -8,7 +8,7 @@ export abstract class UserBase {
 
   votes: Votes;
 
-  friends: any;
+  friends: { userName: string; name: string }[];
 
   id: string;
 

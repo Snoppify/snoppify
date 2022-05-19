@@ -2,12 +2,17 @@ import { readFile, writeFile } from "fs";
 import { Queue } from "../Queue/Queue";
 import { UserBase } from "./UserBase";
 
+type NewUserInput = RequireSome<
+  User,
+  "name" | "displayName" | "username" | "id"
+>;
+
 export default class User extends UserBase {
   static users: User[];
 
   static usersFile: string;
 
-  constructor(data: User) {
+  constructor(data: NewUserInput) {
     super();
 
     Object.keys(data).forEach((key) => (this[key] = data[key]));

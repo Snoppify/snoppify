@@ -34,6 +34,7 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
 
   clear() {
     this.queue = [];
+    this.random = [];
   }
 
   resetCursor() {
