@@ -33,10 +33,6 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
     }
   }
 
-  private fullPath() {
-    return `${this.path + this.name}.json`;
-  }
-
   private writeRepoToFile(synchronous?: false): Promise<void>;
   private writeRepoToFile(synchronous: true): void;
   private writeRepoToFile(synchronous: any): any {
@@ -45,6 +41,10 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
       JSON.stringify(this.repo),
       this.encoding,
     );
+  }
+
+  private fullPath() {
+    return `${this.path + this.name}.json`;
   }
 
   upsave(object: T): Promise<void> {
