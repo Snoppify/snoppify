@@ -17,7 +17,7 @@ describe("JSONRepository", () => {
   });
 
   it("creates a repository with a specified name", () => {
-    const repo = new JSONRepository<any>({ name: "TestModel" });
+    const repo = createTestRepo();
     expect(repo.path).toBe("data/json/");
   });
 
@@ -56,12 +56,11 @@ describe("JSONRepository", () => {
   });
 
   it("doesn't write new file on creation if file exists", () => {
-    (fs.readFileSync as unknown as jest.Mock).mockImplementation(() => {
+    mockImplementation(fs.readFileSync, () => {
       return "{}";
     });
 
-    // eslint-disable-next-line no-new
-    new JSONRepository<TestModel>({ name: "TestModel" });
+    createTestRepo();
 
     expect(fs.writeFileSync).not.toBeCalled();
   });
@@ -69,18 +68,18 @@ describe("JSONRepository", () => {
   it("gets objects correctly", async () => {
     const storeContent = { TEST_ID: { id: "TEST_ID", a: "a", b: 1 } };
 
-    (fs.readFileSync as unknown as jest.Mock).mockImplementation(() => {
+    mockImplementation(fs.readFileSync, () => {
       return JSON.stringify(storeContent);
     });
 
-    const repo = new JSONRepository<TestModel>({ name: "TestModel" });
+    const repo = createTestRepo();
 
     const obj = await repo.get("TEST_ID");
     expect(obj).toEqual<TestModel>(storeContent.TEST_ID);
   });
 
   it("upsaves correctly", async () => {
-    const repo = new JSONRepository<TestModel>({ name: "TestModel" });
+    const repo = createTestRepo();
     const testObject = { id: "ID1", a: "test", b: 2 };
 
     expect(await repo.get(testObject.id)).toBe(undefined);
@@ -96,11 +95,11 @@ describe("JSONRepository", () => {
   it("gets unique objects", async () => {
     const storeContent = { TEST_ID: { id: "TEST_ID", a: "a", b: 1 } };
 
-    (fs.readFileSync as unknown as jest.Mock).mockImplementation(() => {
+    mockImplementation(fs.readFileSync, () => {
       return JSON.stringify(storeContent);
     });
 
-    const repo = new JSONRepository<TestModel>({ name: "TestModel" });
+    const repo = createTestRepo();
 
     const getResult1 = await repo.get("TEST_ID");
     const getResult2 = await repo.get("TEST_ID");
@@ -109,7 +108,7 @@ describe("JSONRepository", () => {
   });
 
   it("deletes objects from store", async () => {
-    const repo = new JSONRepository<TestModel>({ name: "TestModel" });
+    const repo = createTestRepo();
     const testObj = { id: "TEST_ID", a: "lol", b: 2 };
 
     await repo.upsave(testObj);
@@ -122,7 +121,7 @@ describe("JSONRepository", () => {
   });
 
   it("returns undefined when getting an unknown id", async () => {
-    const repo = new JSONRepository<TestModel>({ name: "TestModel" });
+    const repo = createTestRepo();
 
     const result = await repo.get("not_in_repo");
     expect(result).toBe(undefined);
@@ -134,11 +133,11 @@ describe("JSONRepository", () => {
       TEST_ID2: { id: "TEST_ID2", a: "different a", b: 5 },
     };
 
-    (fs.readFileSync as unknown as jest.Mock).mockImplementation(() => {
+    mockImplementation(fs.readFileSync, () => {
       return JSON.stringify(storeContent);
     });
 
-    const repo = new JSONRepository<TestModel>({ name: "TestModel" });
+    const repo = createTestRepo();
 
     const allObjects = await repo.getAll();
     expect(allObjects).toEqual([
@@ -156,11 +155,19 @@ interface TestModel extends ObjectWithID {
 function resetMocks() {
   jest.resetAllMocks();
 
-  (fs.promises.readFile as unknown as jest.Mock).mockImplementation(() => {
+  mockImplementation(fs.promises.readFile, () => {
     Promise.reject(new Error("no file"));
   });
 
-  (fs.readFileSync as unknown as jest.Mock).mockImplementation(() => {
+  mockImplementation(fs.readFileSync, () => {
     return undefined;
   });
+}
+
+function createTestRepo(): JSONRepository<TestModel> {
+  return new JSONRepository<TestModel>({ name: "TestModel" });
+}
+
+function mockImplementation(mock: Function, impl: (...args: any) => any) {
+  (mock as unknown as jest.Mock).mockImplementation(impl);
 }
