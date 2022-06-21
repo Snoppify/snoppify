@@ -89,7 +89,11 @@ describe("JSONRepository", () => {
 
     expect(result).toEqual(testObject);
     expect(result).not.toBe(testObject);
-    expect(fs.promises.writeFile).toBeCalled();
+    expect(fs.promises.writeFile).toBeCalledWith(
+      "data/json/TestModel.json",
+      JSON.stringify({ ID1: { id: "ID1", a: "test", b: 2 } }),
+      "utf8",
+    );
   });
 
   it("gets unique objects", async () => {
@@ -114,10 +118,20 @@ describe("JSONRepository", () => {
     await repo.upsave(testObj);
     expect(await repo.get(testObj.id)).toEqual(testObj);
 
+    expect(fs.promises.writeFile).toBeCalledWith(
+      "data/json/TestModel.json",
+      JSON.stringify({ TEST_ID: testObj }),
+      "utf8",
+    );
+
     await repo.delete(testObj.id);
     expect(await repo.get(testObj.id)).toEqual(undefined);
 
-    expect(fs.promises.writeFile).toBeCalledTimes(2);
+    expect(fs.promises.writeFile).toBeCalledWith(
+      "data/json/TestModel.json",
+      JSON.stringify({}),
+      "utf8",
+    );
   });
 
   it("returns undefined when getting an unknown id", async () => {
