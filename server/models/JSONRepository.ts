@@ -10,6 +10,8 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
 
   private ModelClass: { new (...args): T };
 
+  private pathExists = false;
+
   protected store: { [id: string]: T };
 
   constructor(opts: {
@@ -28,13 +30,13 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
   }
 
   private init() {
-    const fileContent = fs.readFileSync(this.fullPath(), {
-      encoding: this.encoding,
-    });
-
-    if (fileContent) {
+    try {
+      const fileContent = fs.readFileSync(this.fullPath(), {
+        encoding: this.encoding,
+      });
       this.store = JSON.parse(fileContent);
-    } else {
+      this.pathExists = true;
+    } catch (error) {
       this.store = {};
       this.writeRepoToFile(true);
     }
@@ -43,11 +45,19 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
   private writeRepoToFile(synchronous?: false): Promise<void>;
   private writeRepoToFile(synchronous: true): void;
   private writeRepoToFile(synchronous: any): any {
+    this.createDirectoryAtPath();
+
     return (synchronous ? fs.writeFileSync : fs.promises.writeFile)(
       this.fullPath(),
       JSON.stringify(this.store),
       this.encoding,
     );
+  }
+
+  private createDirectoryAtPath() {
+    if (!this.pathExists) {
+      fs.mkdirSync(this.path, { recursive: true });
+    }
   }
 
   private fullPath() {

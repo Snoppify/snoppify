@@ -5,6 +5,7 @@ import { ObjectWithID } from "./Repository";
 jest.mock("fs", () => ({
   writeFileSync: jest.fn(),
   readFileSync: jest.fn(),
+  mkdirSync: jest.fn(),
   promises: {
     readFile: jest.fn(() => Promise.resolve({})),
     writeFile: jest.fn(() => Promise.resolve()),
@@ -46,10 +47,18 @@ describe("JSONRepository", () => {
   });
 
   it("creates a new json file if needed when created", () => {
+    mockImplementation(fs.readFileSync, () => {
+      throw new Error("ENOENT: no such file or directory");
+    });
+
     // eslint-disable-next-line no-new
     new JSONRepository<TestModel>({
       name: "TestModel",
       path: "custom/path/",
+    });
+
+    expect(fs.mkdirSync).toBeCalledWith("custom/path/", {
+      recursive: true,
     });
 
     expect(fs.writeFileSync).toBeCalledWith(
