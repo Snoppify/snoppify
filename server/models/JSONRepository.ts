@@ -8,10 +8,17 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
 
   private readonly encoding = "utf8";
 
-  protected repo: { [id: string]: T };
+  private ModelClass: { new (...args): T };
 
-  constructor(opts: { name: string; path?: string }) {
+  protected store: { [id: string]: T };
+
+  constructor(opts: {
+    name: string;
+    path?: string;
+    modelClass?: { new (data: T): T };
+  }) {
     this.name = opts.name;
+    this.ModelClass = opts.modelClass;
 
     if (opts.path) {
       this.path = opts.path;
@@ -26,9 +33,9 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
     });
 
     if (fileContent) {
-      this.repo = JSON.parse(fileContent);
+      this.store = JSON.parse(fileContent);
     } else {
-      this.repo = {};
+      this.store = {};
       this.writeRepoToFile(true);
     }
   }
@@ -38,7 +45,7 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
   private writeRepoToFile(synchronous: any): any {
     return (synchronous ? fs.writeFileSync : fs.promises.writeFile)(
       this.fullPath(),
-      JSON.stringify(this.repo),
+      JSON.stringify(this.store),
       this.encoding,
     );
   }
@@ -48,21 +55,28 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
   }
 
   upsave(object: T): Promise<void> {
-    this.repo[object.id] = JSON.parse(JSON.stringify(object));
+    this.store[object.id] = JSON.parse(JSON.stringify(object));
     return this.writeRepoToFile();
   }
 
   get(id: string): Promise<T> {
-    const result = this.repo[id] && JSON.parse(JSON.stringify(this.repo[id]));
-    return Promise.resolve(result);
+    const result = this.store[id] && JSON.parse(JSON.stringify(this.store[id]));
+    const instance = this.instantiateObject(result);
+    return Promise.resolve(instance);
+  }
+
+  private instantiateObject(obj: T) {
+    return this.ModelClass ? new this.ModelClass(obj) : obj;
   }
 
   delete(id: string): Promise<void> {
-    delete this.repo[id];
+    delete this.store[id];
     return this.writeRepoToFile();
   }
 
   getAll(): Promise<T[]> {
-    return Promise.resolve(Object.values(this.repo));
+    return Promise.resolve(
+      Object.values(this.store).map((o) => this.instantiateObject(o)),
+    );
   }
 }

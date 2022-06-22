@@ -11,6 +11,22 @@ jest.mock("fs", () => ({
   },
 }));
 
+class TestModelImpl implements TestModel {
+  a: string;
+
+  b: number;
+
+  id: string;
+
+  constructor(props: Partial<TestModel>) {
+    Object.assign(this, props);
+  }
+
+  getA() {
+    return this.a;
+  }
+}
+
 describe("JSONRepository", () => {
   beforeEach(() => {
     resetMocks();
@@ -158,6 +174,29 @@ describe("JSONRepository", () => {
       { id: "TEST_ID", a: "a", b: 1 },
       { id: "TEST_ID2", a: "different a", b: 5 },
     ]);
+  });
+
+  it("instantiates objects when provided with an object constructor", async () => {
+    const storeContent = {
+      TEST_ID: new TestModelImpl({ id: "TEST_ID", a: "a", b: 1 }),
+    };
+
+    mockImplementation(fs.readFileSync, () => {
+      return JSON.stringify(storeContent);
+    });
+
+    const repo = new JSONRepository<TestModelImpl>({
+      name: "test",
+      modelClass: TestModelImpl,
+    });
+
+    const gotObject = await repo.get("TEST_ID");
+
+    expect(gotObject).toEqual({ id: "TEST_ID", a: "a", b: 1 });
+    expect(gotObject).toBeInstanceOf(TestModelImpl);
+    expect(gotObject.getA()).toBe("a");
+
+    expect((await repo.getAll())[0]).toBeInstanceOf(TestModelImpl);
   });
 });
 
