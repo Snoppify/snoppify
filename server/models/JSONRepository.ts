@@ -1,7 +1,7 @@
 import fs from "fs";
 import { ObjectWithID, Repository } from "./Repository";
 
-export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
+export class JSONRepository<T extends ObjectWithID> extends Repository<T> {
   readonly path: string = "data/json/";
 
   private name: string;
@@ -19,6 +19,8 @@ export class JSONRepository<T extends ObjectWithID> implements Repository<T> {
     path?: string;
     modelClass?: { new (data: T): T };
   }) {
+    super();
+
     this.name = opts.name;
     this.ModelClass = opts.modelClass;
 
