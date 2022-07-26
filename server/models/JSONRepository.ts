@@ -73,8 +73,7 @@ export class JSONRepository<T extends ObjectWithID> extends Repository<T> {
 
   get(id: string): Promise<T> {
     const result = this.store[id] && JSON.parse(JSON.stringify(this.store[id]));
-    const instance = this.instantiateObject(result);
-    return Promise.resolve(instance);
+    return Promise.resolve(result ? this.instantiateObject(result) : undefined);
   }
 
   private instantiateObject(obj: T) {

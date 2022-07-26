@@ -206,6 +206,8 @@ describe("JSONRepository", () => {
     expect(gotObject.getA()).toBe("a");
 
     expect((await repo.getAll())[0]).toBeInstanceOf(TestModelImpl);
+
+    expect(await repo.get("ID_NOT_IN_STORE")).toBe(undefined);
   });
 });
 
