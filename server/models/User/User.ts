@@ -44,27 +44,30 @@ export default class User extends UserBase {
 
   /// /////////
 
-  static find(id, callback) {
+  static find(id: string, callback: (err: any, user: User | null) => void) {
     this.init((err) => {
       if (err) {
         return callback(err, null);
       }
-      const user = User.users.find((u) => u.id == id);
+      const user = User.users.find((u) => u.id === id);
       return callback(null, user);
     });
   }
 
-  private static findIndex(id, callback) {
+  private static findIndex(
+    id: string,
+    callback: (err: any, index: number | null) => void,
+  ) {
     this.init((err) => {
       if (err) {
         return callback(err, null);
       }
-      const index = User.users.findIndex((u) => u.id == id);
+      const index = User.users.findIndex((u) => u.id === id);
       return callback(null, index);
     });
   }
 
-  static save(user?, callback?: (err?: any) => void) {
+  static save(user?: User, callback?: (err?: any) => void) {
     this.init((err) => {
       if (err) {
         return callback(err);
@@ -74,7 +77,7 @@ export default class User extends UserBase {
           if (_err) {
             return callback(_err);
           }
-          if (index == -1) {
+          if (index === -1) {
             // add user
             User.users.push(user);
           } else {
@@ -135,7 +138,7 @@ export default class User extends UserBase {
     });
   }
 
-  static sanitize(user) {
+  static sanitize(user: any) {
     const { _tokens, ...sanitized } = user;
     return sanitized;
   }
