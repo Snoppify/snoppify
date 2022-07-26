@@ -1,27 +1,36 @@
-/* eslint-disable import/first */
 import User from "./User";
 import { UserRepository } from "./UserRepository";
 import { userService } from "./UserService";
 
-console.log("import repo");
-
-jest.mock("./UserRepository", () => {});
-const mockedUserRepo = jest.mocked(UserRepository, true);
-
-console.log("import service");
+jest.mock("./UserRepository");
 
 describe("UserService", () => {
   beforeEach(() => {
     // Clear all instances and calls to constructor and all methods:
-    // (UserRepository as unknown as jest.Mock).mockClear();
-    mockedUserRepo.mockRestore();
+    (UserRepository as jest.Mock).mockClear();
+    userService.setRepository(new UserRepository());
   });
 
   it("gets a user by id", async () => {
-    const user = await userService.getUser("test");
-    // expect((UserRepository as any).mock.instances[0].get).toHaveBeenCalled();
-    // expect(mockedUserRepo).toHaveBeenCalled();
-    expect(mockedUserRepo.mock.instances[0].get).toHaveBeenCalled();
-    expect(user).toBeInstanceOf(User);
+    await userService.getUser("test");
+    expect(
+      (UserRepository as jest.Mock).mock.instances[0].get,
+    ).toHaveBeenCalled();
+  });
+
+  it("saves a user", async () => {
+    await userService.upsave(new User(minimalUserData()));
+    expect(
+      (UserRepository as jest.Mock).mock.instances[0].upsave,
+    ).toHaveBeenCalledWith(new User(minimalUserData()));
   });
 });
+
+function minimalUserData() {
+  return {
+    name: "NAME",
+    username: "USERNAME",
+    displayName: "DISPLAY_NAME",
+    id: "ID",
+  };
+}
