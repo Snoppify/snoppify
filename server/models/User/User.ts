@@ -10,8 +10,6 @@ type NewUserInput = RequireSome<
 export default class User extends UserBase {
   static users: User[];
 
-  static usersFile: string;
-
   constructor(data: NewUserInput) {
     super();
 
@@ -33,15 +31,17 @@ export default class User extends UserBase {
     User.users = [];
   }
 
-  clear() {
-    this.queue.clear();
-    this.votes = {
+  static clearUser(user: User) {
+    user.queue.clear();
+    // eslint-disable-next-line no-param-reassign
+    user.votes = {
       received: {},
       given: {},
       receivedTotal: 0,
       givenTotal: 0,
     };
-    this.friends = [];
+    // eslint-disable-next-line no-param-reassign
+    user.friends = [];
   }
 
   /// /////////
@@ -62,35 +62,8 @@ export default class User extends UserBase {
       .catch((err) => callback(err));
   }
 
-  static init(callback: (err?: any) => void) {
-    callback();
-  }
-
   static sanitize(user: any) {
     const { _tokens, ...sanitized } = user;
     return sanitized;
   }
 }
-
-// User.users = [];
-User.usersFile = "data/snoppify-users.json";
-
-// define the actual singleton instance
-// ------------------------------------
-
-// const USER_KEY = Symbol("User");
-
-// global[USER_KEY] = User;
-
-// // define the singleton API
-// // ------------------------
-
-// const singleton = global[USER_KEY];
-
-// // ensure the API is never changed
-// // -------------------------------
-
-// Object.freeze(singleton);
-
-// export the singleton API only
-// -----------------------------

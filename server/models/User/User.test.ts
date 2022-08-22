@@ -26,14 +26,12 @@ describe("User", () => {
   it("clears the user data", () => {
     const newUser = new User(fullUserData());
 
-    newUser.clear();
+    User.clearUser(newUser);
 
     assertValidNewMinimalUser(newUser);
   });
 
   it("saves new user to storage", async () => {
-    await initUserService();
-
     const newUser = new User(fullUserData());
 
     expect(User.users).toStrictEqual([]);
@@ -44,8 +42,6 @@ describe("User", () => {
   });
 
   it("updates existing user when saving", async () => {
-    await initUserService();
-
     const newUser = new User(fullUserData());
 
     await saveUser(newUser);
@@ -99,7 +95,7 @@ function fullUserData() {
       receivedTotal: 1,
       givenTotal: 3,
     },
-    friends: [{ name: "Friend Name", userName: "coolguy1123" }],
+    friends: [{ name: "Friend Name", username: "coolguy1123" }],
   };
 }
 
@@ -140,11 +136,5 @@ async function findUser(id: string) {
         resolve(user);
       }
     });
-  });
-}
-
-async function initUserService() {
-  return new Promise<void>((resolve, reject) => {
-    User.init((err) => (err ? reject() : resolve()));
   });
 }

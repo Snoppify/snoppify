@@ -8,7 +8,8 @@ export class UserBase {
 
   votes: Votes;
 
-  friends: { userName: string; name: string }[];
+  // TODO: Find out which name fields are actually used
+  friends: { username: string; name?: string; displayName?: string }[];
 
   id: string;
 

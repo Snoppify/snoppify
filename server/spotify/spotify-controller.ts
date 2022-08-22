@@ -120,8 +120,6 @@ class SpotifyController {
             this.backupPlaylist = obj.backupPlaylist;
           }
 
-          User.init(() => {});
-
           this.saveQueue();
 
           resolve(obj);
@@ -662,7 +660,7 @@ class SpotifyController {
       this.queue.clear();
 
       for (const user of User.users) {
-        user.clear();
+        User.clearUser(user);
       }
 
       this.saveQueue();
@@ -1003,7 +1001,6 @@ class SpotifyController {
     fs.readFile(this.queueFile, "utf8", (err, data) => {
       if (err) {
         console.log("user init");
-        User.init(() => {});
         this.saveQueue();
         return;
       }
@@ -1026,7 +1023,6 @@ class SpotifyController {
           this.backupPlaylist = obj.backupPlaylist;
         }
 
-        User.init(() => {});
         this.saveQueue();
       } catch (e) {
         console.log(e);
