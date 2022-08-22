@@ -3,7 +3,7 @@ import { Votes } from "./Votes";
 /**
  * This mainly exists to avoid circular dependencies.. refactor away
  */
-export abstract class UserBase {
+export class UserBase {
   queue: any;
 
   votes: Votes;
