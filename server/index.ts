@@ -16,6 +16,8 @@ import ip from "ip";
 import passport from "passport";
 import { passportInit } from "./auth/passport";
 import User from "./models/User/User";
+import { UserRepository } from "./models/User/UserRepository";
+import { userService } from "./models/User/UserService";
 import routesIndex from "./routes";
 import socketIO from "./socket";
 import { getSnoppifyHostForUser } from "./spotify";
@@ -36,6 +38,8 @@ const rootDir = `${appRootPath}/dist`;
 if (!fs.existsSync("./data")) {
   fs.mkdirSync("./data");
 }
+
+userService.setRepository(new UserRepository());
 
 const useHttps = false;
 let httpServer: https.Server | http.Server;
