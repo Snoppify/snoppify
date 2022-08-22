@@ -1,16 +1,14 @@
-import fs from "fs";
 import { Queue } from "../Queue/Queue";
 import User from "./User";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { userService } from "./UserService";
 
-jest.mock("fs", () => ({
-  readFile: jest.fn(),
-  writeFile: jest.fn(),
-}));
+jest.mock("./UserService.ts");
 
 describe("User", () => {
   beforeEach(() => {
-    resetMocks();
     User.users = undefined;
+    userService.setRepository({} as any);
   });
 
   it("creates a User from minimal input data", () => {
@@ -33,32 +31,6 @@ describe("User", () => {
     assertValidNewMinimalUser(newUser);
   });
 
-  it("inits from user storage", async () => {
-    (fs.readFile as unknown as jest.Mock).mockImplementation(
-      (path, encoding, cb) => {
-        cb(null, userDataFileContents());
-      },
-    );
-
-    await initUserService();
-
-    expect(User.users[0]).toBeInstanceOf(User);
-  });
-
-  it("inits correctly when no existing file", async () => {
-    expect(User.users).toBeUndefined();
-
-    await initUserService();
-
-    expect(User.users).toStrictEqual([]);
-    expect(fs.writeFile).toBeCalledWith(
-      expect.any(String),
-      JSON.stringify({ users: [] }),
-      "utf8",
-      expect.any(Function),
-    );
-  });
-
   it("saves new user to storage", async () => {
     await initUserService();
 
@@ -68,13 +40,7 @@ describe("User", () => {
 
     await saveUser(newUser);
 
-    expect(User.users[0]).toBe(newUser);
-    expect(fs.writeFile).toBeCalledWith(
-      expect.any(String),
-      userDataFileContents(),
-      "utf8",
-      expect.any(Function),
-    );
+    expect(User.users[0]).toEqual(newUser);
   });
 
   it("updates existing user when saving", async () => {
@@ -149,26 +115,6 @@ function assertValidNewFullUser(newUser: User) {
   );
   expect(newUser.friends).toStrictEqual(expetedUserData.friends);
   expect(newUser.votes).toStrictEqual(expetedUserData.votes);
-}
-
-function userDataFileContents() {
-  return `{"users":[{"name":"NAME","username":"USERNAME","displayName":"DISPLAY_NAME","id":"ID","queue":[{"id":"SONG_ID"}],"votes":{"received":{"OTHER_USER_ID_1":1},"given":{"OTHER_USER_ID_1":1,"OTHER_USER_ID_2":2},"receivedTotal":1,"givenTotal":3},"friends":[{"name":"Friend Name","userName":"coolguy1123"}]}]}`;
-}
-
-function resetMocks() {
-  jest.resetAllMocks();
-
-  (fs.readFile as unknown as jest.Mock).mockImplementation(
-    (path, encoding, cb) => {
-      cb("no file");
-    },
-  );
-
-  (fs.writeFile as unknown as jest.Mock).mockImplementation(
-    (path, data, encoding, cb) => {
-      cb();
-    },
-  );
 }
 
 /** Promisify User.save  */
