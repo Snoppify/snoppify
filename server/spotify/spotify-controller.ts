@@ -5,6 +5,7 @@ import mkdirp from "mkdirp";
 import { Queue } from "../models/Queue/Queue";
 import { QueueTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
+import { userService } from "../models/User/UserService";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";
@@ -379,9 +380,7 @@ class SpotifyController {
     const issuerId = track.snoppify.issuer.id;
 
     // get voter
-    User.find(voterId, (err, foundVoterUser) => {
-      if (err) return;
-
+    userService.getUser(voterId).then((foundVoterUser) => {
       const uVoter = { ...foundVoterUser };
 
       if (!uVoter.votes.given[issuerId]) {
@@ -391,9 +390,7 @@ class SpotifyController {
       uVoter.votes.givenTotal += vote;
 
       // get issuer
-      User.find(issuerId, (_err, foundIssuerUser) => {
-        if (_err) return;
-
+      userService.getUser(issuerId).then((foundIssuerUser) => {
         const uIssuer = { ...foundIssuerUser };
 
         if (!uIssuer.votes.received[voterId]) {
@@ -431,9 +428,8 @@ class SpotifyController {
           });
         }
 
-        User.save(uVoter, () => {});
-
-        User.save(uIssuer, () => {});
+        userService.upsave(uVoter);
+        userService.upsave(uIssuer);
       });
     });
   }
