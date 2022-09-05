@@ -1,0 +1,3 @@
+- add getAll in UserRepo (used by spotify-controller 🤮)
+- replace getAll with getUsersAtParty or even better add rebuildQueue to userService or smth?
+- return new User objects from UserService after updates etc.
