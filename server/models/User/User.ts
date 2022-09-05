@@ -62,7 +62,7 @@ export default class User extends UserBase {
       .catch((err) => callback(err));
   }
 
-  static sanitize(user: any) {
+  static sanitize(user: User & { _tokens: any }) {
     const { _tokens, ...sanitized } = user;
     return sanitized;
   }

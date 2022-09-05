@@ -134,14 +134,14 @@ class SpotifyController {
     return this.currentParty;
   }
 
-  queueTrack(user: any /* User */, trackId: string) {
+  queueTrack(user: string, trackId: string) {
     return new Promise<QueueTrack>((resolve, reject) => {
       this.api
         .getTracks([trackId])
         .then((r) => {
           const track = r.body.tracks[0];
 
-          this.getUserData(user, (err: any, userData: any) => {
+          this.getUserData(user, (err, userData) => {
             if (err) {
               reject(err);
               return;
@@ -228,11 +228,11 @@ class SpotifyController {
     });
   }
 
-  dequeueTrack(user: any /* User */, trackId: string) {
+  dequeueTrack(user: string, trackId: string) {
     return new Promise<void>((resolve, reject) => {
       // TODO: check if playing?
       const track = this.queue.get(trackId);
-      this.getUserData(user, (err: any, userData: any) => {
+      this.getUserData(user, (err, userData) => {
         if (err) {
           return reject(err);
         }
@@ -277,7 +277,7 @@ class SpotifyController {
     });
   }
 
-  vote(user: any, trackId: any) {
+  vote(userId: string, trackId: any) {
     return new Promise<void>((resolve, reject) => {
       const track = this.queue.get(trackId);
 
@@ -292,7 +292,7 @@ class SpotifyController {
         return;
       }
 
-      if (track.snoppify.votes.indexOf(user) != -1) {
+      if (track.snoppify.votes.indexOf(userId) !== -1) {
         // eslint-disable-next-line prefer-promise-reject-errors
         reject({
           response: {
@@ -303,10 +303,10 @@ class SpotifyController {
         return;
       }
 
-      track.snoppify.votes.push(user);
+      track.snoppify.votes.push(userId);
 
       // update friendships
-      this.updateFriendship(track, user, 1);
+      this.updateFriendship(track, userId, 1);
 
       this.rebuildQueueOrder();
 
@@ -330,7 +330,7 @@ class SpotifyController {
     });
   }
 
-  unvote(user: any, trackId: any) {
+  unvote(user: string, trackId: any) {
     return new Promise<void>((resolve, reject) => {
       const track = this.queue.get(trackId);
 
@@ -558,15 +558,12 @@ class SpotifyController {
 
       this.saveQueue();
       if (track && track.snoppify) {
-        this.getUserData(
-          track.snoppify.issuer.username,
-          (err: any, userData) => {
-            if (userData) {
-              userData.queue.remove(track.id);
-              this.saveUsers();
-            }
-          },
-        );
+        this.getUserData(track.snoppify.issuer.username, (err, userData) => {
+          if (userData) {
+            userData.queue.remove(track.id);
+            this.saveUsers();
+          }
+        });
       }
 
       this.sendEvent("waitingForNextSong", { track });
@@ -908,8 +905,11 @@ class SpotifyController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  private getUserData(user: any, callback: (...args: any[]) => any) {
-    User.find(user, callback);
+  private getUserData(
+    userId: string,
+    callback: (err: any, userData: User) => void,
+  ) {
+    User.find(userId, callback);
   }
 
   // eslint-disable-next-line class-methods-use-this
