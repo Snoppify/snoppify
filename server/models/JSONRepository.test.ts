@@ -109,11 +109,12 @@ describe("JSONRepository", () => {
 
     expect(await repo.get(testObject.id)).toBe(undefined);
 
-    await repo.upsave(testObject);
-    const result = await repo.get(testObject.id);
+    const upsaveResult = await repo.upsave(testObject);
+    const getResult = await repo.get(testObject.id);
 
-    expect(result).toEqual(testObject);
-    expect(result).not.toBe(testObject);
+    expect(upsaveResult).toEqual(getResult);
+    expect(getResult).toEqual(testObject);
+    expect(getResult).not.toBe(testObject);
     expect(fs.promises.writeFile).toBeCalledWith(
       "data/json/TestModel.json",
       JSON.stringify({ ID1: { id: "ID1", a: "test", b: 2 } }),
@@ -226,6 +227,11 @@ function resetMocks() {
   mockImplementation(fs.readFileSync, () => {
     return undefined;
   });
+
+  mockImplementation(
+    fs.promises.writeFile,
+    jest.fn(() => Promise.resolve()),
+  );
 }
 
 function createTestRepo(): JSONRepository<TestModel> {

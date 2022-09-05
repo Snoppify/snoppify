@@ -32,11 +32,11 @@ function getAll() {
 // TODO: Write tests THEn implement! then replace direct modification of User.queue!
 function addToQueue(user: UserBase, track: { id: string }): Promise<UserBase> {
   (user.queue as Queue<{ id: string }>).add(track);
-  return userService.upsave(user).then(() => user);
+  return userService.upsave(user);
 }
 function removeFromQueue(user: UserBase, track: { id: string }) {
   (user.queue as Queue<{ id: string }>).remove(track);
-  return upsave(user).then(() => Promise.resolve(user));
+  return upsave(user);
 }
 // function clearQueue() {}
 // function clearUser() {}

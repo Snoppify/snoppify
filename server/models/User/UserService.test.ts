@@ -10,7 +10,7 @@ describe("UserService", () => {
     (UserRepository as jest.Mock).mockClear();
     jest
       .spyOn(UserRepository.prototype, "upsave")
-      .mockImplementation(() => Promise.resolve());
+      .mockImplementation((obj) => Promise.resolve(obj));
     userService.setRepository(new UserRepository());
   });
 

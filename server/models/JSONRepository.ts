@@ -66,9 +66,9 @@ export class JSONRepository<T extends ObjectWithID> extends Repository<T> {
     return `${this.path + this.name}.json`;
   }
 
-  upsave(object: T): Promise<void> {
+  upsave(object: T): Promise<T> {
     this.store[object.id] = JSON.parse(JSON.stringify(object));
-    return this.writeRepoToFile();
+    return this.writeRepoToFile().then(() => this.get(object.id));
   }
 
   get(id: string): Promise<T> {
