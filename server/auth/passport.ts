@@ -1,22 +1,27 @@
 // const FacebookStrategy = require("passport-facebook").Strategy;
 // const SpotifyStrategy = require("passport-spotify").Strategy;
 // const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
+import { PassportStatic } from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
 import { Strategy as SpotifyStrategy } from "passport-spotify";
 import User from "../models/User/User";
+import { userService } from "../models/User/UserService";
 
-export function passportInit(passport) {
+export function passportInit(passport: PassportStatic) {
   // used to serialize the user for the session
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
 
   // used to deserialize the user
-  passport.deserializeUser((id, done) => {
-    User.find(id, (err, user) => {
-      done(err, user || false);
-    });
+  passport.deserializeUser<string>((id, done) => {
+    userService
+      .getUser(id)
+      .then((user) => {
+        done(null, user || false);
+      })
+      .catch((err) => done(err));
   });
 
   // code for login (use('local-login', new LocalStategy))
@@ -117,40 +122,41 @@ export function passportInit(passport) {
 
 function findOrCreateUser(data, done) {
   // find the user in the database based on their facebook id
-  User.find(data.id, (err, user) => {
-    // if there is an error, stop everything and return that
-    // ie an error connecting to the database
-    if (err) {
-      return done(err);
-    }
+  userService
+    .getUser(data.id)
+    .then((user) => {
+      // if the user is found, then log them in
+      if (user) {
+        // user found, update data
+        Object.assign(user, data);
 
-    // if the user is found, then log them in
-    if (user) {
-      // user found, update data
-      Object.assign(user, data);
+        User.save(user, (_err) => {
+          if (_err) {
+            throw _err;
+          }
 
-      User.save(user, (_err) => {
-        if (_err) {
-          throw _err;
-        }
+          return done(null, user);
+        });
+      } else {
+        // if there is no user found with that facebook id, create them
+        const newUser = new User(data);
 
-        return done(null, user);
-      });
-    } else {
-      // if there is no user found with that facebook id, create them
-      const newUser = new User(data);
+        // save our user to the database
+        User.save(newUser, (_err) => {
+          if (_err) {
+            throw _err;
+          }
 
-      // save our user to the database
-      User.save(newUser, (_err) => {
-        if (_err) {
-          throw _err;
-        }
+          // if successful, return the new user
+          return done(null, newUser);
+        });
+      }
 
-        // if successful, return the new user
-        return done(null, newUser);
-      });
-    }
-
-    return undefined;
-  });
+      return undefined;
+    })
+    .catch((err) =>
+      // if there is an error, stop everything and return that
+      // ie an error connecting to the database
+      done(err),
+    );
 }

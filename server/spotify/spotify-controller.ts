@@ -903,9 +903,12 @@ class SpotifyController {
   // eslint-disable-next-line class-methods-use-this
   private getUserData(
     userId: string,
-    callback: (err: any, userData: User) => void,
+    callback: (err: any, userData?: User) => void,
   ) {
-    User.find(userId, callback);
+    userService
+      .getUser(userId)
+      .then((user) => callback(null, user))
+      .catch((err) => callback(err));
   }
 
   // eslint-disable-next-line class-methods-use-this

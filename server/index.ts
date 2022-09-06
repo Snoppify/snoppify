@@ -15,7 +15,6 @@ import https from "https";
 import ip from "ip";
 import passport from "passport";
 import { passportInit } from "./auth/passport";
-import User from "./models/User/User";
 import { UserRepository } from "./models/User/UserRepository";
 import { userService } from "./models/User/UserService";
 import routesIndex from "./routes";
@@ -174,7 +173,7 @@ socket.io.on("connection", (sock: any) => {
   // });
 
   if (sock.handshake.session.passport) {
-    User.find(sock.handshake.session.passport.user, (err, user) => {
+    userService.getUser(sock.handshake.session.passport.user).then((user) => {
       if (!user) {
         return;
       }
@@ -191,7 +190,7 @@ socket.io.on("connection", (sock: any) => {
   sock.on("getTrack", (id: any) => {
     console.log("SOCK SESSION:", sock.handshake.session);
 
-    User.find(sock.handshake.session.passport.user, () => {
+    userService.getUser(sock.handshake.session.passport.user).then(() => {
       backendSpotifyAPIClient
         .then((spotifyApi) =>
           Promise.all([

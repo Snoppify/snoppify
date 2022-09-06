@@ -1,5 +1,13 @@
 import { SnoppifyHost } from "../spotify";
 
+declare global {
+  namespace Express {
+    /** Used in passport 🤷‍♂️ */
+    interface User {
+      id: string;
+    }
+  }
+}
 declare module "express-serve-static-core" {
   interface Request {
     snoppifyHost?: SnoppifyHost;
