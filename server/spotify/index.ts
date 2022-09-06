@@ -1,5 +1,5 @@
 import { Request as ExpressRequest } from "express";
-import User from "../models/User/User";
+import { userService } from "../models/User/UserService";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import { SpotifyPlaybackAPI } from "./spotify-playback-api";
@@ -85,7 +85,7 @@ const authenticateSpotifyHost = (incomingUser: any) =>
       hostId: user.host.id || user.id,
     });
 
-    User.save(user, () => {
+    userService.upsave(user).then(() => {
       if (user.host.id) {
         snoppifyHost.controller
           .setParty(user.host)
@@ -144,7 +144,7 @@ const createSpotifyHost = (incomingUser: any) =>
 
     user.partyId = id;
 
-    User.save(user, () => {
+    userService.upsave(user).then(() => {
       const snoppifyHost = createSnoppifyHost({
         owner: user.username,
         accessToken: checkStr(access_token),

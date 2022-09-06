@@ -1,6 +1,6 @@
 import express from "express";
 import { PassportStatic } from "passport";
-import User from "../models/User/User";
+import { userService } from "../models/User/UserService";
 import socket from "../socket";
 import { createSpotifyAPI } from "../spotify/spotify-api";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
@@ -248,9 +248,7 @@ export default function routes(passport: PassportStatic) {
         req.user.host.id = party.id;
         req.user.host.name = party.name;
 
-        User.save(req.user, () => {
-          res.send(data);
-        });
+        userService.upsave(req.user).then(() => res.send(data));
       })
       .catch(errorHandler(res));
   });
@@ -271,9 +269,7 @@ export default function routes(passport: PassportStatic) {
           party.name = data.name;
         }
 
-        User.save(req.user, () => {
-          res.send(data);
-        });
+        userService.upsave(req.user).then(() => res.send(data));
       })
       .catch(errorHandler(res));
   });

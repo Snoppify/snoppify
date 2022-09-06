@@ -913,7 +913,8 @@ class SpotifyController {
 
   // eslint-disable-next-line class-methods-use-this
   private saveUsers() {
-    User.save();
+    // TODO: Get rid of this shizz
+    User.users.forEach((u) => userService.upsave(u));
   }
 
   /// /////

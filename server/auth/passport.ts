@@ -130,26 +130,13 @@ function findOrCreateUser(data, done) {
         // user found, update data
         Object.assign(user, data);
 
-        User.save(user, (_err) => {
-          if (_err) {
-            throw _err;
-          }
-
-          return done(null, user);
-        });
+        userService.upsave(user).then((result) => done(null, result));
       } else {
         // if there is no user found with that facebook id, create them
         const newUser = new User(data);
 
         // save our user to the database
-        User.save(newUser, (_err) => {
-          if (_err) {
-            throw _err;
-          }
-
-          // if successful, return the new user
-          return done(null, newUser);
-        });
+        userService.upsave(newUser).then((result) => done(null, result));
       }
 
       return undefined;
