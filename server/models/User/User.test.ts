@@ -30,33 +30,6 @@ describe("User", () => {
 
     assertValidNewMinimalUser(newUser);
   });
-
-  it("saves new user to storage", async () => {
-    const newUser = new User(fullUserData());
-
-    expect(User.users).toStrictEqual([]);
-
-    await saveUser(newUser);
-
-    expect(User.users[0]).toEqual(newUser);
-  });
-
-  it("updates existing user when saving", async () => {
-    const newUser = new User(fullUserData());
-
-    await saveUser(newUser);
-
-    const newUser2 = new User({ ...fullUserData(), username: "New username" });
-
-    await saveUser(newUser2);
-
-    await expect(findUser(newUser.id)).resolves.toHaveProperty(
-      "username",
-      "New username",
-    );
-
-    expect(User.users.length).toBe(1);
-  });
 });
 
 function minimalUserData() {
@@ -111,30 +84,4 @@ function assertValidNewFullUser(newUser: User) {
   );
   expect(newUser.friends).toStrictEqual(expetedUserData.friends);
   expect(newUser.votes).toStrictEqual(expetedUserData.votes);
-}
-
-/** Promisify User.save  */
-async function saveUser(user: User) {
-  return new Promise<void>((resolve, reject) => {
-    User.save(user, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
-}
-
-/** Promisify User.find */
-async function findUser(id: string) {
-  return new Promise((resolve, reject) => {
-    User.find(id, (err: any, user: User) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(user);
-      }
-    });
-  });
 }
