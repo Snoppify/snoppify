@@ -10,25 +10,19 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
 
   queue: ItemType[];
 
-  private cursor: number;
-
   private random: number[];
 
   constructor(opts: Partial<QueueParams<ItemType>> = {}) {
     this.id = opts?.id;
     this.queue = opts?.queue || [];
-    this.resetCursor();
+    this.resetRandom();
   }
 
-  get top() {
-    return this.queue[0];
-  }
-
-  get size() {
+  get size(): number {
     return this.queue.length;
   }
 
-  get empty() {
+  get empty(): boolean {
     return this.size === 0;
   }
 
@@ -37,22 +31,18 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
     this.random = [];
   }
 
-  resetCursor() {
-    this.cursor = 0;
+  private resetRandom() {
     this.random = this.queue.map((e, i) => i);
   }
 
-  /**
-   * @param  {mixed} item Item
-   */
   add(item: ItemType) {
     this.queue.push(item);
   }
 
   /**
-   * @param  {mixed} item Item or identifier
+   * @return  {ItemType} The removed item
    */
-  remove(item: ItemType) {
+  remove(item: ItemType): ItemType {
     const index = this.indexOf(item);
     if (index === -1) {
       return null;
@@ -60,33 +50,13 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
     return this.queue.splice(index, 1)[0];
   }
 
-  removeAt(index: number) {
-    const item = this.getAt(index);
-    if (!item) {
-      return null;
-    }
-    return this.queue.splice(index, 1)[0];
+  next(): ItemType | undefined {
+    return this.queue.shift();
   }
 
-  next() {
-    return this.queue.shift() || null;
-  }
-
-  nextAtCursor() {
-    const item = this.getAt(this.cursor);
-    if (item) {
-      // increment cursor
-      this.cursor = (this.cursor + 1) % this.size;
-    } else {
-      // something went wrong
-      this.resetCursor();
-    }
-    return item;
-  }
-
-  nextRandomCursor() {
+  nextRandomCursor(): ItemType {
     if (this.random.length === 0) {
-      this.resetCursor();
+      this.resetRandom();
     }
     const i = Math.floor(Math.random() * this.random.length);
     const item = this.getAt(this.random[i]);
@@ -95,16 +65,12 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
       this.random.splice(i, 1);
     } else {
       // something went wrong
-      this.resetCursor();
+      this.resetRandom();
     }
     return item;
   }
 
-  /**
-   * @param  {mixed} item Item or identifier
-   * @return {mixed}      Item
-   */
-  get(item: string | { id: string }) {
+  get(item: string | { id: string }): ItemType {
     if (!item) {
       return undefined;
     }
@@ -114,19 +80,11 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
     );
   }
 
-  /**
-   * @param  {int}   index Index
-   * @return {mixed}       Item
-   */
-  getAt(index: number) {
-    return this.queue[index] || null;
+  getAt(index: number): ItemType {
+    return this.queue[index];
   }
 
-  /**
-   * @param  {mixed} item Item or identifier
-   * @return {int}        Index of item
-   */
-  indexOf(item: ItemType) {
+  private indexOf(item: ItemType): number {
     if (typeof this.id !== "undefined") {
       return this.queue.findIndex(
         (i) => i[this.id] === item[this.id] || i[this.id] === item,
@@ -134,18 +92,5 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
     } else {
       return this.queue.indexOf(item);
     }
-  }
-
-  /**
-   * @param  {mixed} item Item or identifier
-   * @return {boolean}    True if the item is at the end of the queue
-   */
-  isLast(item: ItemType) {
-    const index = this.indexOf(item);
-    return index === this.size - 1;
-  }
-
-  toString() {
-    return JSON.stringify(this.queue);
   }
 }
