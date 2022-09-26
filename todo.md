@@ -3,4 +3,4 @@
   - create queueService/repo, remove Queue from User!
 - return new User objects from UserService after updates etc.
 - get rid of all refs to User.users
-- replace all calls to User static functions with userService
+- Move spotify-controller: emptyQueue, to userService or queueService, make party-specific

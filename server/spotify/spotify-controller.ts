@@ -135,245 +135,218 @@ class SpotifyController {
     return this.currentParty;
   }
 
-  queueTrack(user: string, trackId: string) {
-    return new Promise<QueueTrack>((resolve, reject) => {
-      this.api
-        .getTracks([trackId])
-        .then((r) => {
-          const track = r.body.tracks[0];
+  async queueTrack(user: string, trackId: string): Promise<QueueTrack> {
+    const r = await this.api.getTracks([trackId]);
+    const track = r.body.tracks[0];
 
-          this.getUserData(user, (err, userData) => {
-            if (err) {
-              reject(err);
-              return;
-            }
+    const userData = await this.getUserDataPromise(user);
 
-            if (!track) {
-              // eslint-disable-next-line prefer-promise-reject-errors
-              reject({
-                response: {
-                  status: 404,
-                  statusText: "Track not found",
-                },
-              });
-              return;
-            }
+    if (!track) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 404,
+          statusText: "Track not found",
+        },
+      });
+    }
 
-            if (this.queue.get(trackId)) {
-              // eslint-disable-next-line prefer-promise-reject-errors
-              reject({
-                response: {
-                  status: 400,
-                  statusText: "Track already added",
-                },
-              });
-              return;
-            }
+    if (this.queue.get(trackId)) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 400,
+          statusText: "Track already added",
+        },
+      });
+    }
 
-            if (userData.queue.get(trackId)) {
-              // eslint-disable-next-line prefer-promise-reject-errors
-              reject({
-                response: {
-                  status: 400,
-                  statusText: "You have already added this track",
-                },
-              });
-              return;
-            }
+    if (userData.queue.get(trackId)) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 400,
+          statusText: "You have already added this track",
+        },
+      });
+    }
 
-            if (userData.queue.size == this.maxQueueSize) {
-              // eslint-disable-next-line prefer-promise-reject-errors
-              reject({
-                response: {
-                  status: 400,
-                  statusText: `You cannot add more than ${this.maxQueueSize} tracks`,
-                },
-              });
-              return;
-            }
+    if (userData.queue.size == this.maxQueueSize) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 400,
+          statusText: `You cannot add more than ${this.maxQueueSize} tracks`,
+        },
+      });
+    }
 
-            const queueTrack: QueueTrack = {
-              ...track,
-              snoppify: {
-                issuer: userData,
-                votes: [],
-                timestamp: Date.now(),
-              },
-            };
+    const queueTrack: QueueTrack = {
+      ...track,
+      snoppify: {
+        issuer: userData,
+        votes: [],
+        timestamp: Date.now(),
+      },
+    };
 
-            // TODO: check if queue is empty and if track should be playing?
-            this.queue.add(queueTrack);
-            userData.queue.add({
-              id: queueTrack.id,
-            });
-
-            this.rebuildQueueOrder();
-
-            this.states.data.events.queuedTrack = true;
-
-            this.states.update();
-
-            socket.io.local.emit("queue", {
-              queue: this.queue.queue,
-              addedTracks: [queueTrack],
-              removedTracks: [],
-            });
-
-            this.saveQueue();
-            this.saveUsers();
-
-            resolve(queueTrack);
-          });
-        })
-        .catch(reject);
+    // TODO: check if queue is empty and if track should be playing?
+    this.queue.add(queueTrack);
+    userData.queue.add({
+      id: queueTrack.id,
     });
+
+    await this.rebuildQueueOrder();
+
+    this.states.data.events.queuedTrack = true;
+
+    this.states.update();
+
+    socket.io.local.emit("queue", {
+      queue: this.queue.queue,
+      addedTracks: [queueTrack],
+      removedTracks: [],
+    });
+
+    this.saveQueue();
+    await userService.upsave(userData);
+
+    return queueTrack;
   }
 
-  dequeueTrack(user: string, trackId: string) {
-    return new Promise<void>((resolve, reject) => {
-      // TODO: check if playing?
-      const track = this.queue.get(trackId);
-      this.getUserData(user, (err, userData) => {
-        if (err) {
-          return reject(err);
-        }
+  async dequeueTrack(user: string, trackId: string): Promise<void> {
+    // TODO: check if playing?
+    const track = this.queue.get(trackId);
+    const userData = await this.getUserDataPromise(user);
 
-        if (!track || track.snoppify.issuer.username != user) {
-          // eslint-disable-next-line prefer-promise-reject-errors
-          return reject({
-            response: {
-              status: 404,
-              statusText: "Track not found",
-            },
-          });
-        }
-
-        if (!this.queue.remove(track)) {
-          // eslint-disable-next-line prefer-promise-reject-errors
-          return reject({
-            response: {
-              status: 500,
-              statusText: "Track could not be removed",
-            },
-          });
-        }
-
-        userData.queue.remove(track);
-
-        this.states.data.events.dequeuedTrack = true;
-
-        this.states.update();
-
-        socket.io.local.emit("queue", {
-          queue: this.queue.queue,
-          addedTracks: [],
-          removedTracks: [track],
-        });
-
-        this.saveQueue();
-        this.saveUsers();
-
-        return resolve();
+    if (!track || track.snoppify.issuer.username != user) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 404,
+          statusText: "Track not found",
+        },
       });
+    }
+
+    if (!this.queue.remove(track)) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 500,
+          statusText: "Track could not be removed",
+        },
+      });
+    }
+
+    userData.queue.remove(track);
+
+    this.states.data.events.dequeuedTrack = true;
+
+    this.states.update();
+
+    socket.io.local.emit("queue", {
+      queue: this.queue.queue,
+      addedTracks: [],
+      removedTracks: [track],
     });
+
+    this.saveQueue();
+
+    await userService.upsave(userData);
+
+    return Promise.resolve();
   }
 
-  vote(userId: string, trackId: any) {
-    return new Promise<void>((resolve, reject) => {
-      const track = this.queue.get(trackId);
+  async vote(userId: string, trackId: any): Promise<void> {
+    const track = this.queue.get(trackId);
 
-      if (!track) {
-        // eslint-disable-next-line prefer-promise-reject-errors
-        reject({
-          response: {
-            status: 404,
-            statusText: "No such track",
-          },
-        });
-        return;
-      }
-
-      if (track.snoppify.votes.indexOf(userId) !== -1) {
-        // eslint-disable-next-line prefer-promise-reject-errors
-        reject({
-          response: {
-            status: 400,
-            statusText: "You have already voted",
-          },
-        });
-        return;
-      }
-
-      track.snoppify.votes.push(userId);
-
-      // update friendships
-      this.updateFriendship(track, userId, 1);
-
-      this.rebuildQueueOrder();
-
-      this.saveQueue();
-
-      this.states.data.events.userVoted = true;
-
-      this.states.update();
-
-      socket.io.local.emit("queue", {
-        queue: this.queue.queue,
-        addedTracks: [],
-        removedTracks: [],
+    if (!track) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 404,
+          statusText: "No such track",
+        },
       });
-      this.sendEvent("vote", {
-        track,
-        votes: track.snoppify.votes.length,
-      });
+    }
 
-      resolve();
+    if (track.snoppify.votes.indexOf(userId) !== -1) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 400,
+          statusText: "You have already voted",
+        },
+      });
+    }
+
+    track.snoppify.votes.push(userId);
+
+    // update friendships
+    this.updateFriendship(track, userId, 1);
+
+    await this.rebuildQueueOrder();
+
+    this.saveQueue();
+
+    this.states.data.events.userVoted = true;
+
+    this.states.update();
+
+    socket.io.local.emit("queue", {
+      queue: this.queue.queue,
+      addedTracks: [],
+      removedTracks: [],
     });
+    this.sendEvent("vote", {
+      track,
+      votes: track.snoppify.votes.length,
+    });
+
+    return Promise.resolve();
   }
 
-  unvote(user: string, trackId: any) {
-    return new Promise<void>((resolve, reject) => {
-      const track = this.queue.get(trackId);
+  async unvote(user: string, trackId: any): Promise<void> {
+    const track = this.queue.get(trackId);
 
-      if (!track) {
-        // eslint-disable-next-line prefer-promise-reject-errors
-        reject({
-          response: {
-            status: 404,
-            statusText: "No such track",
-          },
-        });
-        return;
-      }
-
-      const i = track.snoppify.votes.indexOf(user);
-      if (i != -1) {
-        track.snoppify.votes.splice(i, 1);
-      }
-
-      // update friendships
-      this.updateFriendship(track, user, -1);
-
-      this.rebuildQueueOrder();
-
-      this.saveQueue();
-
-      this.states.data.events.userVoted = true;
-
-      this.states.update();
-
-      socket.io.local.emit("queue", {
-        queue: this.queue.queue,
-        addedTracks: [],
-        removedTracks: [],
+    if (!track) {
+      // eslint-disable-next-line prefer-promise-reject-errors
+      return Promise.reject({
+        response: {
+          status: 404,
+          statusText: "No such track",
+        },
       });
-      this.sendEvent("unvote", {
-        track,
-        votes: track.snoppify.votes.length,
-      });
+    }
 
-      resolve();
+    const i = track.snoppify.votes.indexOf(user);
+    if (i != -1) {
+      track.snoppify.votes.splice(i, 1);
+    }
+
+    // update friendships
+    this.updateFriendship(track, user, -1);
+
+    await this.rebuildQueueOrder();
+
+    this.saveQueue();
+
+    this.states.data.events.userVoted = true;
+
+    this.states.update();
+
+    socket.io.local.emit("queue", {
+      queue: this.queue.queue,
+      addedTracks: [],
+      removedTracks: [],
     });
+    this.sendEvent("unvote", {
+      track,
+      votes: track.snoppify.votes.length,
+    });
+
+    return Promise.resolve();
   }
 
   private updateFriendship(track, voterId, vote) {
@@ -535,7 +508,7 @@ class SpotifyController {
     return this.playNextTrack().then(() => this.next());
   }
 
-  private playNextTrack() {
+  private async playNextTrack(): Promise<void> {
     let track = this.queue.next();
 
     if (!track) {
@@ -546,41 +519,43 @@ class SpotifyController {
       }
     }
 
-    return this.addToPlaylist(track).then(() => {
-      if (track) {
-        // save issuer for later
-        this.history.add(track);
-      }
+    await this.addToPlaylist(track);
 
-      this.saveQueue();
-      if (track && track.snoppify) {
-        this.getUserData(track.snoppify.issuer.username, (err, userData) => {
-          if (userData) {
-            userData.queue.remove(track.id);
-            this.saveUsers();
-          }
-        });
-      }
+    if (track) {
+      // save issuer for later
+      this.history.add(track);
+    }
 
-      this.sendEvent("waitingForNextSong", { track });
+    this.saveQueue();
 
-      if (track) {
-        socket.io.local.emit("queue", {
-          queue: this.queue.queue,
-          addedTracks: [],
-          removedTracks: [track],
-        });
+    if (track?.snoppify) {
+      const userData = await this.getUserDataPromise(
+        track.snoppify.issuer.username,
+      );
+      if (userData) {
+        userData.queue.remove(track.id); // TODO: Do in fucntion instead
+        userService.upsave(userData);
       }
+    }
 
-      if (
-        this.states.data.playlist &&
-        this.states.data.playlist.tracks.items.length == 0
-      ) {
-        // BUG: cant start a playlist that havent been intereacted with from a spotify client,
-        // for example after emptying the playlist
-        // play(true);
-      }
-    });
+    this.sendEvent("waitingForNextSong", { track });
+
+    if (track) {
+      socket.io.local.emit("queue", {
+        queue: this.queue.queue,
+        addedTracks: [],
+        removedTracks: [track],
+      });
+    }
+
+    if (
+      this.states.data.playlist &&
+      this.states.data.playlist.tracks.items.length == 0
+    ) {
+      // BUG: cant start a playlist that havent been intereacted with from a spotify client,
+      // for example after emptying the playlist
+      // play(true);
+    }
   }
 
   play(playPlaylist = false) {
@@ -646,26 +621,25 @@ class SpotifyController {
     });
   }
 
-  emptyQueue() {
-    return new Promise<void>((resolve) => {
-      const removed = this.queue.queue;
+  async emptyQueue(): Promise<void> {
+    // TODO: Move to userService or queueService, make party-specific
+    const allUsers = await userService.getAll();
 
-      this.queue.clear();
+    const removed = this.queue.queue;
+    this.queue.clear();
 
-      for (const user of User.users) {
-        User.clearUser(user);
-      }
+    for (const user of allUsers) {
+      User.clearUser(user);
+    }
 
-      this.saveQueue();
-      this.saveUsers();
+    await Promise.all(allUsers.map((user_2) => userService.upsave(user_2)));
 
-      socket.io.local.emit("queue", {
-        queue: this.queue.queue,
-        addedTracks: [],
-        removedTracks: removed,
-      });
+    this.saveQueue();
 
-      resolve();
+    socket.io.local.emit("queue", {
+      queue: this.queue.queue,
+      addedTracks: [],
+      removedTracks: removed,
     });
   }
 
@@ -825,18 +799,18 @@ class SpotifyController {
     return null;
   }
 
-  private rebuildQueueOrder() {
+  private async rebuildQueueOrder() {
     let list: any[] = [];
     let maxVotes = -1;
 
     // fetch all tracks with votes with inital order by addition
     let tracksCount = this.queue.size;
+    const allUsers = await userService.getAll();
+
     for (let i = 0; i < this.queue.size; i++) {
       const sublist = [];
-      for (const user of User.users) {
-        const u = user;
-
-        const t = u.queue.getAt(i);
+      for (const user of allUsers) {
+        const t = user.queue.getAt(i);
         if (t) {
           const track = this.queue.get(t);
 
@@ -905,16 +879,15 @@ class SpotifyController {
     userId: string,
     callback: (err: any, userData?: User) => void,
   ) {
-    userService
-      .getUser(userId)
+    this.getUserDataPromise(userId)
       .then((user) => callback(null, user))
       .catch((err) => callback(err));
   }
 
+  // TODO: replace getUserData with this
   // eslint-disable-next-line class-methods-use-this
-  private saveUsers() {
-    // TODO: Get rid of this shizz
-    User.users.forEach((u) => userService.upsave(u));
+  private getUserDataPromise(userId: string): Promise<User> {
+    return userService.getUser(userId);
   }
 
   /// /////
