@@ -7,7 +7,6 @@ jest.mock("./UserService.ts");
 
 describe("User", () => {
   beforeEach(() => {
-    User.users = undefined;
     userService.setRepository({} as any);
   });
 

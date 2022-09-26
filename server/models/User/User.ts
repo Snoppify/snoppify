@@ -7,8 +7,6 @@ type NewUserInput = RequireSome<
 >;
 
 export default class User extends UserBase {
-  static users: User[];
-
   constructor(data: NewUserInput) {
     super();
 
@@ -26,8 +24,6 @@ export default class User extends UserBase {
       ...data.votes,
     };
     this.friends = data.friends || [];
-
-    User.users = [];
   }
 
   static clearUser(user: User) {
