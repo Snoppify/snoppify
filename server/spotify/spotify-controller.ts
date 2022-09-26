@@ -139,7 +139,7 @@ class SpotifyController {
     const r = await this.api.getTracks([trackId]);
     const track = r.body.tracks[0];
 
-    const userData = await this.getUserDataPromise(user);
+    const userData = await userService.getUser(user);
 
     if (!track) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -217,7 +217,7 @@ class SpotifyController {
   async dequeueTrack(user: string, trackId: string): Promise<void> {
     // TODO: check if playing?
     const track = this.queue.get(trackId);
-    const userData = await this.getUserDataPromise(user);
+    const userData = await userService.getUser(user);
 
     if (!track || track.snoppify.issuer.username != user) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -529,7 +529,7 @@ class SpotifyController {
     this.saveQueue();
 
     if (track?.snoppify) {
-      const userData = await this.getUserDataPromise(
+      const userData = await userService.getUser(
         track.snoppify.issuer.username,
       );
       if (userData) {
@@ -872,22 +872,6 @@ class SpotifyController {
         }
       });
     }
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private getUserData(
-    userId: string,
-    callback: (err: any, userData?: User) => void,
-  ) {
-    this.getUserDataPromise(userId)
-      .then((user) => callback(null, user))
-      .catch((err) => callback(err));
-  }
-
-  // TODO: replace getUserData with this
-  // eslint-disable-next-line class-methods-use-this
-  private getUserDataPromise(userId: string): Promise<User> {
-    return userService.getUser(userId);
   }
 
   /// /////
