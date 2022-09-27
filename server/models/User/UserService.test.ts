@@ -18,7 +18,7 @@ describe("UserService", () => {
     await userService.getUser("test");
     expect(
       (UserRepository as jest.Mock).mock.instances[0].get,
-    ).toHaveBeenCalled();
+    ).toHaveBeenCalledWith("test");
   });
 
   it("saves a user", async () => {
