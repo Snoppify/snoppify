@@ -45,7 +45,7 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
   remove(item: ItemType): ItemType {
     const index = this.indexOf(item);
     if (index === -1) {
-      return null;
+      return undefined;
     }
     return this.queue.splice(index, 1)[0];
   }
@@ -75,9 +75,7 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
       return undefined;
     }
 
-    return this.queue.find((qItem) =>
-      typeof item === "string" ? qItem.id === item : qItem.id === item.id,
-    );
+    return this.queue.find(findItemPredicate(item));
   }
 
   getAt(index: number): ItemType {
@@ -85,12 +83,17 @@ export class Queue<ItemType extends { id: string } = QueueTrack> {
   }
 
   private indexOf(item: ItemType): number {
-    if (typeof this.id !== "undefined") {
-      return this.queue.findIndex(
-        (i) => i[this.id] === item[this.id] || i[this.id] === item,
-      );
+    if (item.id) {
+      return this.queue.findIndex(findItemPredicate(item.id));
     } else {
       return this.queue.indexOf(item);
     }
   }
+}
+
+function findItemPredicate(identifier: string | { id: string }) {
+  return (qItem: { id: string }) =>
+    typeof identifier === "string"
+      ? qItem.id === identifier
+      : qItem.id === identifier.id;
 }
