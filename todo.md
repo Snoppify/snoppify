@@ -4,3 +4,4 @@
 - return new User objects from UserService after updates etc.
 - Move spotify-controller: emptyQueue, to userService or queueService, make party-specific
 - Remvoe Queue from Users and only use one Queue object per party
+- Remove mainPlaylist, backupPlaylist, Queue from spotify-controller; manage in PartyService

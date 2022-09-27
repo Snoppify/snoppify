@@ -22,10 +22,6 @@ class SpotifyController {
 
   private backupQueue = new Queue({});
 
-  private mainPlaylist: Omit<SpotifyApi.SinglePlaylistResponse, "tracks">;
-
-  private backupPlaylist: Omit<SpotifyApi.SinglePlaylistResponse, "tracks">;
-
   private pollTimeout = 2000;
 
   private maxQueueSize = 5;
