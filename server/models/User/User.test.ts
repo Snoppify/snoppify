@@ -60,7 +60,7 @@ function assertValidNewMinimalUser(newUser: User) {
 function fullUserData() {
   return {
     ...minimalUserData(),
-    queue: [{ id: "SONG_ID" }],
+    queue: new Queue({ queue: [{ id: "SONG_ID" }] }),
     votes: {
       received: { OTHER_USER_ID_1: 1 },
       given: { OTHER_USER_ID_1: 1, OTHER_USER_ID_2: 2 },

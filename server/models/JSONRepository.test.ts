@@ -167,6 +167,16 @@ describe("JSONRepository", () => {
     expect(result).toBe(undefined);
   });
 
+  it("returns undefined when getting an unknown id, with modelClass", async () => {
+    const repo = new JSONRepository<TestModelImpl>({
+      name: "test",
+      modelClass: TestModelImpl,
+    });
+
+    const result = await repo.get("not_in_repo");
+    expect(result).toBe(undefined);
+  });
+
   it("gets all objects", async () => {
     const storeContent = {
       TEST_ID: { id: "TEST_ID", a: "a", b: 1 },

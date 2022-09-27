@@ -14,7 +14,7 @@ export default class User extends UserBase {
 
     this.queue = new Queue({
       id: "id",
-      queue: data.queue,
+      queue: data.queue?.queue,
     });
     this.votes = {
       received: {},
