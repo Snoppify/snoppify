@@ -601,6 +601,7 @@ class SpotifyController {
   }
 
   emptyPlaylist() {
+    // TODO: Move to PartyService
     const promises = [];
     if (this.playlist) {
       for (let i = 0; i < this.playlist.tracks.items.length; i += 100) {

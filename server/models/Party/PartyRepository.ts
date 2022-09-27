@@ -1,7 +1,7 @@
 import { JSONRepository } from "../JSONRepository";
-import { Party } from "./Party";
+import { PartyNormalized } from "./Party";
 
-export class PartyRepository extends JSONRepository<Party> {
+export class PartyRepository extends JSONRepository<PartyNormalized> {
   constructor() {
     super({ name: "party" });
   }
