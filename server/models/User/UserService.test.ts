@@ -1,3 +1,4 @@
+import { Queue } from "../Queue/Queue";
 import User from "./User";
 import { UserRepository } from "./UserRepository";
 import { userService } from "./UserService";
@@ -41,7 +42,7 @@ describe("UserService", () => {
   it("removes a track from the queue", async () => {
     const user = new User({
       ...minimalUserData(),
-      queue: [{ id: "track_id" }],
+      queue: new Queue({ queue: [{ id: "track_id" }] }),
     });
 
     expect(user.queue.size).toBe(1);
