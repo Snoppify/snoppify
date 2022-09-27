@@ -22,9 +22,9 @@ class SpotifyController {
 
   private backupQueue = new Queue({});
 
-  private mainPlaylist: any = null;
+  private mainPlaylist: Omit<SpotifyApi.SinglePlaylistResponse, "tracks">;
 
-  private backupPlaylist: any = null;
+  private backupPlaylist: Omit<SpotifyApi.SinglePlaylistResponse, "tracks">;
 
   private pollTimeout = 2000;
 

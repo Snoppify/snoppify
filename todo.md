@@ -3,3 +3,4 @@
   - create queueService/repo, remove Queue from User!
 - return new User objects from UserService after updates etc.
 - Move spotify-controller: emptyQueue, to userService or queueService, make party-specific
+- Remvoe Queue from Users and only use one Queue object per party
