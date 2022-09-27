@@ -1,8 +1,8 @@
 import { JSONRepository } from "../JSONRepository";
-import { UserBase } from "./UserBase";
+import User from "./User";
 
-export class UserRepository extends JSONRepository<UserBase> {
+export class UserRepository extends JSONRepository<User> {
   constructor() {
-    super({ name: "users", modelClass: UserBase });
+    super({ name: "users", modelClass: User });
   }
 }
