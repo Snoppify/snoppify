@@ -15,6 +15,10 @@ import https from "https";
 import ip from "ip";
 import passport from "passport";
 import { passportInit } from "./auth/passport";
+import { PartyRepository } from "./models/Party/PartyRepository";
+import { partyService } from "./models/Party/PartyService";
+import { QueueRepository } from "./models/Queue/QueueRepository";
+import { queueService } from "./models/Queue/QueueService";
 import { UserRepository } from "./models/User/UserRepository";
 import { userService } from "./models/User/UserService";
 import routesIndex from "./routes";
@@ -39,6 +43,8 @@ if (!fs.existsSync("./data")) {
 }
 
 userService.setRepository(new UserRepository());
+queueService.setRepository(new QueueRepository());
+partyService.setRepository(new PartyRepository());
 
 const useHttps = false;
 let httpServer: https.Server | http.Server;
