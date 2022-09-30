@@ -13,6 +13,13 @@ import { createStateMachine, SnoppifyStateMachine } from "./spotify-states";
 
 export { SpotifyController };
 
+interface CurrentParty {
+  wifi?: { ssid: string; password: string; encryption: string };
+  name: string;
+  id: string;
+  hostCode?: string;
+}
+
 class SpotifyController {
   private api: SpotifyAPI;
 
@@ -32,7 +39,7 @@ class SpotifyController {
 
   private partyFile = null;
 
-  private currentParty = null;
+  private currentParty: CurrentParty = null;
 
   private playbackAPI: SpotifyPlaybackAPI;
 

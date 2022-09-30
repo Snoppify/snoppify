@@ -16,6 +16,7 @@ describe("PartyService", () => {
         mainPlaylistId: "mpID",
         queueId: "qID",
         currentTrack: {} as any,
+        name: "name",
       }),
     );
     jest
