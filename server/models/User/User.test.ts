@@ -79,7 +79,7 @@ function assertValidNewFullUser(newUser: User) {
   expect(newUser.displayName).toBe(expetedUserData.displayName);
   expect(newUser.id).toBe(expetedUserData.id);
   expect(newUser.queue).toStrictEqual(
-    new Queue({ id: "id", queue: [{ id: "SONG_ID" }] as any }),
+    new Queue({ id: "id", queue: [{ id: "SONG_ID" }] }),
   );
   expect(newUser.friends).toStrictEqual(expetedUserData.friends);
   expect(newUser.votes).toStrictEqual(expetedUserData.votes);

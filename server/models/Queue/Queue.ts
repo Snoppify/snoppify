@@ -1,11 +1,9 @@
-import { QueueTrack } from "./QueueTrack";
-
 interface QueueParams<ItemType> {
   id: string;
   queue: ItemType[];
 }
 
-export class Queue<ItemType extends { id: string } = QueueTrack> {
+export class Queue<ItemType extends { id: string }> {
   id: string;
 
   queue: ItemType[];

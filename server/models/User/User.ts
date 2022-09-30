@@ -7,6 +7,8 @@ type NewUserInput = RequireSome<
 >;
 
 export default class User extends UserBase {
+  queue: Queue<{ id: string }>;
+
   constructor(data: NewUserInput) {
     super();
 

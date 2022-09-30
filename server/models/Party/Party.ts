@@ -1,4 +1,5 @@
 import { Queue } from "../Queue/Queue";
+import { QueueTrack } from "../Queue/QueueTrack";
 
 export interface PartyNormalized {
   id: string;
@@ -13,7 +14,7 @@ export interface PartyNormalized {
 export interface PartyFull {
   id: string;
   name: string;
-  queue: Queue;
+  queue: Queue<QueueTrack>;
   currentTrack: SpotifyApi.CurrentlyPlayingObject["item"];
   mainPlaylistId: string;
   backupPlaylistId: string;

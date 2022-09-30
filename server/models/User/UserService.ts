@@ -1,5 +1,5 @@
 import { Queue } from "../Queue/Queue";
-import { UserBase } from "./UserBase";
+import User from "./User";
 import { UserRepository } from "./UserRepository";
 
 let repo: UserRepository;
@@ -17,7 +17,7 @@ function getUser(id: string) {
   return repo.get(id);
 }
 
-function upsave(user: UserBase) {
+function upsave(user: User) {
   return repo.upsave(user);
 }
 
@@ -30,11 +30,11 @@ function getAll() {
 }
 
 // TODO: Write tests THEn implement! then replace direct modification of User.queue!
-function addToQueue(user: UserBase, track: { id: string }): Promise<UserBase> {
+function addToQueue(user: User, track: { id: string }): Promise<User> {
   (user.queue as Queue<{ id: string }>).add(track);
   return userService.upsave(user);
 }
-function removeFromQueue(user: UserBase, track: { id: string }) {
+function removeFromQueue(user: User, track: { id: string }) {
   (user.queue as Queue<{ id: string }>).remove(track);
   return upsave(user);
 }

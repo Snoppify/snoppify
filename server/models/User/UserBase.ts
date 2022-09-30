@@ -4,8 +4,6 @@ import { Votes } from "./Votes";
  * This mainly exists to avoid circular dependencies.. refactor away
  */
 export class UserBase {
-  queue: any;
-
   votes: Votes;
 
   // TODO: Find out which name fields are actually used
@@ -23,5 +21,28 @@ export class UserBase {
    * Profile picture uri
    * TODO: Rename
    */
-  profile: string;
+  profile: { value: string };
+
+  /** Tokens for Spotify api? */
+  _tokens?: {
+    access_token: string;
+    refresh_token: string;
+  };
+
+  /** if the user is a host? */
+  host?: {
+    status: "success";
+
+    /** party id */
+    id: string;
+
+    /** party name */
+    name: string;
+
+    playlist: string;
+  };
+
+  parties?: { id: string; name: string }[];
+
+  partyId?: string;
 }
