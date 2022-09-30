@@ -43,7 +43,7 @@ export default class User extends UserBase {
 
   /// /////////
 
-  static sanitize(user: User & { _tokens: any }) {
+  static sanitize(user: User) {
     const { _tokens, ...sanitized } = user;
     return sanitized;
   }

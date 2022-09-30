@@ -1,3 +1,4 @@
+import User from "../models/User/User";
 import { SnoppifyHost } from "../spotify";
 
 declare global {
@@ -11,7 +12,7 @@ declare global {
 declare module "express-serve-static-core" {
   interface Request {
     snoppifyHost?: SnoppifyHost;
-    user?: any; // TODO: Define as a snoppify user
+    user?: User;
   }
 }
 

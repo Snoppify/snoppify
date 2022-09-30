@@ -1,4 +1,5 @@
 import { Request as ExpressRequest } from "express";
+import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
@@ -67,9 +68,11 @@ const checkStr = (str: any) => {
   throw new Error(`Not a string: ${JSON.stringify(str)}`);
 };
 
-const authenticateSpotifyHost = (incomingUser: any) =>
+const authenticateSpotifyHost = (incomingUser: User) =>
   new Promise<void>((resolve) => {
     const user = { ...incomingUser };
+
+    console.log({ user, parties: user.parties });
 
     const { access_token } = user._tokens;
     const { refresh_token } = user._tokens;
@@ -109,9 +112,11 @@ const authenticateSpotifyHost = (incomingUser: any) =>
     });
   });
 
-const createSpotifyHost = (incomingUser: any) =>
+const createSpotifyHost = async (incomingUser: User): Promise<void> =>
   new Promise<void>((resolve, reject) => {
     const user = { ...incomingUser };
+
+    console.log({ user });
 
     const { access_token } = user._tokens;
     const { refresh_token } = user._tokens;
@@ -134,6 +139,8 @@ const createSpotifyHost = (incomingUser: any) =>
       user.host[key] = hostData[key];
     }
 
+    user.host = { ...user.host, ...hostData };
+
     if (!user.parties) {
       user.parties = [];
     }
@@ -152,6 +159,7 @@ const createSpotifyHost = (incomingUser: any) =>
         hostId: id,
       });
 
+      // Move to snoppifyHost.newParty
       snoppifyHost.controller
         .createMainPlaylist(hostData.name)
         .then((playlist) => {
@@ -174,5 +182,7 @@ const createSpotifyHost = (incomingUser: any) =>
           console.log(r);
           reject(r);
         });
+
+      // snoppifyHost.controller.newParty({});
     });
   });

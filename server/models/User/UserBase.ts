@@ -31,15 +31,15 @@ export class UserBase {
 
   /** if the user is a host? */
   host?: {
-    status: "success";
+    status?: "success" | string;
 
     /** party id */
-    id: string;
+    id?: string;
 
     /** party name */
-    name: string;
+    name?: string;
 
-    playlist: string;
+    playlist?: string;
   };
 
   parties?: { id: string; name: string }[];
