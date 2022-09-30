@@ -2,6 +2,7 @@
 
 import * as fs from "fs";
 import mkdirp from "mkdirp";
+import { PartyFull } from "../models/Party/Party";
 import { Queue } from "../models/Queue/Queue";
 import { QueueTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
@@ -23,11 +24,11 @@ interface CurrentParty {
 class SpotifyController {
   private api: SpotifyAPI;
 
-  queue = new Queue({});
+  queue = new Queue<QueueTrack>({});
 
   private history = new Queue({});
 
-  private backupQueue = new Queue({});
+  private backupQueue = new Queue<QueueTrack>({});
 
   private pollTimeout = 2000;
 
@@ -45,12 +46,23 @@ class SpotifyController {
 
   private states: SnoppifyStateMachine;
 
+  private mainPlaylist: any;
+
+  private backupPlaylist: any;
+
+  private party: PartyFull;
+
   constructor(opts: { api: SpotifyAPI; playbackAPI: SpotifyPlaybackAPI }) {
     this.api = opts.api;
     this.playbackAPI = opts.playbackAPI;
 
     this.initQueueFile();
     this.init();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  newParty() {
+    // Implement!
   }
 
   setParty(
@@ -62,7 +74,7 @@ class SpotifyController {
     mainPlaylist: SpotifyController["mainPlaylist"];
     backupPlaylist: SpotifyController["backupPlaylist"];
   }> {
-    console.log("Party is this:");
+    console.trace("Party is this:");
     console.log(JSON.stringify(party, null, 2));
 
     // check if ok to set here!
@@ -512,7 +524,7 @@ class SpotifyController {
   }
 
   private async playNextTrack(): Promise<void> {
-    let track = this.queue.next();
+    let track: QueueTrack = this.queue.next();
 
     if (!track) {
       if (this.backupPlaylist) {
@@ -536,7 +548,7 @@ class SpotifyController {
         track.snoppify.issuer.username,
       );
       if (userData) {
-        userData.queue.remove(track.id); // TODO: Do in fucntion instead
+        userData.queue.remove({ id: track.id }); // TODO: Do in fucntion instead
         userService.upsave(userData);
       }
     }
