@@ -1,6 +1,6 @@
 import { createSnoppifyHost, getSnoppifyHost } from ".";
 import { SpotifyController } from "./spotify-controller";
-import { SpotifyPlaybackAPI } from "./spotify-playback-api";
+import SpotifyPlaybackAPI from "./spotify-playback-api";
 
 jest.mock("./spotify-controller");
 jest.mock("./spotify-api");

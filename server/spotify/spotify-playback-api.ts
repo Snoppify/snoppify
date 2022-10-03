@@ -31,7 +31,7 @@ interface PlayOptions {
   uris?: any;
 }
 
-class SpotifyPlaybackAPI {
+export default class SpotifyPlaybackAPI {
   private accessToken: string;
 
   private api: SpotifyAPI;
@@ -206,4 +206,4 @@ class SpotifyPlaybackAPI {
   }
 }
 
-export { SpotifyPlaybackAPI, scopes as spotifyAPIScopes };
+export { scopes as spotifyAPIScopes };

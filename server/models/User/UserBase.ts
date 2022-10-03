@@ -29,7 +29,7 @@ export class UserBase {
     refresh_token: string;
   };
 
-  /** if the user is a host? */
+  /** Party information if the user is a host for a party */
   host?: {
     status?: "success" | string;
 

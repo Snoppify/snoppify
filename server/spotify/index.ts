@@ -3,7 +3,7 @@ import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
-import { SpotifyPlaybackAPI } from "./spotify-playback-api";
+import SpotifyPlaybackAPI from "./spotify-playback-api";
 
 export type SnoppifyHost = {
   initialized: boolean;

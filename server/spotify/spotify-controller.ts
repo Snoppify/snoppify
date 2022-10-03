@@ -9,15 +9,15 @@ import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import socket from "../socket";
 import { SpotifyAPI } from "./spotify-api";
-import { SpotifyPlaybackAPI } from "./spotify-playback-api";
+import SpotifyPlaybackAPI from "./spotify-playback-api";
 import { createStateMachine, SnoppifyStateMachine } from "./spotify-states";
 
 export { SpotifyController };
 
 interface CurrentParty {
   wifi?: { ssid: string; password: string; encryption: string };
-  name: string;
-  id: string;
+  name?: string;
+  id?: string;
   hostCode?: string;
 }
 
@@ -61,13 +61,28 @@ class SpotifyController {
   }
 
   // eslint-disable-next-line class-methods-use-this
-  newParty() {
-    // Implement!
+  async newParty(opts: { hostUser: User }): Promise<PartyFull> {
+    const id = Date.now().toString();
+    const name = `Snoppify ${id}`;
+
+    const mainPlaylistId = (
+      await this.api.createPlaylist(name, { public: true })
+    ).body.id;
+
+    const party: PartyFull = {
+      id,
+      name,
+      mainPlaylistId,
+      queue: new Queue<QueueTrack>(),
+      hostUser: opts.hostUser,
+    };
+
+    return Promise.resolve(party);
   }
 
   setParty(
-    party: any,
-    opts?: any,
+    party: Pick<User["host"], "id" | "name">,
+    opts?: any, // Partial<PartyFull> ish
   ): Promise<{
     id: string;
     queue: string[];
