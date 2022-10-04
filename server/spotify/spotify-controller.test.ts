@@ -25,7 +25,7 @@ describe("SpotifyController", () => {
       playbackAPI: new SpotifyPlaybackAPI(spotifyApi),
     });
 
-    const newParty = await controller.newParty({
+    const newParty = await controller.createNewParty({
       hostUser: new User({ id: "testUser" } as any),
     });
 

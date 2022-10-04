@@ -1,4 +1,5 @@
 import { createSnoppifyHost, getSnoppifyHost } from ".";
+import User from "../models/User/User";
 import { SpotifyController } from "./spotify-controller";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
 
@@ -14,9 +15,8 @@ describe("Spotify index", () => {
   it("should create a snoppify host", () => {
     const host = createSnoppifyHost({
       accessToken: "ACCESS_TOKEN",
-      owner: "OWNER",
+      owner: ownerUser(),
       refreshToken: "REFRESH_TOKEN",
-      hostId: "HOST_ID",
     });
 
     expect(SpotifyController).toHaveBeenCalledTimes(1);
@@ -29,16 +29,14 @@ describe("Spotify index", () => {
   it("should get host by hostId", () => {
     const host1 = createSnoppifyHost({
       accessToken: "ACCESS_TOKEN",
-      owner: "OWNER",
+      owner: ownerUser(),
       refreshToken: "REFRESH_TOKEN",
-      hostId: "HOST_1",
     });
 
     const host2 = createSnoppifyHost({
       accessToken: "ACCESS_TOKEN",
-      owner: "OWNER",
+      owner: ownerUser(),
       refreshToken: "REFRESH_TOKEN",
-      hostId: "HOST_2",
     });
 
     const getHost1 = getSnoppifyHost("HOST_1");
@@ -48,3 +46,12 @@ describe("Spotify index", () => {
     expect(host2).toEqual(getHost2);
   });
 });
+
+function ownerUser() {
+  return new User({
+    id: "lol",
+    displayName: "test",
+    name: "lol",
+    username: "testfakelol",
+  });
+}

@@ -56,12 +56,15 @@ class SpotifyController {
     this.api = opts.api;
     this.playbackAPI = opts.playbackAPI;
 
-    this.initQueueFile();
-    this.init();
+    // TODO: do corresponding stuff as below but based on party id? Or
+    // maybe not automatically at all?
+    //
+    // this.initQueueFile();
+    // this.init();
   }
 
   // eslint-disable-next-line class-methods-use-this
-  async newParty(opts: { hostUser: User }): Promise<PartyFull> {
+  async createNewParty(opts: { hostUser: User }): Promise<PartyFull> {
     const id = Date.now().toString();
     const name = `Snoppify ${id}`;
 
@@ -76,6 +79,8 @@ class SpotifyController {
       queue: new Queue<QueueTrack>(),
       hostUser: opts.hostUser,
     };
+
+    // TODO: init here?
 
     return Promise.resolve(party);
   }
@@ -920,12 +925,16 @@ class SpotifyController {
       this.reloadPlaylist();
     }
 
+    this.setupStateMachine();
+
     if (this.api.getCredentials().refreshToken) {
       setInterval(() => {
         this.pollPlayerStatus();
       }, this.pollTimeout);
     }
+  }
 
+  private setupStateMachine() {
     this.states = createStateMachine();
 
     this.states.after(() => {

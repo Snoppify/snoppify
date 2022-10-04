@@ -23,21 +23,20 @@ export {
 export const GLOBAL_SNOPPIFY_HOST_ID = "GLOBAL_HOST_ID";
 
 const activeHosts: {
-  [hostId: string]: SnoppifyHost;
+  [hostUserId: string]: SnoppifyHost;
 } = {};
 
 const createSnoppifyHost = (opts: {
-  owner: string;
+  owner: User;
   accessToken: string;
   refreshToken: string;
-  hostId: string;
 }) => {
   const api = createSpotifyAPIUserClient({
     accessToken: opts.accessToken,
     refreshToken: opts.refreshToken,
   });
 
-  api.config.owner = opts.owner;
+  api.config.owner = opts.owner.username;
 
   const playbackAPI = new SpotifyPlaybackAPI(api);
   const controller = new SpotifyController({ api, playbackAPI });
@@ -49,14 +48,14 @@ const createSnoppifyHost = (opts: {
     controller,
   } as SnoppifyHost;
 
-  activeHosts[opts.hostId] = host;
+  activeHosts[opts.owner.id] = host;
 
   return host;
 };
 
 const getSnoppifyHost = (id: string) => activeHosts[id];
 const getSnoppifyHostForUser = (user: ExpressRequest["user"]) =>
-  getSnoppifyHost(user?.partyId || user?.id);
+  getSnoppifyHost(user.id);
 
 /**
  * Throws an error if the provided param is not a string. Used for
@@ -82,13 +81,13 @@ const authenticateSpotifyHost = (incomingUser: User) =>
     user.host.status = "success";
 
     const snoppifyHost = createSnoppifyHost({
-      owner: user.username,
+      owner: user,
       accessToken: checkStr(access_token),
       refreshToken: checkStr(refresh_token),
-      hostId: user.host.id || user.id,
     });
 
     userService.upsave(user).then(() => {
+      // TODO: wrong id? broken?
       if (user.host.id) {
         snoppifyHost.controller
           .setParty(user.host)
@@ -112,77 +111,37 @@ const authenticateSpotifyHost = (incomingUser: User) =>
     });
   });
 
-const createSpotifyHost = async (incomingUser: User): Promise<void> =>
-  new Promise<void>((resolve, reject) => {
-    const user = { ...incomingUser };
+const createSpotifyHost = async (incomingUser: User): Promise<void> => {
+  const user = { ...incomingUser };
 
-    console.log({ user });
+  console.log({ user });
 
-    const { access_token } = user._tokens;
-    const { refresh_token } = user._tokens;
+  const { access_token } = user._tokens;
+  const { refresh_token } = user._tokens;
 
-    // create host object
-    const id = Date.now().toString(); // just some fake id for now
-    const hostData = {
-      status: "success",
-      id,
-      // TODO
-      // ip: ip.address(),
-      // hostCode: codeWords.getCode(ip.address()),
-      name: `Snoppify ${id}`,
-      playlist: null,
-    };
-    if (!user.host) {
-      user.host = {};
-    }
-    for (const key of Object.keys(hostData)) {
-      user.host[key] = hostData[key];
-    }
-
-    user.host = { ...user.host, ...hostData };
-
-    if (!user.parties) {
-      user.parties = [];
-    }
-    user.parties.push({
-      id,
-      name: hostData.name,
-    });
-
-    user.partyId = id;
-
-    userService.upsave(user).then(() => {
-      const snoppifyHost = createSnoppifyHost({
-        owner: user.username,
-        accessToken: checkStr(access_token),
-        refreshToken: checkStr(refresh_token),
-        hostId: id,
-      });
-
-      // Move to snoppifyHost.newParty
-      snoppifyHost.controller
-        .createMainPlaylist(hostData.name)
-        .then((playlist) => {
-          console.log("Created new host");
-
-          snoppifyHost.controller
-            .setParty(user.host, {
-              mainPlaylist: playlist,
-              backupPlaylist: null,
-            })
-            .then(() => {
-              resolve();
-            })
-            .catch((r) => {
-              console.log(r);
-              reject(r);
-            });
-        })
-        .catch((r) => {
-          console.log(r);
-          reject(r);
-        });
-
-      // snoppifyHost.controller.newParty({});
-    });
+  const snoppifyHost = createSnoppifyHost({
+    owner: user,
+    accessToken: checkStr(access_token),
+    refreshToken: checkStr(refresh_token),
   });
+
+  const newParty = await snoppifyHost.controller.createNewParty({
+    hostUser: user,
+  });
+
+  // TODO: init party here or in controller?
+
+  user.host = { ...user.host, status: "success" };
+
+  if (!user.parties) {
+    user.parties = [];
+  }
+  user.parties.push({
+    id: newParty.id,
+    name: newParty.name,
+  });
+
+  user.partyId = newParty.id;
+
+  await userService.upsave(user);
+};

@@ -17,6 +17,7 @@ describe("PartyService", () => {
         queueId: "qID",
         currentTrack: {} as any,
         name: "name",
+        hostUserId: "userID",
       }),
     );
     jest
