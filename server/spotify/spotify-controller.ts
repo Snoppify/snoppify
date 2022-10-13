@@ -165,10 +165,6 @@ export class SpotifyController {
     });
   }
 
-  getCurrentParty() {
-    return this.currentParty;
-  }
-
   getParty() {
     return this.party;
   }

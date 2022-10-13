@@ -75,7 +75,7 @@ const createSpotifyHostWithParty = async (
 ): Promise<SnoppifyHost> => {
   const user = { ...incomingUser };
 
-  logger.info("createSpotifyHost", user);
+  logger.info("createSpotifyHost");
 
   const snoppifyHost = await createSpotifyHost(user);
   await createParty(user, snoppifyHost);
@@ -87,9 +87,7 @@ const createSpotifyHostWithParty = async (
 async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
   const user = { ...incomingUser };
 
-  logger.info("authenticateSpotifyHost", user);
-
-  logger.info({ user, parties: user.parties });
+  logger.info("authenticateSpotifyHost");
 
   const { access_token, refresh_token } = user._tokens;
 

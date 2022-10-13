@@ -378,7 +378,7 @@ export default function routes(passport: PassportStatic) {
       return;
     }
     res.json({
-      party: host.controller.getCurrentParty(),
+      party: host.controller.getParty(),
       queue: host.controller.getQueue(),
       currentTrack: host.controller.getCurrentTrack(),
       backupPlaylist: host.controller.getBackupPlaylist(),
@@ -421,7 +421,7 @@ export default function routes(passport: PassportStatic) {
       return;
     }
 
-    const party = req.snoppifyHost.controller.getCurrentParty();
+    const party = req.snoppifyHost.controller.getParty();
     if (!party) {
       res.status(500);
       res.json({ error: "No party file/object" });
@@ -440,7 +440,7 @@ export default function routes(passport: PassportStatic) {
       return;
     }
 
-    const wifi = req.snoppifyHost.controller.getCurrentParty()?.wifi;
+    const wifi = req.snoppifyHost.controller.getParty()?.wifi;
     if (!wifi) {
       // return res.status(500).json({ error: "No wifi in the party object" });
       res.send(null);
