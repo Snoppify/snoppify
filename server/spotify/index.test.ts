@@ -7,6 +7,7 @@ import SpotifyPlaybackAPI from "./spotify-playback-api";
 
 jest.mock("spotify-web-api-node");
 jest.mock("../models/User/UserService");
+jest.mock("../models/Party/PartyService");
 
 // For the SpotifyApi token refresh interval
 jest.useFakeTimers();
@@ -28,11 +29,11 @@ describe("Spotify index", () => {
       expect.objectContaining({
         parties: [
           {
-            id: host.controller.getCurrentParty().id,
-            name: host.controller.getCurrentParty().name,
+            id: host.controller.getParty().id,
+            name: host.controller.getParty().name,
           },
         ],
-        partyId: host.controller.getCurrentParty().id,
+        partyId: host.controller.getParty().id,
       }),
     );
   });

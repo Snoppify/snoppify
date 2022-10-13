@@ -3,6 +3,7 @@
 import * as fs from "fs";
 import mkdirp from "mkdirp";
 import { PartyFull } from "../models/Party/Party";
+import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
 import { QueueTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
@@ -80,6 +81,8 @@ export class SpotifyController {
 
     // TODO: init here?
     this.party = party;
+
+    await this.saveParty();
 
     return Promise.resolve(party);
   }
@@ -167,6 +170,10 @@ export class SpotifyController {
 
   getCurrentParty() {
     return this.currentParty;
+  }
+
+  getParty() {
+    return this.party;
   }
 
   async queueTrack(user: string, trackId: string): Promise<QueueTrack> {
@@ -885,6 +892,10 @@ export class SpotifyController {
     }
 
     this.queue.queue = list;
+  }
+
+  private async saveParty() {
+    return partyService.upsave(this.party);
   }
 
   private saveQueue() {

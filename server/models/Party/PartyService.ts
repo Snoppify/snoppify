@@ -8,6 +8,7 @@ let repo: PartyRepository;
 export const partyService = {
   getParty,
   setRepository,
+  upsave,
 };
 
 function setRepository(newRepo: PartyRepository) {
@@ -29,4 +30,20 @@ async function getParty(id: string): Promise<PartyFull> {
       username: "testfakelol",
     }),
   };
+}
+
+async function upsave(party: PartyFull): Promise<void> {
+  return Promise.all([
+    repo.upsave({
+      hostUserId: party.hostUser.id,
+      id: party.id,
+      mainPlaylistId: party.mainPlaylistId,
+      name: party.name,
+      backupPlaylistId: party.backupPlaylistId,
+      queueId: party.queue.id,
+      currentTrack: party.currentTrack,
+      wifi: party.wifi,
+    }),
+    queueService.upsave(party.queue),
+  ]).then();
 }

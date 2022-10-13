@@ -1,3 +1,5 @@
+import { PartyFull } from "../models/Party/Party";
+import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
 import User from "../models/User/User";
 import { createSpotifyAPIUserClient } from "./spotify-api";
@@ -6,9 +8,12 @@ import SpotifyPlaybackAPI from "./spotify-playback-api";
 import { SpotifyWebApiMocks } from "./__mocks__/spotify-web-api-node";
 
 jest.mock("spotify-web-api-node");
+jest.mock("../models/Party/PartyService");
 
 // For the SpotifyApi token refresh interval
 jest.useFakeTimers();
+
+const mockedPartyService = jest.mocked(partyService);
 
 describe("SpotifyController", () => {
   beforeEach(() => {
@@ -26,8 +31,15 @@ describe("SpotifyController", () => {
       playbackAPI: new SpotifyPlaybackAPI(spotifyApi),
     });
 
-    const newParty = await controller.createNewParty({
-      hostUser: new User({ id: "testUser" } as any),
+    const hostUser = new User({ id: "testUser" } as any);
+    const newParty = await controller.createNewParty({ hostUser });
+
+    expect(mockedPartyService.upsave).toHaveBeenCalledWith<[PartyFull]>({
+      id: newParty.id,
+      name: newParty.name,
+      mainPlaylistId: newParty.mainPlaylistId,
+      queue: expect.any(Queue),
+      hostUser,
     });
 
     // has mainPlaylistId

@@ -6,7 +6,7 @@ let repo: QueueRepository;
 export const queueService = {
   setRepository,
   getQueue,
-  createQueue,
+  upsave,
 };
 
 function setRepository(newRepo: QueueRepository) {
@@ -17,6 +17,6 @@ function getQueue(id: string) {
   return repo.get(id);
 }
 
-function createQueue(opts: { id: string }) {
+function upsave(opts: { id: string }) {
   return repo.upsave(new Queue(opts));
 }

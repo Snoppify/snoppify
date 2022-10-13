@@ -1,9 +1,14 @@
 import { Queue } from "../Queue/Queue";
 import { queueService } from "../Queue/QueueService";
+import User from "../User/User";
+import { PartyFull, PartyNormalized } from "./Party";
 import { PartyRepository } from "./PartyRepository";
 import { partyService } from "./PartyService";
 
 jest.mock("./PartyRepository");
+jest.mock("../Queue/QueueService");
+
+const mockedQueueService = jest.mocked(queueService);
 
 describe("PartyService", () => {
   beforeEach(() => {
@@ -21,6 +26,9 @@ describe("PartyService", () => {
       }),
     );
     jest
+      .spyOn(PartyRepository.prototype, "upsave")
+      .mockImplementation(() => Promise.resolve() as any);
+    jest
       .spyOn(queueService, "getQueue")
       .mockImplementation((id) => Promise.resolve(new Queue({ id })));
     partyService.setRepository(new PartyRepository());
@@ -35,5 +43,40 @@ describe("PartyService", () => {
 
     expect(party.queue).toBeInstanceOf(Queue);
     expect(party.queue.id).toBe("qID" /* id from mock in beforeEach */);
+  });
+
+  it("saves a party", async () => {
+    const party: PartyFull = {
+      hostUser: new User({
+        id: "lol",
+        displayName: "test",
+        name: "lol",
+        username: "testfakelol",
+      }),
+      id: "partyId",
+      mainPlaylistId: "mainPlaylistId",
+      name: "name",
+      queue: new Queue({ id: "queueId" }),
+      backupPlaylistId: "backupPlaylistId",
+      currentTrack: {} as any,
+      wifi: { encryption: "lol", password: "lol", ssid: "lol" },
+    };
+
+    await partyService.upsave(party);
+
+    expect(
+      (PartyRepository as jest.Mock).mock.instances[0].upsave,
+    ).toHaveBeenCalledWith<[PartyNormalized]>({
+      id: "partyId",
+      mainPlaylistId: "mainPlaylistId",
+      name: "name",
+      currentTrack: party.currentTrack,
+      wifi: party.wifi,
+      queueId: party.queue.id,
+      hostUserId: party.hostUser.id,
+      backupPlaylistId: party.backupPlaylistId,
+    });
+
+    expect(mockedQueueService.upsave).toHaveBeenCalledWith(party.queue);
   });
 });
