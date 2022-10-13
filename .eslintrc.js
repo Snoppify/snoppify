@@ -62,6 +62,7 @@ module.exports = {
             format: null,
           },
         ],
+        "no-console": "error",
       }),
     },
     {

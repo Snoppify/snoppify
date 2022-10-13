@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 export enum LogLevel {
   SILENT = 0,
   ALL = 1,

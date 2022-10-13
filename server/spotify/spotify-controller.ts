@@ -9,6 +9,7 @@ import { QueueTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import socket from "../socket";
+import { logger } from "../utils/snoppify-logger";
 import { SpotifyAPI } from "./spotify-api";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
 import { createStateMachine, SnoppifyStateMachine } from "./spotify-states";
@@ -95,9 +96,6 @@ export class SpotifyController {
     mainPlaylist: SpotifyController["mainPlaylist"];
     backupPlaylist: SpotifyController["backupPlaylist"];
   }> {
-    console.trace("Party is this:");
-    console.log(JSON.stringify(party, null, 2));
-
     // check if ok to set here!
     this.currentParty = party;
 
@@ -114,7 +112,7 @@ export class SpotifyController {
             return;
           }
 
-          console.log(`saving new party ${party.name} (${party.id})`);
+          logger.log(`saving new party ${party.name} (${party.id})`);
 
           this.currentParty = party;
           this.partyFile = filename;
@@ -133,7 +131,7 @@ export class SpotifyController {
         }
         // file exist
         try {
-          console.log(`set party ${party.name} (${party.id})`);
+          logger.log(`set party ${party.name} (${party.id})`);
 
           this.currentParty = party;
           this.partyFile = filename;
@@ -601,7 +599,7 @@ export class SpotifyController {
           }
         })
         .catch((err) => {
-          console.log("Playlist not found");
+          logger.error("Playlist not found");
           throw err;
         });
     } else {
@@ -708,7 +706,7 @@ export class SpotifyController {
         this.states.update();
       })
       .catch((err) => {
-        console.log("Playlist not found");
+        logger.error("Playlist not found");
         throw err;
       });
   }
@@ -728,7 +726,7 @@ export class SpotifyController {
             resolve();
           })
           .catch((r) => {
-            console.log("ERROR:", r, JSON.stringify(r));
+            logger.error("addToPlaylist", r, JSON.stringify(r));
             reject(r);
           });
       } else {
@@ -802,7 +800,7 @@ export class SpotifyController {
   // eslint-disable-next-line class-methods-use-this
   private sendEvent(type: string, data: any) {
     if (!socket.io) {
-      console.log("No socket");
+      logger.error("No socket");
       return;
     }
     socket.io.local.emit("event", {
@@ -887,14 +885,14 @@ export class SpotifyController {
     });
     fs.writeFile(this.queueFile, json, "utf8", (err) => {
       if (err) {
-        console.log(err);
+        // console.log(err);
       }
     });
 
     if (this.partyFile) {
       fs.writeFile(this.partyFile, json, "utf8", (err) => {
         if (err) {
-          console.log(err);
+          // console.log(err);
         }
       });
     }
@@ -935,21 +933,21 @@ export class SpotifyController {
     });
 
     this.states.on("paused", (s) => {
-      console.log(s.name);
+      logger.info(s.name);
       this.sendEvent(s.name, {
         track: this.getCurrentTrack(),
       });
     });
 
     this.states.on("playing", (s) => {
-      console.log(s.name);
+      logger.info(s.name);
       this.sendEvent(s.name, {
         track: this.getCurrentTrack(),
       });
     });
 
     this.states.on("playSong", (s) => {
-      console.log(s.name);
+      logger.info(s.name);
 
       const track = this.getCurrentTrack();
 
@@ -973,7 +971,7 @@ export class SpotifyController {
     });
 
     this.states.on("waitingForNextSong", (s) => {
-      console.log(s.name);
+      logger.info(s.name);
       this.playNextTrack();
     });
 
@@ -987,7 +985,6 @@ export class SpotifyController {
     // load saved queue
     fs.readFile(this.queueFile, "utf8", (err, data) => {
       if (err) {
-        console.log("user init");
         this.saveQueue();
         return;
       }
@@ -1012,7 +1009,7 @@ export class SpotifyController {
 
         this.saveQueue();
       } catch (e) {
-        console.log(e);
+        logger.error(e);
       }
     });
   }

@@ -1,5 +1,7 @@
 /* global SpotifyApi */
 
+import { logger } from "./utils/snoppify-logger";
+
 export interface StateMachineData<SN extends string, EN extends string> {
   states: StateMachineState<SN>[];
   data: Partial<StateMachineDataData<EN>>;
@@ -91,7 +93,7 @@ export class StateMachine<StateName extends string, EventName extends string> {
 
       // debug for issue #14
       if (next.target == "playSong") {
-        console.log(`from ${next.source}`);
+        logger.info(`from ${next.source}`);
       }
 
       if (next.target) {

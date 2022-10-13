@@ -7,6 +7,7 @@ import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
 import { Strategy as SpotifyStrategy } from "passport-spotify";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
+import { logger } from "../utils/snoppify-logger";
 
 export function passportInit(passport: PassportStatic) {
   // used to serialize the user for the session
@@ -74,7 +75,7 @@ export function passportInit(passport: PassportStatic) {
       },
 
       (access_token, refresh_token, expires_in, profile, done) => {
-        console.log("create spotify user", profile.id);
+        logger.info("create spotify user", profile.id);
         findOrCreateUser(
           {
             id: profile.id,

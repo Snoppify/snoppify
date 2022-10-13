@@ -3,6 +3,7 @@ import { PassportStatic } from "passport";
 import { userService } from "../models/User/UserService";
 import socket from "../socket";
 import { createSpotifyAPI } from "../spotify/spotify-api";
+import { logger } from "../utils/snoppify-logger";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
 
@@ -58,7 +59,7 @@ export default function routes(passport: PassportStatic) {
 
   function errorHandler(res) {
     return (r) => {
-      console.error("routes/index errorHandler:", res.body, r);
+      logger.error("routes/index errorHandler:", res.body, r);
 
       if (!r || !r.response) {
         const status = r && r.status ? r.status : 500;
@@ -95,7 +96,7 @@ export default function routes(passport: PassportStatic) {
   }
 
   router.post("/queue-track", (req, res) => {
-    console.log(
+    logger.info(
       `soMeBodyY (user "${req.user.username}" waTNTS to UQUE a song!!!`,
       req.body.trackId,
     );
@@ -386,7 +387,7 @@ export default function routes(passport: PassportStatic) {
 
   router.post("/play-sound", (req, res) => {
     if (!socket.io) {
-      console.log("No socket");
+      logger.error("No socket");
       return;
     }
     socket.io.local.emit("event", {

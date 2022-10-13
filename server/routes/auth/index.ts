@@ -62,7 +62,7 @@ const authCallback = (req: Request, res) => {
           res.redirect("/host");
         })
         .catch((error) => {
-          console.log(error);
+          logger.error(error);
           res.redirect("/host?success=false");
         });
       break;
@@ -78,7 +78,7 @@ const authCallback = (req: Request, res) => {
           res.redirect("/host");
         })
         .catch((error) => {
-          console.log(error);
+          logger.error(error);
           res.redirect("/host?success=false");
         });
       break;
@@ -96,17 +96,16 @@ export default function routesAuthIndex(passport: PassportStatic) {
       const spotify = req.snoppifyHost;
 
       if (!spotify) {
-        console.log("no snoppofyhost");
         res.sendStatus(401);
         return;
       } else if (
         !spotify.initialized &&
         req.user.host &&
-        req.user.host.status == "success"
+        req.user.host.status === "success"
       ) {
         if (!req.session.spotify) {
           // TODO: what is this?
-          console.log("could not initialize");
+          logger.error("could not initialize");
         } else {
           // Set the access token on the API object to use it in later calls
           spotify.api.setAccessToken(req.session.spotify.access_token);
@@ -115,7 +114,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
           // spotify.init(req);
 
           if (req.user.host.id) {
-            console.log("set party");
+            logger.info("set party", req.user.host);
             spotify.controller.setParty(req.user.host);
           }
         }

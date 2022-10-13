@@ -1,5 +1,6 @@
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
+import { logger } from "../utils/snoppify-logger";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
@@ -74,7 +75,7 @@ const createSpotifyHostWithParty = async (
 ): Promise<SnoppifyHost> => {
   const user = { ...incomingUser };
 
-  console.log("createSpotifyHost", user);
+  logger.info("createSpotifyHost", user);
 
   const snoppifyHost = await createSpotifyHost(user);
   await createParty(user, snoppifyHost);
@@ -86,9 +87,9 @@ const createSpotifyHostWithParty = async (
 async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
   const user = { ...incomingUser };
 
-  console.log("authenticateSpotifyHost", user);
+  logger.info("authenticateSpotifyHost", user);
 
-  console.log({ user, parties: user.parties });
+  logger.info({ user, parties: user.parties });
 
   const { access_token, refresh_token } = user._tokens;
 

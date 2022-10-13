@@ -310,8 +310,6 @@ describe("JSONRepository integration", () => {
 
     repo.upsave({ a: "asdlol", b: 123, id: "123" });
 
-    console.log("get 123:", await repo.get("123"));
-
     expect(await repo.get("123")).toEqual({ a: "asdlol", b: 123, id: "123" });
   });
 });

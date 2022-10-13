@@ -25,6 +25,7 @@ import routesIndex from "./routes";
 import socketIO from "./socket";
 import { getSnoppifyHost } from "./spotify";
 import { getBackendSpotifyAPIClient } from "./spotify/spotify-api";
+import { logger } from "./utils/snoppify-logger";
 
 // @ts-ignore
 dotenv.config();
@@ -147,7 +148,7 @@ app.use(
 /// ////////
 
 socket.io.on("connection", (sock: any) => {
-  console.log(
+  logger.info(
     "we got a live one",
     sock.id,
     (sock.handshake as any).session.passport,
@@ -194,7 +195,7 @@ socket.io.on("connection", (sock: any) => {
   }
 
   sock.on("getTrack", (id: any) => {
-    console.log("SOCK SESSION:", sock.handshake.session);
+    logger.info("SOCK SESSION:", sock.handshake.session);
 
     userService.getUser(sock.handshake.session.passport.user).then(() => {
       getBackendSpotifyAPIClient()
@@ -223,7 +224,7 @@ socket.io.on("connection", (sock: any) => {
 httpServer.listen(port, () => {
   const ipAddr = ip.address();
 
-  console.log(`Serving http${useHttps ? "s" : ""}://${ipAddr}:${port}`);
+  logger.log(`Serving http${useHttps ? "s" : ""}://${ipAddr}:${port}`);
 
   // send message to electron app
   if (process.send) {

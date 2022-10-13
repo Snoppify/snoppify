@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import SpotifyWebApi from "spotify-web-api-node";
+import { logger } from "../utils/snoppify-logger";
 import { ISnoppifyConfig } from "./snoppify-config.interface";
 
 // @ts-ignore
@@ -19,12 +20,12 @@ function initAccessTokenRefreshInterval(api: SpotifyAPI) {
   const intervalId = setInterval(() => {
     api.refreshAccessToken().then(
       (data) => {
-        console.log("Updated access_token:", data.body.access_token);
+        logger.info("Updated access_token:", data.body.access_token);
         // Save the access token so that it's used in future calls
         api.setAccessToken(data.body.access_token);
       },
       (err: any) => {
-        console.log(
+        logger.error(
           "Something went wrong when retrieving an access token",
           err,
         );
@@ -92,7 +93,7 @@ export function createSpotifyAPI() {
           resolve();
         },
         (err: any) => {
-          console.log(
+          logger.error(
             "Something went wrong when retrieving an access token",
             err,
           );
