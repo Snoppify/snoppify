@@ -1,5 +1,5 @@
 export const SpotifyWebApiMocks = {
-  clientCredentialsGrant: () => {
+  clientCredentialsGrant: jest.fn(() => {
     return Promise.resolve({
       body: {
         access_token: "access_token",
@@ -9,13 +9,17 @@ export const SpotifyWebApiMocks = {
       headers: null,
       statusCode: 200,
     });
-  },
+  }),
 
   createPlaylist: jest.fn(() => {
     return Promise.resolve({ body: { id: "new_playlist_id" } });
   }),
 
-  getAccessToken: () => undefined,
+  getAccessToken: jest.fn(() => undefined),
+
+  getCredentials: jest.fn(() => ({})),
+
+  getPlaylist: jest.fn(() => Promise.resolve({ body: { tracks: [] } })),
 };
 
 export default jest.fn(() => {

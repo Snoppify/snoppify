@@ -2,11 +2,13 @@ import { PartyFull } from "../models/Party/Party";
 import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
 import User from "../models/User/User";
+import { StateMachine } from "../StateMachine";
 import { createSpotifyAPIUserClient } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
 import { SpotifyWebApiMocks } from "./__mocks__/spotify-web-api-node";
 
+jest.mock("./spotify-playback-api");
 jest.mock("spotify-web-api-node");
 jest.mock("../models/Party/PartyService");
 
@@ -21,15 +23,7 @@ describe("SpotifyController", () => {
   });
 
   it("creates new parties from scratch", async () => {
-    const spotifyApi = createSpotifyAPIUserClient({
-      accessToken: "test",
-      refreshToken: "test",
-    });
-
-    const controller = new SpotifyController({
-      api: spotifyApi,
-      playbackAPI: new SpotifyPlaybackAPI(spotifyApi),
-    });
+    const controller = createController();
 
     const hostUser = new User({ id: "testUser" } as any);
     const newParty = await controller.createNewParty({ hostUser });
@@ -58,4 +52,37 @@ describe("SpotifyController", () => {
 
     expect(newParty.hostUser).toBeInstanceOf(User);
   });
+
+  it("starts/intializes new parties", async () => {
+    const stateMachineSpy = jest.spyOn(StateMachine.prototype, "start");
+
+    const controller = createController();
+
+    const hostUser = new User({ id: "testUser" } as any);
+    const newParty = await controller.createNewParty({ hostUser });
+
+    expect(SpotifyWebApiMocks.getPlaylist).toBeCalledWith(
+      newParty.mainPlaylistId,
+    );
+
+    expect(SpotifyWebApiMocks.getPlaylist).not.toBeCalledWith(
+      newParty.backupPlaylistId,
+    );
+
+    expect(stateMachineSpy).toBeCalled();
+  });
 });
+
+function createController() {
+  const spotifyApi = createSpotifyAPIUserClient({
+    accessToken: "test",
+    refreshToken: "test",
+  });
+
+  const controller = new SpotifyController({
+    api: spotifyApi,
+    playbackAPI: new SpotifyPlaybackAPI(spotifyApi),
+  });
+
+  return controller;
+}

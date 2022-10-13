@@ -33,7 +33,7 @@ export class SpotifyController {
 
   private maxQueueSize = 5;
 
-  private playlist: any = null;
+  private playlist: SpotifyApi.SinglePlaylistResponse;
 
   private queueFile = "";
 
@@ -79,10 +79,9 @@ export class SpotifyController {
       hostUser: opts.hostUser,
     };
 
-    // TODO: init here?
     this.party = party;
 
-    await this.saveParty();
+    await Promise.all([this.saveParty(), this.init()]);
 
     return Promise.resolve(party);
   }
@@ -472,26 +471,7 @@ export class SpotifyController {
       });
   }
 
-  private setMainPlaylist({ id }: { id: string }) {
-    return this.api
-      .getPlaylist(id)
-      .then((data) => {
-        const { tracks, ...body } = data.body;
-        this.mainPlaylist = body;
-
-        this.saveQueue();
-
-        this.sendEvent("mainPlaylist", {
-          playlist: this.mainPlaylist,
-        });
-      })
-      .catch((r) => {
-        console.log(r);
-        throw r;
-      });
-  }
-
-  updateMainPlaylist(opts: { name: string }): Promise<{ name?: string }> {
+  async updateMainPlaylist(opts: { name: string }): Promise<{ name?: string }> {
     if (!this.mainPlaylist) {
       return Promise.reject(new Error("ERR: No main playlist"));
     }
@@ -505,7 +485,7 @@ export class SpotifyController {
       .then(() => params);
   }
 
-  setBackupPlaylist({ id }: { id: string }) {
+  async setBackupPlaylist({ id }: { id: string }) {
     return this.api.getPlaylist(id).then((data) => {
       this.backupQueue = new Queue({
         id: "id",
@@ -717,9 +697,9 @@ export class SpotifyController {
     });
   }
 
-  private reloadPlaylist() {
+  private async reloadPlaylist() {
     return this.api
-      .getPlaylist(this.mainPlaylist?.id || this.api.config.playlist)
+      .getPlaylist(this.party.mainPlaylistId)
       .then((data) => {
         this.playlist = data.body;
 
@@ -832,7 +812,7 @@ export class SpotifyController {
   }
 
   getCurrentTrack() {
-    if (this.states.data.player && this.states.data.player.item) {
+    if (this.states?.data?.player?.item) {
       return (
         this.history.get(this.states.data.player.item) ||
         this.states.data.player.item
@@ -922,20 +902,20 @@ export class SpotifyController {
 
   /// /////
 
-  private init() {
-    if (this.mainPlaylist) {
-      this.setMainPlaylist({ id: this.mainPlaylist.id });
+  private async init(): Promise<void> {
+    const promises: Promise<any>[] = [];
+
+    if (this.party.backupPlaylistId) {
+      promises.push(
+        this.setBackupPlaylist({ id: this.party.backupPlaylistId }),
+      );
     }
 
-    if (this.backupPlaylist) {
-      this.setBackupPlaylist({ id: this.backupPlaylist.id });
-    }
-
-    if (this.mainPlaylist) {
-      this.reloadPlaylist();
-    }
+    await Promise.all(promises);
 
     this.setupStateMachine();
+
+    await this.reloadPlaylist();
 
     if (this.api.getCredentials().refreshToken) {
       setInterval(() => {
