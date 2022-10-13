@@ -11,11 +11,16 @@ export type SnoppifyHost = {
   controller: SpotifyController;
 };
 
-export { authenticateSpotifyHost, createSpotifyHost, getSnoppifyHost };
+export {
+  createSpotifyHost,
+  createSpotifyHostWithParty,
+  getSnoppifyHost,
+  clearActiveHosts,
+};
 
 export const GLOBAL_SNOPPIFY_HOST_ID = "GLOBAL_HOST_ID";
 
-const activeHosts: {
+let activeHosts: {
   [hostUserId: string]: SnoppifyHost;
 } = {};
 
@@ -50,7 +55,7 @@ function getSnoppifyHost(user: User): SnoppifyHost;
 function getSnoppifyHost(userOrPartyId: string | User) {
   return typeof userOrPartyId === "string"
     ? activeHosts[userOrPartyId]
-    : activeHosts[userOrPartyId?.partyId];
+    : activeHosts[userOrPartyId?.partyId] || activeHosts[userOrPartyId?.id];
 }
 
 /**
@@ -63,59 +68,33 @@ const checkStr = (str: any) => {
   throw new Error(`Not a string: ${JSON.stringify(str)}`);
 };
 
-/** for host users with an (ongoing?) party */
-const authenticateSpotifyHost = (incomingUser: User) =>
-  new Promise<void>((resolve) => {
-    const user = { ...incomingUser };
-
-    console.log({ user, parties: user.parties });
-
-    const { access_token } = user._tokens;
-    const { refresh_token } = user._tokens;
-
-    user.host = user.host || {};
-
-    user.host.status = "success";
-
-    const snoppifyHost = createSnoppifyHost({
-      owner: user,
-      accessToken: checkStr(access_token),
-      refreshToken: checkStr(refresh_token),
-    });
-
-    userService.upsave(user).then(() => {
-      // TODO: wrong id? broken?
-      if (user.host.id) {
-        snoppifyHost.controller
-          .setParty(user.host)
-          .then(() => {
-            resolve();
-          })
-          .catch((r) => {
-            console.log(r);
-
-            // Bad party, remove
-            // TODO: better party handling
-            // delete req.user.host.id;
-            // delete req.user.host.name;
-
-            resolve();
-          });
-      } else {
-        // no party created
-        resolve();
-      }
-    });
-  });
-
-// TODO:  this needs a new name
 /** for host users with no (ongoing?) parties */
-const createSpotifyHost = async (
+const createSpotifyHostWithParty = async (
   incomingUser: User,
-): Promise<SnoppifyHost & { hostUser: User }> => {
+): Promise<SnoppifyHost> => {
   const user = { ...incomingUser };
 
+  console.log("createSpotifyHost", user);
+
+  const snoppifyHost = await createSpotifyHost(user);
+  await createParty(user, snoppifyHost);
+
+  return snoppifyHost;
+};
+
+/** for host users with an (ongoing?) party */
+async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
+  const user = { ...incomingUser };
+
+  console.log("authenticateSpotifyHost", user);
+
+  console.log({ user, parties: user.parties });
+
   const { access_token, refresh_token } = user._tokens;
+
+  user.host = user.host || {};
+
+  user.host.status = "success";
 
   const snoppifyHost = createSnoppifyHost({
     owner: user,
@@ -123,11 +102,24 @@ const createSpotifyHost = async (
     refreshToken: checkStr(refresh_token),
   });
 
+  await userService.upsave(user);
+
+  activeHosts[user.id] = snoppifyHost;
+
+  // TODO: init existing/ongoing party here?
+
+  return snoppifyHost;
+}
+
+async function createParty(
+  incomingUser: User,
+  snoppifyHost: SnoppifyHost,
+): Promise<SnoppifyHost> {
+  const user = { ...incomingUser };
+
   const newParty = await snoppifyHost.controller.createNewParty({
     hostUser: user,
   });
-
-  // TODO: init party here or in controller?
 
   user.host = { ...user.host, status: "success" };
 
@@ -144,5 +136,10 @@ const createSpotifyHost = async (
 
   await userService.upsave(user);
 
-  return { ...snoppifyHost, hostUser: user };
+  return snoppifyHost;
+}
+
+/** mainly for testing */
+const clearActiveHosts = () => {
+  activeHosts = {};
 };

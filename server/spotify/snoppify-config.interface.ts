@@ -15,7 +15,7 @@ export interface ISnoppifyConfig {
    */
   refresh_token: string;
   /**
-   * spotify user
+   * spotify username
    */
   owner: string;
   /**

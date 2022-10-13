@@ -2,8 +2,9 @@ import { Buffer } from "buffer";
 import express, { Request } from "express";
 import { PassportStatic } from "passport";
 import User from "../../models/User/User";
-import { authenticateSpotifyHost, createSpotifyHost } from "../../spotify";
+import { createSpotifyHost, createSpotifyHostWithParty } from "../../spotify";
 import { spotifyAPIScopes } from "../../spotify/spotify-playback-api";
+import { logger } from "../../utils/snoppify-logger";
 
 const router = express.Router();
 
@@ -38,6 +39,8 @@ const authCallback = (req: Request, res) => {
     return;
   }
 
+  logger.info("authCallback", state);
+
   switch (state.auth) {
     case AUTH_STATE_GUEST:
       req.session.host = null;
@@ -47,7 +50,7 @@ const authCallback = (req: Request, res) => {
       res.redirect("/party");
       break;
     case AUTH_STATE_HOST_CREATE_PARTY:
-      createSpotifyHost(req.user)
+      createSpotifyHostWithParty(req.user)
         // TODO: Replace with api endpoint
         .then(() => {
           // TODO: Is this needed?
@@ -64,7 +67,7 @@ const authCallback = (req: Request, res) => {
         });
       break;
     case AUTH_STATE_HOST_LOGIN:
-      authenticateSpotifyHost(req.user)
+      createSpotifyHost(req.user)
         .then(() => {
           // TODO: Is this needed?
           req.session.spotify = {
@@ -93,6 +96,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
       const spotify = req.snoppifyHost;
 
       if (!spotify) {
+        console.log("no snoppofyhost");
         res.sendStatus(401);
         return;
       } else if (
