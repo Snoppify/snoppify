@@ -1,49 +1,50 @@
-import { createSnoppifyHost, getSnoppifyHost } from ".";
+import { createSpotifyHost, getSnoppifyHost } from ".";
 import User from "../models/User/User";
+import { userService } from "../models/User/UserService";
 import { SpotifyController } from "./spotify-controller";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
+// IT'S DEFAUlt nw11
 
-jest.mock("./spotify-controller");
-jest.mock("./spotify-api");
-jest.mock("./spotify-playback-api");
+jest.mock("spotify-web-api-node");
+jest.mock("../models/User/UserService");
+
+// For the SpotifyApi token refresh interval
+jest.useFakeTimers();
 
 describe("Spotify index", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should create a snoppify host", () => {
-    const host = createSnoppifyHost({
-      accessToken: "ACCESS_TOKEN",
-      owner: ownerUser(),
-      refreshToken: "REFRESH_TOKEN",
-    });
+  it("should create a spotify host", async () => {
+    const userServiceSpy = jest.spyOn(userService, "upsave");
 
-    expect(SpotifyController).toHaveBeenCalledTimes(1);
-    expect(SpotifyPlaybackAPI).toHaveBeenCalled();
-    expect(SpotifyController).toHaveBeenCalled();
+    const host = await createSpotifyHost(ownerUser());
 
-    expect(host).not.toBeNull();
+    expect(host.controller).toBeInstanceOf(SpotifyController);
+    expect(host.playbackAPI).toBeInstanceOf(SpotifyPlaybackAPI);
+
+    expect(userServiceSpy).toBeCalledWith(
+      expect.objectContaining({
+        parties: [
+          {
+            id: host.controller.getCurrentParty().id,
+            name: host.controller.getCurrentParty().name,
+          },
+        ],
+        partyId: host.controller.getCurrentParty().id,
+      }),
+    );
   });
 
-  it("should get host by hostId", () => {
-    const host1 = createSnoppifyHost({
-      accessToken: "ACCESS_TOKEN",
-      owner: ownerUser(),
-      refreshToken: "REFRESH_TOKEN",
-    });
+  it("should get host by host user", async () => {
+    const owner = ownerUser();
 
-    const host2 = createSnoppifyHost({
-      accessToken: "ACCESS_TOKEN",
-      owner: ownerUser(),
-      refreshToken: "REFRESH_TOKEN",
-    });
+    const { hostUser, ...host } = await createSpotifyHost(owner);
 
-    const getHost1 = getSnoppifyHost("HOST_1");
-    const getHost2 = getSnoppifyHost("HOST_2");
+    const getHost = getSnoppifyHost(hostUser);
 
-    expect(host1).toEqual(getHost1);
-    expect(host2).toEqual(getHost2);
+    expect(getHost).toEqual(host);
   });
 });
 
@@ -53,5 +54,6 @@ function ownerUser() {
     displayName: "test",
     name: "lol",
     username: "testfakelol",
+    _tokens: { access_token: "access_token", refresh_token: "refresh_token" },
   });
 }

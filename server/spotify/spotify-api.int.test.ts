@@ -1,10 +1,12 @@
 /** Integration tests */
 
-import { backendSpotifyAPIClient } from "./spotify-api";
+import { getBackendSpotifyAPIClient } from "./spotify-api";
+
+jest.unmock("spotify-web-api-node");
 
 describe("SpotifyAPI", () => {
   it("should create working backend client", async () => {
-    const api = await backendSpotifyAPIClient;
+    const api = await getBackendSpotifyAPIClient();
 
     const result = await api.searchTracks("vengaboys");
 

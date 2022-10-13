@@ -12,8 +12,6 @@ import { SpotifyAPI } from "./spotify-api";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
 import { createStateMachine, SnoppifyStateMachine } from "./spotify-states";
 
-export { SpotifyController };
-
 interface CurrentParty {
   wifi?: { ssid: string; password: string; encryption: string };
   name?: string;
@@ -21,7 +19,7 @@ interface CurrentParty {
   hostCode?: string;
 }
 
-class SpotifyController {
+export class SpotifyController {
   private api: SpotifyAPI;
 
   queue = new Queue<QueueTrack>({});
@@ -81,6 +79,7 @@ class SpotifyController {
     };
 
     // TODO: init here?
+    this.currentParty = party;
 
     return Promise.resolve(party);
   }

@@ -1,19 +1,20 @@
-import SpotifyWebApi from "spotify-web-api-node";
 import { Queue } from "../models/Queue/Queue";
 import User from "../models/User/User";
 import { createSpotifyAPIUserClient } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
+import { SpotifyWebApiMocks } from "./__mocks__/spotify-web-api-node";
 
-jest.mock("./spotify-playback-api");
-// jest.mock("spotify-web-api-node");
-jest
-  .spyOn(SpotifyWebApi.prototype, "createPlaylist")
-  .mockImplementation(() =>
-    Promise.resolve({ body: { id: "playlistId" } } as any),
-  );
+jest.mock("spotify-web-api-node");
+
+// For the SpotifyApi token refresh interval
+jest.useFakeTimers();
 
 describe("SpotifyController", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it("creates new parties from scratch", async () => {
     const spotifyApi = createSpotifyAPIUserClient({
       accessToken: "test",
@@ -31,6 +32,10 @@ describe("SpotifyController", () => {
 
     // has mainPlaylistId
     expect(typeof newParty.mainPlaylistId).toBe("string");
+    expect(SpotifyWebApiMocks.createPlaylist).toHaveBeenCalledWith(
+      newParty.name,
+      { public: true },
+    );
 
     // has Queue
     expect(newParty.queue).toBeInstanceOf(Queue);

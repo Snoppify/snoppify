@@ -23,8 +23,8 @@ import { UserRepository } from "./models/User/UserRepository";
 import { userService } from "./models/User/UserService";
 import routesIndex from "./routes";
 import socketIO from "./socket";
-import { getSnoppifyHostForUser } from "./spotify";
-import { backendSpotifyAPIClient } from "./spotify/spotify-api";
+import { getSnoppifyHost } from "./spotify";
+import { getBackendSpotifyAPIClient } from "./spotify/spotify-api";
 
 // @ts-ignore
 dotenv.config();
@@ -115,7 +115,7 @@ socket.io.use(sharedsession(mysession));
 
 app.use("*", (req, _, next) => {
   // add the host to the request
-  req.snoppifyHost = getSnoppifyHostForUser(req.user);
+  req.snoppifyHost = getSnoppifyHost(req.user);
   next();
 });
 
@@ -197,7 +197,7 @@ socket.io.on("connection", (sock: any) => {
     console.log("SOCK SESSION:", sock.handshake.session);
 
     userService.getUser(sock.handshake.session.passport.user).then(() => {
-      backendSpotifyAPIClient
+      getBackendSpotifyAPIClient()
         .then((spotifyApi) =>
           Promise.all([
             spotifyApi.getTracks([id]),

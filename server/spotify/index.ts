@@ -1,4 +1,3 @@
-import { Request as ExpressRequest } from "express";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
@@ -12,13 +11,7 @@ export type SnoppifyHost = {
   controller: SpotifyController;
 };
 
-export {
-  authenticateSpotifyHost,
-  createSnoppifyHost,
-  createSpotifyHost,
-  getSnoppifyHost,
-  getSnoppifyHostForUser,
-};
+export { authenticateSpotifyHost, createSpotifyHost, getSnoppifyHost };
 
 export const GLOBAL_SNOPPIFY_HOST_ID = "GLOBAL_HOST_ID";
 
@@ -26,6 +19,7 @@ const activeHosts: {
   [hostUserId: string]: SnoppifyHost;
 } = {};
 
+// TODO:  this needs a new name
 const createSnoppifyHost = (opts: {
   owner: User;
   accessToken: string;
@@ -48,14 +42,16 @@ const createSnoppifyHost = (opts: {
     controller,
   } as SnoppifyHost;
 
-  activeHosts[opts.owner.id] = host;
-
   return host;
 };
 
-const getSnoppifyHost = (id: string) => activeHosts[id];
-const getSnoppifyHostForUser = (user: ExpressRequest["user"]) =>
-  getSnoppifyHost(user.id);
+function getSnoppifyHost(partyId: string): SnoppifyHost;
+function getSnoppifyHost(user: User): SnoppifyHost;
+function getSnoppifyHost(userOrPartyId: string | User) {
+  return typeof userOrPartyId === "string"
+    ? activeHosts[userOrPartyId]
+    : activeHosts[userOrPartyId.partyId];
+}
 
 /**
  * Throws an error if the provided param is not a string. Used for
@@ -111,13 +107,13 @@ const authenticateSpotifyHost = (incomingUser: User) =>
     });
   });
 
-const createSpotifyHost = async (incomingUser: User): Promise<void> => {
+// TODO:  this needs a new name
+const createSpotifyHost = async (
+  incomingUser: User,
+): Promise<SnoppifyHost & { hostUser: User }> => {
   const user = { ...incomingUser };
 
-  console.log({ user });
-
-  const { access_token } = user._tokens;
-  const { refresh_token } = user._tokens;
+  const { access_token, refresh_token } = user._tokens;
 
   const snoppifyHost = createSnoppifyHost({
     owner: user,
@@ -142,6 +138,9 @@ const createSpotifyHost = async (incomingUser: User): Promise<void> => {
   });
 
   user.partyId = newParty.id;
+  activeHosts[newParty.id] = snoppifyHost;
 
   await userService.upsave(user);
+
+  return { ...snoppifyHost, hostUser: user };
 };

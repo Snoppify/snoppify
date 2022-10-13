@@ -153,4 +153,10 @@ export function createSpotifyAPIUserClient(opts: {
   return api;
 }
 
-export const backendSpotifyAPIClient = createBackendClient();
+export const getBackendSpotifyAPIClient = (() => {
+  let backendClient: Promise<SpotifyAPI>;
+  return () => {
+    backendClient = backendClient || createBackendClient();
+    return backendClient;
+  };
+})();
