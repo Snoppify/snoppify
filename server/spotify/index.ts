@@ -50,7 +50,7 @@ function getSnoppifyHost(user: User): SnoppifyHost;
 function getSnoppifyHost(userOrPartyId: string | User) {
   return typeof userOrPartyId === "string"
     ? activeHosts[userOrPartyId]
-    : activeHosts[userOrPartyId.partyId];
+    : activeHosts[userOrPartyId?.partyId];
 }
 
 /**

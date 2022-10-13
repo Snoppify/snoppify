@@ -47,6 +47,12 @@ describe("Spotify index", () => {
 
     expect(getHost).toEqual(host);
   });
+
+  it("should return undefined if no host found", () => {
+    expect(getSnoppifyHost(undefined)).toEqual(undefined);
+    expect(getSnoppifyHost("noexist")).toEqual(undefined);
+    expect(getSnoppifyHost(ownerUser())).toEqual(undefined);
+  });
 });
 
 function ownerUser() {
