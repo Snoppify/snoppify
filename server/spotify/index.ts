@@ -63,6 +63,7 @@ const checkStr = (str: any) => {
   throw new Error(`Not a string: ${JSON.stringify(str)}`);
 };
 
+/** for host users with an (ongoing?) party */
 const authenticateSpotifyHost = (incomingUser: User) =>
   new Promise<void>((resolve) => {
     const user = { ...incomingUser };
@@ -108,6 +109,7 @@ const authenticateSpotifyHost = (incomingUser: User) =>
   });
 
 // TODO:  this needs a new name
+/** for host users with no (ongoing?) parties */
 const createSpotifyHost = async (
   incomingUser: User,
 ): Promise<SnoppifyHost & { hostUser: User }> => {

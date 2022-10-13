@@ -79,7 +79,7 @@ export class SpotifyController {
     };
 
     // TODO: init here?
-    this.currentParty = party;
+    this.party = party;
 
     return Promise.resolve(party);
   }
