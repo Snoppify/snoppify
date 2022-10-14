@@ -244,7 +244,7 @@ export default function routes(passport: PassportStatic) {
     }
 
     req.snoppifyHost.controller
-      .setParty(party)
+      .setParty(party.id)
       .then((data) => {
         req.user.host.id = party.id;
         req.user.host.name = party.name;

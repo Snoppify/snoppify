@@ -115,7 +115,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
 
           if (req.user.host.id) {
             logger.info("set party", req.user.host);
-            spotify.controller.setParty(req.user.host);
+            spotify.controller.setParty(req.user.host.id);
           }
         }
       }

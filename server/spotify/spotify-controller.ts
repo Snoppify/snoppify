@@ -87,82 +87,19 @@ export class SpotifyController {
     return Promise.resolve(party);
   }
 
-  setParty(
-    party: Pick<User["host"], "id" | "name">,
-    opts?: any, // Partial<PartyFull> ish
-  ): Promise<{
-    id: string;
-    queue: string[];
-    mainPlaylist: SpotifyController["mainPlaylist"];
-    backupPlaylist: SpotifyController["backupPlaylist"];
-  }> {
-    // check if ok to set here!
-    this.currentParty = party;
+  async setParty(partyId: string) {
+    const party = await partyService.getParty(partyId);
 
-    return new Promise((resolve, reject) => {
-      // var filename = "data/snoppify-party-" + party.id + ".json";
-      const filename = this.queueFile;
+    if (!party) {
+      throw new Error(`Party not found: ${partyId}`);
+    }
 
-      // load saved party
-      fs.readFile(filename, "utf8", (err, data) => {
-        // file does not exist
-        if (err) {
-          if (!opts || !opts.mainPlaylist) {
-            reject(new Error("A main playlist is required"));
-            return;
-          }
+    logger.log(`Set party ${party.name} (${party.id})`);
 
-          logger.log(`saving new party ${party.name} (${party.id})`);
+    this.party = party;
+    this.init();
 
-          this.currentParty = party;
-          this.partyFile = filename;
-          this.mainPlaylist = opts.mainPlaylist;
-          this.backupPlaylist = opts.backupPlaylist || null;
-
-          this.saveQueue();
-
-          resolve({
-            id: party.id,
-            queue: [],
-            mainPlaylist: this.mainPlaylist,
-            backupPlaylist: this.backupPlaylist,
-          });
-          return;
-        }
-        // file exist
-        try {
-          logger.log(`set party ${party.name} (${party.id})`);
-
-          this.currentParty = party;
-          this.partyFile = filename;
-
-          const obj = JSON.parse(data);
-
-          this.queue.clear();
-          obj.queue.forEach((track: any) => {
-            this.queue.add(track);
-          });
-
-          // if (obj.currentTrack) {
-          //     history.add(obj.currentTrack);
-          // }
-
-          if (obj.mainPlaylist) {
-            this.mainPlaylist = obj.mainPlaylist;
-          }
-
-          if (obj.backupPlaylist) {
-            this.backupPlaylist = obj.backupPlaylist;
-          }
-
-          this.saveQueue();
-
-          resolve(obj);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    });
+    return party;
   }
 
   getParty() {
