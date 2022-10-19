@@ -1,27 +1,18 @@
+import { findItemPredicate, StaticQueue } from "./StaticQueue";
+
 interface QueueParams<ItemType> {
   id: string;
   queue: ItemType[];
 }
 
-export class Queue<ItemType extends { id: string }> {
-  id: string;
-
-  queue: ItemType[];
-
+export class Queue<
+  ItemType extends { id: string },
+> extends StaticQueue<ItemType> {
   private random: number[];
 
   constructor(opts: Partial<QueueParams<ItemType>> = {}) {
-    this.id = opts?.id;
-    this.queue = opts?.queue || [];
+    super(opts);
     this.resetRandom();
-  }
-
-  get size(): number {
-    return this.queue.length;
-  }
-
-  get empty(): boolean {
-    return this.size === 0;
   }
 
   clear() {
@@ -48,6 +39,7 @@ export class Queue<ItemType extends { id: string }> {
     return this.queue.splice(index, 1)[0];
   }
 
+  /** Pops and removes the next song from the queue */
   next(): ItemType | undefined {
     return this.queue.shift();
   }
@@ -68,18 +60,6 @@ export class Queue<ItemType extends { id: string }> {
     return item;
   }
 
-  get(item: string | { id: string }): ItemType {
-    if (!item) {
-      return undefined;
-    }
-
-    return this.queue.find(findItemPredicate(item));
-  }
-
-  getAt(index: number): ItemType {
-    return this.queue[index];
-  }
-
   private indexOf(item: ItemType): number {
     if (item.id) {
       return this.queue.findIndex(findItemPredicate(item.id));
@@ -87,11 +67,4 @@ export class Queue<ItemType extends { id: string }> {
       return this.queue.indexOf(item);
     }
   }
-}
-
-function findItemPredicate(identifier: string | { id: string }) {
-  return (qItem: { id: string }) =>
-    typeof identifier === "string"
-      ? qItem.id === identifier
-      : qItem.id === identifier.id;
 }
