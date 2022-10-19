@@ -20,6 +20,12 @@ export const SpotifyWebApiMocks = {
   getCredentials: jest.fn(() => ({})),
 
   getPlaylist: jest.fn(() => Promise.resolve({ body: { tracks: [] } })),
+
+  getTracks: jest.fn(() =>
+    Promise.resolve<{ body: { tracks: { id: string }[] } }>({
+      body: { tracks: [{ id: "track1" }, { id: "track2" }] },
+    }),
+  ),
 };
 
 export default jest.fn(() => {

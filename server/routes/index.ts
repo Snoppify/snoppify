@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response } from "express";
 import { PassportStatic } from "passport";
 import { userService } from "../models/User/UserService";
 import socket from "../socket";
@@ -57,9 +57,9 @@ export default function routes(passport: PassportStatic) {
     return (r) => res.status(200).send(r);
   }
 
-  function errorHandler(res) {
+  function errorHandler(res: Response) {
     return (r) => {
-      logger.error("routes/index errorHandler:", res.body, r);
+      logger.error("routes/index errorHandler:", res, r);
 
       if (!r || !r.response) {
         const status = r && r.status ? r.status : 500;

@@ -21,7 +21,7 @@ describe("QueueService", () => {
   });
 
   it("can create a new empty queue", async () => {
-    const newQueue = await queueService.upsave({ id: "test" });
+    const newQueue = await queueService.upsave(new Queue({ id: "test" }));
 
     expect(newQueue).toBeInstanceOf(Queue);
     expect(newQueue.id).toBe("test");

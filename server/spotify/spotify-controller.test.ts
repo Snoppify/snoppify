@@ -120,6 +120,16 @@ describe("SpotifyController", () => {
       "Party not found: partyId",
     );
   });
+
+  it("queueTrack: adds a track to queue", () => {
+    // const stateMachineSpy = jest.spyOn(StateMachine.prototype, "start");
+    // const controller = createController();
+    // check queue is ordered?
+    // check socket emitted?
+    // check party is saved
+  });
+
+  it("queueTrack: rejects with correct error messages", () => {});
 });
 
 function createController() {

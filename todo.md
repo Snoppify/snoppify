@@ -3,7 +3,7 @@
   - create queueService/repo, remove Queue from User!
 - return new User objects from UserService after updates etc.
 - Move spotify-controller: emptyQueue, to userService or queueService, make party-specific
-- Remvoe Queue from Users and only use one Queue object per party
+- > Remvoe Queue from Users and only use one Queue object per party
 - Remove mainPlaylist, backupPlaylist, Queue from spotify-controller; manage in PartyService
 - security, in an appropriate layer: User can't set parties they're not hosting, can't access hosts they shouldn't, etc. Don't trust incoming api data!
 - continue ongoing parties/hosts when server restarts

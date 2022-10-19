@@ -1,5 +1,6 @@
 import { Queue } from "./Queue";
 import { QueueRepository } from "./QueueRepository";
+import { QueueTrack } from "./QueueTrack";
 
 let repo: QueueRepository;
 
@@ -17,6 +18,6 @@ function getQueue(id: string) {
   return repo.get(id);
 }
 
-function upsave(opts: { id: string }) {
-  return repo.upsave(new Queue(opts));
+function upsave(queue: Queue<QueueTrack>) {
+  return repo.upsave(queue);
 }

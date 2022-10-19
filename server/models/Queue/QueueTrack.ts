@@ -1,9 +1,9 @@
-import { UserBase } from "../User/UserBase";
+import User from "../User/User";
 
 export interface QueueTrack extends SpotifyApi.TrackObjectFull {
   id: string;
   snoppify: {
-    issuer: UserBase;
+    issuer: User;
     /** List of userIds */
     votes: string[];
     timestamp: number;

@@ -5,6 +5,7 @@ import mkdirp from "mkdirp";
 import { PartyFull } from "../models/Party/Party";
 import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
+import { queueService } from "../models/Queue/QueueService";
 import { QueueTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
@@ -106,11 +107,12 @@ export class SpotifyController {
     return this.party;
   }
 
-  async queueTrack(user: string, trackId: string): Promise<QueueTrack> {
+  async queueTrack(userId: string, trackId: string): Promise<QueueTrack> {
     const r = await this.api.getTracks([trackId]);
     const track = r.body.tracks[0];
 
-    const userData = await userService.getUser(user);
+    // TODO: don't need this, just check master queue
+    const userData = await userService.getUser(userId);
 
     if (!track) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -163,12 +165,14 @@ export class SpotifyController {
 
     // TODO: check if queue is empty and if track should be playing?
     this.queue.add(queueTrack);
-    userData.queue.add({
-      id: queueTrack.id,
-    });
+
+    // userData.queue.add({
+    //   id: queueTrack.id,
+    // });
 
     await this.rebuildQueueOrder();
 
+    // TODO: refactor put this state update to its own function
     this.states.data.events.queuedTrack = true;
 
     this.states.update();
@@ -179,8 +183,10 @@ export class SpotifyController {
       removedTracks: [],
     });
 
-    this.saveQueue();
-    await userService.upsave(userData);
+    // this.saveQueue();
+    queueService.upsave(this.queue);
+
+    // await userService.upsave(userData);
 
     return queueTrack;
   }
@@ -188,7 +194,6 @@ export class SpotifyController {
   async dequeueTrack(user: string, trackId: string): Promise<void> {
     // TODO: check if playing?
     const track = this.queue.get(trackId);
-    const userData = await userService.getUser(user);
 
     if (!track || track.snoppify.issuer.username != user) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -210,7 +215,7 @@ export class SpotifyController {
       });
     }
 
-    userData.queue.remove(track);
+    // userData.queue.remove(track);
 
     this.states.data.events.dequeuedTrack = true;
 
@@ -222,9 +227,10 @@ export class SpotifyController {
       removedTracks: [track],
     });
 
-    this.saveQueue();
+    // this.saveQueue();
+    queueService.upsave(this.queue);
 
-    await userService.upsave(userData);
+    // await userService.upsave(userData);
 
     return Promise.resolve();
   }
@@ -320,6 +326,7 @@ export class SpotifyController {
     return Promise.resolve();
   }
 
+  // TODO: Move to userService probably
   private updateFriendship(track, voterId, vote) {
     const issuerId = track.snoppify.issuer.id;
 
@@ -478,14 +485,15 @@ export class SpotifyController {
       this.history.add(track);
     }
 
-    this.saveQueue();
+    // this.saveQueue();
+    await queueService.upsave(this.queue);
 
     if (track?.snoppify) {
       const userData = await userService.getUser(
         track.snoppify.issuer.username,
       );
       if (userData) {
-        userData.queue.remove({ id: track.id }); // TODO: Do in fucntion instead
+        userData.queue.remove({ id: track.id }); // TODO: Do in userService or queueService instead
         userService.upsave(userData);
       }
     }
@@ -758,6 +766,8 @@ export class SpotifyController {
 
     // fetch all tracks with votes with inital order by addition
     let tracksCount = this.queue.size;
+
+    // TODO: replace with generating queue per user from main party queue
     const allUsers = await userService.getAll();
 
     for (let i = 0; i < this.queue.size; i++) {

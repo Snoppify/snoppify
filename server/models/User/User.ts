@@ -1,4 +1,4 @@
-import { Queue } from "../Queue/Queue";
+import { StaticQueue } from "../Queue/StaticQueue";
 import { UserBase } from "./UserBase";
 
 type NewUserInput = RequireSome<
@@ -7,14 +7,14 @@ type NewUserInput = RequireSome<
 >;
 
 export default class User extends UserBase {
-  queue: Queue<{ id: string }>;
+  queue: StaticQueue<{ id: string }>;
 
   constructor(data: NewUserInput) {
     super();
 
     Object.keys(data).forEach((key) => (this[key] = data[key]));
 
-    this.queue = new Queue({
+    this.queue = new StaticQueue({
       id: "id",
       queue: data.queue?.queue,
     });
@@ -28,8 +28,9 @@ export default class User extends UserBase {
     this.friends = data.friends || [];
   }
 
+  // TODO: Move to UserService and call QueueService to empty queue
   static clearUser(user: User) {
-    user.queue.clear();
+    // user.queue.clear();  // TODO: Move to UserService and call QueueService to empty queue
     // eslint-disable-next-line no-param-reassign
     user.votes = {
       received: {},
