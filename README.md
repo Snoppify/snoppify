@@ -1,5 +1,7 @@
 # snoppify
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d35cacd7e21445479f1a1b838a4334c4)](https://app.codacy.com/app/mold/snoppify?utm_source=github.com&utm_medium=referral&utm_content=mold/snoppify&utm_campaign=Badge_Grade_Settings)
+
 ## Requirements
 
 `npm`
