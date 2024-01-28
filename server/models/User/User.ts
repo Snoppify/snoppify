@@ -1,4 +1,5 @@
-import { StaticQueue } from "../Queue/StaticQueue";
+import { Queue } from "../Queue/Queue";
+import { type QueueTrack } from "../Queue/QueueTrack";
 import { UserBase } from "./UserBase";
 
 type NewUserInput = RequireSome<
@@ -7,15 +8,15 @@ type NewUserInput = RequireSome<
 >;
 
 export default class User extends UserBase {
-  queue: StaticQueue<{ id: string }>;
+  queue: Queue<QueueTrack>;
 
   constructor(data: NewUserInput) {
     super();
 
     Object.keys(data).forEach((key) => (this[key] = data[key]));
 
-    this.queue = new StaticQueue({
-      id: "id",
+    this.queue = new Queue<QueueTrack>({
+      id: `u-${data.id}-${Date.now().toString()}`,
       queue: data.queue?.queue,
     });
     this.votes = {

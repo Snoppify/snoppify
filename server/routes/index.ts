@@ -1,6 +1,7 @@
 import express, { Response } from "express";
 import { PassportStatic } from "passport";
 import { userService } from "../models/User/UserService";
+import { partyService } from "../models/Party/PartyService";
 import socket from "../socket";
 import { createSpotifyAPI } from "../spotify/spotify-api";
 import { logger } from "../utils/snoppify-logger";
@@ -150,7 +151,7 @@ export default function routes(passport: PassportStatic) {
         .getTracks([extractedId])
         .then((data) => {
           const trackFull = data.body.tracks[0];
-          const queueTrack = snoppifyHost.controller.queue.get(trackFull);
+          const queueTrack = snoppifyHost.controller.getQueuedTrack(trackFull);
 
           res.send({
             tracks: {
@@ -170,7 +171,8 @@ export default function routes(passport: PassportStatic) {
             tracks: {
               ...result.tracks,
               items: data.body.tracks.items.map(
-                (track) => snoppifyHost.controller.queue.get(track) || track,
+                (track) =>
+                  snoppifyHost.controller.getQueuedTrack(track) || track,
               ),
             },
           });
@@ -298,7 +300,25 @@ export default function routes(passport: PassportStatic) {
 
     req.snoppifyHost.controller
       .setBackupPlaylist({ id: playlist.id })
-      .then(successHandler(res))
+      .then(() => {
+        partyService
+          .getParty(req.user.host.id)
+          .then((party) => {
+            if (!party) {
+              res.status(401).json({ error: "No active party" });
+              return;
+            }
+
+            partyService
+              .upsave({
+                ...party,
+                backupPlaylistId: playlist.id,
+              })
+              .then(successHandler(res))
+              .catch(errorHandler(res));
+          })
+          .catch(errorHandler(res));
+      })
       .catch(errorHandler(res));
   });
 

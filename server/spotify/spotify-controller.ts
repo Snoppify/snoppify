@@ -1,7 +1,5 @@
 /* global SpotifyApi */
 
-import * as fs from "fs";
-import mkdirp from "mkdirp";
 import { PartyFull } from "../models/Party/Party";
 import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
@@ -15,17 +13,8 @@ import { SpotifyAPI } from "./spotify-api";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
 import { createStateMachine, SnoppifyStateMachine } from "./spotify-states";
 
-interface CurrentParty {
-  wifi?: { ssid: string; password: string; encryption: string };
-  name?: string;
-  id?: string;
-  hostCode?: string;
-}
-
 export class SpotifyController {
   private api: SpotifyAPI;
-
-  queue = new Queue<QueueTrack>({});
 
   private history = new Queue({});
 
@@ -36,12 +25,6 @@ export class SpotifyController {
   private maxQueueSize = 5;
 
   private playlist: SpotifyApi.SinglePlaylistResponse;
-
-  private queueFile = "";
-
-  private partyFile = null;
-
-  private currentParty: CurrentParty = null;
 
   private playbackAPI: SpotifyPlaybackAPI;
 
@@ -61,6 +44,7 @@ export class SpotifyController {
     // maybe not automatically at all?
     //
     // this.initQueueFile();
+    // this.setupStateMachine();
     // this.init();
   }
 
@@ -77,7 +61,9 @@ export class SpotifyController {
       id,
       name,
       mainPlaylistId,
-      queue: new Queue<QueueTrack>(),
+      queue: new Queue<QueueTrack>({
+        id: `q-${id}`,
+      }),
       hostUser: opts.hostUser,
     };
 
@@ -96,6 +82,17 @@ export class SpotifyController {
     }
 
     logger.log(`Set party ${party.name} (${party.id})`);
+
+    if (party.mainPlaylistId) {
+      const mainPlaylistData = await this.api.getPlaylist(party.mainPlaylistId);
+      this.mainPlaylist = mainPlaylistData.body;
+    }
+    if (party.backupPlaylistId) {
+      const backupPlaylistData = await this.api.getPlaylist(
+        party.backupPlaylistId,
+      );
+      this.backupPlaylist = backupPlaylistData.body;
+    }
 
     this.party = party;
     this.init();
@@ -124,7 +121,7 @@ export class SpotifyController {
       });
     }
 
-    if (this.queue.get(trackId)) {
+    if (this.party.queue.get(trackId)) {
       // eslint-disable-next-line prefer-promise-reject-errors
       return Promise.reject({
         response: {
@@ -157,14 +154,23 @@ export class SpotifyController {
     const queueTrack: QueueTrack = {
       ...track,
       snoppify: {
-        issuer: userData,
+        issuer: {
+          id: userData.id,
+          name: userData.name,
+          username: userData.username,
+          displayName: userData.displayName,
+          profile: userData.profile,
+        },
         votes: [],
         timestamp: Date.now(),
       },
     };
 
+    userData.queue.add(queueTrack);
+    await userService.upsave(userData);
+
     // TODO: check if queue is empty and if track should be playing?
-    this.queue.add(queueTrack);
+    this.party.queue.add(queueTrack);
 
     // userData.queue.add({
     //   id: queueTrack.id,
@@ -178,13 +184,15 @@ export class SpotifyController {
     this.states.update();
 
     socket.io.local.emit("queue", {
-      queue: this.queue.queue,
+      queue: this.party.queue.queue,
       addedTracks: [queueTrack],
       removedTracks: [],
     });
 
+    logger.info("queue", this.party.queue);
+
     // this.saveQueue();
-    queueService.upsave(this.queue);
+    await queueService.upsave(this.party.queue);
 
     // await userService.upsave(userData);
 
@@ -193,7 +201,7 @@ export class SpotifyController {
 
   async dequeueTrack(user: string, trackId: string): Promise<void> {
     // TODO: check if playing?
-    const track = this.queue.get(trackId);
+    const track = this.party.queue.get(trackId);
 
     if (!track || track.snoppify.issuer.username != user) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -205,7 +213,7 @@ export class SpotifyController {
       });
     }
 
-    if (!this.queue.remove(track)) {
+    if (!this.party.queue.remove(track)) {
       // eslint-disable-next-line prefer-promise-reject-errors
       return Promise.reject({
         response: {
@@ -222,13 +230,13 @@ export class SpotifyController {
     this.states.update();
 
     socket.io.local.emit("queue", {
-      queue: this.queue.queue,
+      queue: this.party.queue.queue,
       addedTracks: [],
       removedTracks: [track],
     });
 
     // this.saveQueue();
-    queueService.upsave(this.queue);
+    queueService.upsave(this.party.queue);
 
     // await userService.upsave(userData);
 
@@ -236,7 +244,7 @@ export class SpotifyController {
   }
 
   async vote(userId: string, trackId: any): Promise<void> {
-    const track = this.queue.get(trackId);
+    const track = this.party.queue.get(trackId);
 
     if (!track) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -272,7 +280,7 @@ export class SpotifyController {
     this.states.update();
 
     socket.io.local.emit("queue", {
-      queue: this.queue.queue,
+      queue: this.party.queue.queue,
       addedTracks: [],
       removedTracks: [],
     });
@@ -285,7 +293,7 @@ export class SpotifyController {
   }
 
   async unvote(user: string, trackId: any): Promise<void> {
-    const track = this.queue.get(trackId);
+    const track = this.party.queue.get(trackId);
 
     if (!track) {
       // eslint-disable-next-line prefer-promise-reject-errors
@@ -314,7 +322,7 @@ export class SpotifyController {
     this.states.update();
 
     socket.io.local.emit("queue", {
-      queue: this.queue.queue,
+      queue: this.party.queue.queue,
       addedTracks: [],
       removedTracks: [],
     });
@@ -468,7 +476,7 @@ export class SpotifyController {
   }
 
   private async playNextTrack(): Promise<void> {
-    let track: QueueTrack = this.queue.next();
+    let track: QueueTrack = this.party.queue.next();
 
     if (!track) {
       if (this.backupPlaylist) {
@@ -486,14 +494,14 @@ export class SpotifyController {
     }
 
     // this.saveQueue();
-    await queueService.upsave(this.queue);
+    await queueService.upsave(this.party.queue);
 
     if (track?.snoppify) {
       const userData = await userService.getUser(
         track.snoppify.issuer.username,
       );
       if (userData) {
-        userData.queue.remove({ id: track.id }); // TODO: Do in userService or queueService instead
+        userData.queue.remove(track); // TODO: Do in userService or queueService instead
         userService.upsave(userData);
       }
     }
@@ -502,7 +510,7 @@ export class SpotifyController {
 
     if (track) {
       socket.io.local.emit("queue", {
-        queue: this.queue.queue,
+        queue: this.party.queue.queue,
         addedTracks: [],
         removedTracks: [track],
       });
@@ -522,6 +530,11 @@ export class SpotifyController {
     const playData = {} as any;
     if (playPlaylist) {
       playData.playlist = this.mainPlaylist?.id || this.api.config.playlist;
+
+      if (!playData.playlist) {
+        logger.error("Invalid playlist");
+        throw new Error("Invalid playlist");
+      }
 
       return this.api
         .getPlaylist(playData.playlist)
@@ -586,8 +599,8 @@ export class SpotifyController {
     // TODO: Move to userService or queueService, make party-specific
     const allUsers = await userService.getAll();
 
-    const removed = this.queue.queue;
-    this.queue.clear();
+    const removed = this.party.queue.queue;
+    this.party.queue.clear();
 
     for (const user of allUsers) {
       User.clearUser(user);
@@ -598,19 +611,19 @@ export class SpotifyController {
     this.saveQueue();
 
     socket.io.local.emit("queue", {
-      queue: this.queue.queue,
+      queue: this.party.queue.queue,
       addedTracks: [],
       removedTracks: removed,
     });
   }
 
   getQueue() {
-    return this.queue.queue;
+    return this.party.queue.queue;
   }
 
   getTrack(trackId: string) {
     return new Promise((resolve, reject) => {
-      const track = this.queue.get(trackId);
+      const track = this.party.queue.get(trackId);
 
       Promise.all([
         track
@@ -634,6 +647,13 @@ export class SpotifyController {
           reject(data);
         });
     });
+  }
+
+  getQueuedTrack(track: SpotifyApi.TrackObjectFull) {
+    if (!this.party) {
+      return null;
+    }
+    return this.party.queue.get(track);
   }
 
   private async reloadPlaylist() {
@@ -765,17 +785,17 @@ export class SpotifyController {
     let maxVotes = -1;
 
     // fetch all tracks with votes with inital order by addition
-    let tracksCount = this.queue.size;
+    let tracksCount = this.party.queue.size;
 
     // TODO: replace with generating queue per user from main party queue
     const allUsers = await userService.getAll();
 
-    for (let i = 0; i < this.queue.size; i++) {
+    for (let i = 0; i < this.party.queue.size; i++) {
       const sublist = [];
       for (const user of allUsers) {
         const t = user.queue.getAt(i);
         if (t) {
-          const track = this.queue.get(t);
+          const track = this.party.queue.get(t);
 
           if (track) {
             sublist.push(track);
@@ -812,32 +832,21 @@ export class SpotifyController {
       }
     }
 
-    this.queue.queue = list;
+    const newQueue = new Queue<QueueTrack>({
+      id: this.party.queue.id,
+    });
+    list.forEach((track) => newQueue.add(track));
+
+    this.party.queue = newQueue;
   }
 
   private async saveParty() {
     return partyService.upsave(this.party);
   }
 
-  private saveQueue() {
-    const json = JSON.stringify({
-      currentTrack: this.getCurrentTrack(),
-      queue: this.queue.queue,
-      mainPlaylist: this.mainPlaylist,
-      backupPlaylist: this.backupPlaylist,
-    });
-    fs.writeFile(this.queueFile, json, "utf8", (err) => {
-      if (err) {
-        // console.log(err);
-      }
-    });
-
-    if (this.partyFile) {
-      fs.writeFile(this.partyFile, json, "utf8", (err) => {
-        if (err) {
-          // console.log(err);
-        }
-      });
+  private async saveQueue() {
+    if (this.party) {
+      await queueService.upsave(this.party.queue);
     }
   }
 
@@ -919,42 +928,6 @@ export class SpotifyController {
     });
 
     this.states.start();
-  }
-
-  private initQueueFile() {
-    mkdirp.sync("data");
-    this.queueFile = "data/snoppify-queue.json";
-
-    // load saved queue
-    fs.readFile(this.queueFile, "utf8", (err, data) => {
-      if (err) {
-        this.saveQueue();
-        return;
-      }
-      try {
-        const obj = JSON.parse(data);
-
-        obj.queue.forEach((track: any) => {
-          this.queue.add(track);
-        });
-
-        if (obj.currentTrack) {
-          this.history.add(obj.currentTrack);
-        }
-
-        if (obj.mainPlaylist) {
-          this.mainPlaylist = obj.mainPlaylist;
-        }
-
-        if (obj.backupPlaylist) {
-          this.backupPlaylist = obj.backupPlaylist;
-        }
-
-        this.saveQueue();
-      } catch (e) {
-        logger.error(e);
-      }
-    });
   }
 }
 

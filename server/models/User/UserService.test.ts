@@ -1,4 +1,5 @@
 import { Queue } from "../Queue/Queue";
+import { type QueueTrack } from "../Queue/QueueTrack";
 import User from "./User";
 import { UserRepository } from "./UserRepository";
 import { userService } from "./UserService";
@@ -42,7 +43,9 @@ describe("UserService", () => {
   it("removes a track from the queue", async () => {
     const user = new User({
       ...minimalUserData(),
-      queue: new Queue({ queue: [{ id: "track_id" }] }),
+      queue: new Queue<QueueTrack>({
+        queue: [{ id: "track_id" } as QueueTrack],
+      }),
     });
 
     expect(user.queue.size).toBe(1);

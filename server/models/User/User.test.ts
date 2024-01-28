@@ -1,4 +1,5 @@
 import { Queue } from "../Queue/Queue";
+import { type QueueTrack } from "../Queue/QueueTrack";
 import User from "./User";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { userService } from "./UserService";
@@ -60,7 +61,7 @@ function assertValidNewMinimalUser(newUser: User) {
 function fullUserData() {
   return {
     ...minimalUserData(),
-    queue: new Queue({ queue: [{ id: "SONG_ID" }] }),
+    queue: new Queue<QueueTrack>({ queue: [{ id: "SONG_ID" } as QueueTrack] }),
     votes: {
       received: { OTHER_USER_ID_1: 1 },
       given: { OTHER_USER_ID_1: 1, OTHER_USER_ID_2: 2 },

@@ -105,7 +105,9 @@ async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
 
   activeHosts[user.id] = snoppifyHost;
 
-  // TODO: init existing/ongoing party here?
+  if (user.partyId) {
+    snoppifyHost.controller.setParty(user.partyId);
+  }
 
   return snoppifyHost;
 }
