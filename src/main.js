@@ -54,8 +54,6 @@ new Vue({
   },
   beforeCreate() {
     store.commit("init");
-    // TODO: Move to after the server has been found
-    store.commit("setSocket", this.$socket);
   },
   render: (h) => h(App),
   router,
@@ -64,6 +62,3 @@ new Vue({
 
 Vue.component("track-item", TrackItem);
 Vue.component("modal", Modal);
-
-// TODO: Move to after the server has been found
-socket.init();

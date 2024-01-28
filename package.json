@@ -64,10 +64,10 @@
     "qrcode": "^1.4.4",
     "session-file-store": "^1.5.0",
     "socket.io": "^4.5.0",
+    "socket.io-client": "^4.7.4",
     "spotify-web-api-node": "^5.0.2",
     "vue": "^2.6.14",
     "vue-router": "^3.5.2",
-    "vue-socket.io": "^3.0.10",
     "vuex": "^3.6.2",
     "write-file-atomic": "^3.0.3"
   },

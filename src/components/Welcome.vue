@@ -93,6 +93,7 @@ export default {
     timeSpentScanning: 0,
     foundHost: false,
     partyId: null,
+    hostIP: null,
   }),
 
   methods: {

@@ -1,13 +1,26 @@
 import io from "socket.io-client";
-import Vue from "vue";
-import VueSocketio from "vue-socket.io";
-
 import { store } from "./store";
 
-const socketInstance = io.connect(process.env.VUE_APP_SERVER_URI);
+export const socket = io(process.env.VUE_APP_SERVER_URI);
 
-export default {
-  init: () => {
-    Vue.use(new VueSocketio({ connection: socketInstance, store }));
-  },
-};
+const modules = Object.keys(store._modules.root._children);
+
+socket.on("connect", () => {
+  store.commit("setSocket", socket);
+});
+
+socket.on("disconnect", () => {
+  store.commit("setSocket", null);
+});
+
+socket.onAny((eventName, event) => {
+  modules.forEach((module) => {
+    const eventKey = `${module}/SOCKET_${eventName.toUpperCase()}`;
+    if (eventKey in store._actions) {
+      store.dispatch(eventKey, event);
+    }
+    if (eventKey in store._mutations) {
+      store.commit(eventKey, event);
+    }
+  });
+});
