@@ -1,6 +1,8 @@
 import { Buffer } from "buffer";
 import express, { Request } from "express";
 import { PassportStatic } from "passport";
+import crypto from "crypto";
+import { userService } from "../../models/User/UserService";
 import User from "../../models/User/User";
 import { createSpotifyHost, createSpotifyHostWithParty } from "../../spotify";
 import { spotifyAPIScopes } from "../../spotify/spotify-playback-api";
@@ -136,6 +138,64 @@ export default function routesAuthIndex(passport: PassportStatic) {
     // });
   });
 
+  // route to authenticate via username and password
+  router.post(
+    "/login/password",
+    passport.authenticate("local", {
+      failureRedirect: "/login",
+    }),
+    async (req, res) => {
+      req.session.host = null;
+      if (req.body.partyId) {
+        req.user.partyId = req.body.partyId;
+        await userService.upsave(req.user);
+      }
+      res.redirect("/party");
+    },
+  );
+
+  // route to sign up a new guest user
+  // must be enabled in the environment variables
+  router.post("/auth/signup", (req, res, next) => {
+    if (process.env.ENABLE_SIGNUP !== "true") {
+      res.redirect("/signup");
+      return;
+    }
+    const salt = crypto.randomBytes(16);
+    crypto.pbkdf2(
+      req.body.password,
+      salt,
+      310000,
+      32,
+      "sha256",
+      async (err, hashedPassword) => {
+        if (err) {
+          return next(err);
+        }
+        const newUser = new User({
+          id: `u-${Date.now().toString()}`,
+          username: req.body.username,
+          displayName: req.body.username,
+          name: req.body.username,
+          _salt: Uint8ArrayToBase64String(salt),
+          _hashedPassword: Uint8ArrayToBase64String(hashedPassword),
+        });
+
+        // save our user to the database
+        const user = await userService.upsave(newUser);
+        req.login(user, (saveErr) => {
+          if (saveErr) {
+            return next(saveErr);
+          }
+          res.redirect("/");
+          return undefined;
+        });
+
+        return undefined;
+      },
+    );
+  });
+
   // route for facebook authentication and login
   // different scopes while logging in
   router.get("/auth/facebook", (req, ...args) =>
@@ -222,4 +282,9 @@ export default function routesAuthIndex(passport: PassportStatic) {
   );
 
   return router;
+}
+
+// source: https://github.com/Lukas220300/js-crypto-converter
+function Uint8ArrayToBase64String(byteArray: Uint8Array) {
+  return btoa(String.fromCharCode(...byteArray));
 }

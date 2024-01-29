@@ -6,6 +6,7 @@ let repo: UserRepository;
 
 export const userService = {
   getUser,
+  getUserByUsername,
   upsave,
   setRepository,
   getAll,
@@ -15,6 +16,10 @@ export const userService = {
 
 function getUser(id: string) {
   return repo.get(id);
+}
+
+function getUserByUsername(id: string) {
+  return repo.getBy("username", id);
 }
 
 function upsave(user: User) {

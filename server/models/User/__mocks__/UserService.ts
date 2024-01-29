@@ -4,6 +4,7 @@ let repo = {};
 
 export const userService: typeof realUserService = {
   getUser: jest.fn((id: string) => Promise.resolve(repo[id])),
+  getUserByUsername: jest.fn(() => Promise.resolve(undefined)),
   upsave: jest.fn((obj: any) => {
     repo[obj.id] = { ...repo[obj.id], ...obj };
     return Promise.resolve(obj);

@@ -29,6 +29,11 @@ export class UserBase {
     refresh_token: string;
   };
 
+  /** Password salt and hash for username + password login */
+  _salt?: string;
+
+  _hashedPassword?: string;
+
   /** Party information if the user is a host for a party */
   host?: {
     status?: "success" | string;

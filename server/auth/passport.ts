@@ -5,6 +5,8 @@ import { PassportStatic } from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
 import { Strategy as SpotifyStrategy } from "passport-spotify";
+import LocalStrategy from "passport-local";
+import crypto from "crypto";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import { logger } from "../utils/snoppify-logger";
@@ -117,6 +119,53 @@ export function passportInit(passport: PassportStatic) {
       },
     ),
   );
+
+  passport.use(
+    new LocalStrategy(function verify(username, password, cb) {
+      userService
+        .getUserByUsername(username)
+        .then((user) => {
+          if (user) {
+            crypto.pbkdf2(
+              password,
+              base64StringToUint8Array(user._salt),
+              310000,
+              32,
+              "sha256",
+              function cryptoCallback(err, hashedPassword) {
+                if (err) {
+                  return cb(err);
+                }
+                try {
+                  if (
+                    !crypto.timingSafeEqual(
+                      base64StringToUint8Array(user._hashedPassword),
+                      hashedPassword,
+                    )
+                  ) {
+                    return cb(null, false, {
+                      message: "Incorrect username or password.",
+                    });
+                  }
+                  return cb(null, user);
+                } catch (e) {
+                  logger.error(e);
+                  return cb(null, false, {
+                    message: "Could not log in.",
+                  });
+                }
+              },
+            );
+          } else {
+            return cb(null, false, {
+              message: "Incorrect username or password.",
+            });
+          }
+          return undefined;
+        })
+        .catch((err) => cb(err));
+    }),
+  );
 }
 
 // private functions
@@ -147,4 +196,14 @@ function findOrCreateUser(data, done) {
       // ie an error connecting to the database
       done(err),
     );
+}
+
+// source: https://github.com/Lukas220300/js-crypto-converter
+function base64StringToUint8Array(message: string) {
+  const encrypted = atob(message);
+  const messageValue = [];
+  for (let i = 0; i < encrypted.length; i++) {
+    messageValue.push(encrypted.charCodeAt(i));
+  }
+  return new Uint8Array(messageValue);
 }

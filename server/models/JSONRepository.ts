@@ -76,6 +76,18 @@ export class JSONRepository<T extends ObjectWithID> extends Repository<T> {
     return Promise.resolve(result ? this.instantiateObject(result) : undefined);
   }
 
+  getBy(key: keyof T, value: any): Promise<T> {
+    const storeKeys = Object.keys(this.store);
+    for (let i = 0; i < storeKeys.length; i += 1) {
+      const entry = this.store[storeKeys[i]];
+      if (key in entry && entry[key] === value) {
+        const result = entry && JSON.parse(JSON.stringify(entry));
+        return Promise.resolve(this.instantiateObject(result));
+      }
+    }
+    return Promise.resolve(undefined);
+  }
+
   private instantiateObject(obj: T) {
     return this.ModelClass ? new this.ModelClass(obj) : obj;
   }
