@@ -103,7 +103,9 @@ async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
 
   await userService.upsave(user);
 
+  // TODO: store this per party or something
   activeHosts[user.id] = snoppifyHost;
+  activeHosts[user.partyId] = snoppifyHost;
 
   if (user.partyId) {
     snoppifyHost.controller.setParty(user.partyId);

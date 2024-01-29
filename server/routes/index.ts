@@ -103,28 +103,28 @@ export default function routes(passport: PassportStatic) {
     );
 
     req.snoppifyHost.controller
-      .queueTrack(req.user.username, req.body.trackId)
+      .queueTrack(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/dequeue-track", (req, res) => {
     req.snoppifyHost.controller
-      .dequeueTrack(req.user.username, req.body.trackId)
+      .dequeueTrack(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/vote", (req, res) => {
     req.snoppifyHost.controller
-      .vote(req.user.username, req.body.trackId)
+      .vote(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
   router.post("/unvote", (req, res) => {
     req.snoppifyHost.controller
-      .unvote(req.user.username, req.body.trackId)
+      .unvote(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
