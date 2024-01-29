@@ -20,4 +20,11 @@ export default (axios) => ({
     //     axios.post("/new-user", { username, fp })
     // );
   },
+
+  signup(username, password) {
+    return axios.post("/auth/signup", {
+      username,
+      password,
+    });
+  },
 });

@@ -8,6 +8,7 @@ import api from "./api";
 import Home from "./components/Home";
 import Track from "./components/Track";
 import NewUser from "./components/NewUser";
+import Signup from "./components/Signup";
 import Fingerprint from "./components/Fingerprint";
 import NotFound from "./components/NotFound";
 import Welcome from "./components/Welcome";
@@ -105,6 +106,15 @@ const routes = [
     beforeEnter: nonauthGuard,
     meta: {
       title: "Snoppify - Join",
+    },
+  },
+  {
+    path: "/signup",
+    name: "signup",
+    component: Signup,
+    beforeEnter: nonauthGuard,
+    meta: {
+      title: "Snoppify - Sign up",
     },
   },
   {

@@ -20,6 +20,34 @@
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Spotify" /> -->
     <!-- </form> -->
+    <h2 class="h1">Or username</h2>
+    <form
+      v-bind:action="`${baseURL}/login/password`"
+      method="post"
+      class="auth auth--password"
+    >
+      <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
+      <label for="username">Username</label>
+      <input
+        id="username"
+        name="username"
+        type="text"
+        autocomplete="username"
+        placeholder="username"
+        required
+      />
+      <label for="current-password">Password</label>
+      <input
+        id="current-password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="password"
+        required
+      />
+      <p></p>
+      <input type="submit" value="Sign in" />
+    </form>
   </div>
 </template>
 
@@ -109,8 +137,26 @@ export default {
     padding: 1em 1.4em;
     font-size: 1.3em;
     font-weight: bold;
+  }
+
+  input[type="submit"] {
     cursor: pointer;
     width: 80%;
+  }
+
+  label {
+    display: block;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    width: 80%;
+    box-sizing: border-box;
+  }
+
+  &--password input[type="submit"] {
+    background: #575c60;
+    color: white;
   }
 
   &--facebook input {

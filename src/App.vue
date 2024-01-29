@@ -87,7 +87,8 @@ header {
   }
 }
 
-h1 {
+h1,
+.h1 {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 3px;
