@@ -20,7 +20,7 @@
       <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
       <input type="submit" value="Spotify" /> -->
     <!-- </form> -->
-    <h2 class="h1">Or username</h2>
+    <!-- <h2 class="h1">Or username</h2>
     <form
       v-bind:action="`${baseURL}/login/password`"
       method="post"
@@ -47,11 +47,22 @@
       />
       <p></p>
       <input type="submit" value="Sign in" />
+    </form> -->
+    <h2 class="h1">Or</h2>
+    <form
+      v-bind:action="`${baseURL}/login/guest`"
+      method="post"
+      class="auth auth--password"
+    >
+      <input type="hidden" name="partyId" v-bind:value="$route.query.partyId" />
+      <input type="hidden" name="fingerprint" v-bind:value="fingerprint" />
+      <input type="submit" value="Continue as guest" />
     </form>
   </div>
 </template>
 
 <script>
+import Fingerprint2 from "fingerprintjs2";
 import api from "../api";
 
 export default {
@@ -63,6 +74,7 @@ export default {
       spotify: "/auth/spotify",
       google: "/auth/google",
     },
+    fingerprint: "",
   }),
 
   methods: {
@@ -83,6 +95,10 @@ export default {
 
   created() {
     console.log(this.$route.query, this.getAuthUrl("facebook"));
+
+    new Fingerprint2().get((res) => {
+      this.fingerprint = res;
+    });
   },
 
   computed: {},

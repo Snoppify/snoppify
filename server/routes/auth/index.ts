@@ -155,6 +155,22 @@ export default function routesAuthIndex(passport: PassportStatic) {
     },
   );
 
+  // route to authenticate via fingerprint
+  router.post(
+    "/login/guest",
+    passport.authenticate("fingerprint", {
+      failureRedirect: "/login",
+    }),
+    async (req, res) => {
+      req.session.host = null;
+      if (req.body.partyId) {
+        req.user.partyId = req.body.partyId;
+        await userService.upsave(req.user);
+      }
+      res.redirect("/party");
+    },
+  );
+
   // route to sign up a new guest user
   // must be enabled in the environment variables
   router.post("/auth/signup", (req, res, next) => {

@@ -5,6 +5,7 @@ import { PassportStatic } from "passport";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { OAuth2Strategy as GoogleStrategy } from "passport-google-oauth";
 import { Strategy as SpotifyStrategy } from "passport-spotify";
+import { Strategy as CustomStrategy } from "passport-custom";
 import LocalStrategy from "passport-local";
 import crypto from "crypto";
 import User from "../models/User/User";
@@ -164,6 +165,40 @@ export function passportInit(passport: PassportStatic) {
           return undefined;
         })
         .catch((err) => cb(err));
+    }),
+  );
+
+  passport.use(
+    "fingerprint",
+    new CustomStrategy(async (req, cb) => {
+      if (
+        !req.body.fingerprint ||
+        req.body.fingerprint.toString().trim() === ""
+      ) {
+        cb("No fingerprint");
+        return;
+      }
+      const fingerprint = req.body.fingerprint.toString();
+      try {
+        const user = await userService.getUser(fingerprint);
+        if (!user) {
+          // TODO: Maybe we can verify the fingerprint here against the User-Agent?
+          const userName = `Anonymous user (${fingerprint})`;
+          const newUser = await userService.upsave(
+            new User({
+              id: fingerprint,
+              username: fingerprint,
+              displayName: userName,
+              name: userName,
+            }),
+          );
+          cb(null, newUser);
+        } else {
+          cb(null, user);
+        }
+      } catch (error) {
+        cb(error);
+      }
     }),
   );
 }
