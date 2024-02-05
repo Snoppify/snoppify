@@ -14,7 +14,16 @@
           v-bind:action="baseURL + authUrls.spotifyLogin"
           class="auth auth--spotify"
         >
-          <input type="submit" value="Log in to your Spotify account" />
+          <div
+            class="cf-turnstile"
+            data-sitekey="0x4AAAAAAARUYjmIz7m25Wol"
+            data-callback="turnstileSuccess"
+          ></div>
+          <input
+            type="submit"
+            value="Log in to your Spotify account"
+            v-bind:disabled="!turnstileSolved"
+          />
         </form>
       </div>
 
@@ -291,6 +300,8 @@ export default {
       (state) => state.Session.wifiQR,
       () => this.genWifiQR(),
     );
+
+    window.turnstileSuccess = this.turnstileSuccess;
   },
 
   data() {
@@ -316,6 +327,7 @@ export default {
         password: "",
         encryption: "",
       },
+      turnstileSolved: false,
     };
   },
 
@@ -447,6 +459,10 @@ export default {
           }
         });
       });
+    },
+    turnstileSuccess(token) {
+      console.log(token);
+      this.turnstileSolved = true;
     },
   },
 

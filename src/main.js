@@ -1,10 +1,8 @@
 // import 'vueify/lib/insert-css';
 import Vue from "vue";
 
-import api from "./api";
 import App from "./App";
 import router from "./router";
-import socket from "./socket";
 import { store } from "./store";
 
 import TrackItem from "./components/TrackItem";
@@ -29,6 +27,14 @@ if (window.location.hash && window.location.hash === "#_=_") {
     document.body.scrollLeft = _scroll.left;
   }
 }
+
+(() => {
+  const script = document.createElement("script");
+  script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+  script.async = true;
+  script.defer = true;
+  document.body.appendChild(script);
+})();
 
 // Redirect in case of auth
 // const href = window.location.href;

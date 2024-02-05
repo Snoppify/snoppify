@@ -2,6 +2,7 @@ import { Buffer } from "buffer";
 import express, { Request } from "express";
 import { PassportStatic } from "passport";
 import crypto from "crypto";
+import axios from "axios";
 import { userService } from "../../models/User/UserService";
 import User from "../../models/User/User";
 import { createSpotifyHost, createSpotifyHostWithParty } from "../../spotify";
@@ -262,14 +263,17 @@ export default function routesAuthIndex(passport: PassportStatic) {
   );
 
   // authenticate host
-  router.get("/auth/spotify-host-login", (req, ...args) =>
-    passport.authenticate("spotify", {
-      scope: spotifyAPIScopes,
-      state: encodeStateObject({
-        id: req.query.partyId, // TODO: check if this is used
-        auth: AUTH_STATE_HOST_LOGIN,
-      }),
-    })(req, ...args),
+  router.get(
+    "/auth/spotify-host-login",
+    turnstileCheckerMiddleware,
+    (req, ...args) =>
+      passport.authenticate("spotify", {
+        scope: spotifyAPIScopes,
+        state: encodeStateObject({
+          id: req.query.partyId, // TODO: check if this is used
+          auth: AUTH_STATE_HOST_LOGIN,
+        }),
+      })(req, ...args),
   );
 
   // handle the callback after spotify has authenticated the user
@@ -287,4 +291,33 @@ export default function routesAuthIndex(passport: PassportStatic) {
 // source: https://github.com/Lukas220300/js-crypto-converter
 function Uint8ArrayToBase64String(byteArray: Uint8Array) {
   return btoa(String.fromCharCode(...byteArray));
+}
+
+async function turnstileCheckerMiddleware(req, res, next) {
+  const stop = () => {
+    res.sendStatus(403);
+  };
+
+  const token = req.query["cf-turnstile-response"];
+
+  if (typeof token !== "string") {
+    stop();
+    return;
+  }
+
+  // validate the turnstile response with cloudflare
+  const body = {
+    secret: process.env.TURNSTILE_SECRET_KEY,
+    response: token,
+  };
+
+  const url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+  const result = await axios.post(url, body);
+
+  if (!result.data.success) {
+    stop();
+    return;
+  }
+
+  next();
 }

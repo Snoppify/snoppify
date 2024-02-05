@@ -142,6 +142,13 @@ export default {
   input[type="submit"] {
     cursor: pointer;
     width: 80%;
+    transition: 0.5s background-color;
+
+    &[disabled] {
+      background: #ddd;
+      color: #aaa;
+      cursor: not-allowed;
+    }
   }
 
   label {
