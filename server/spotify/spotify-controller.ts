@@ -4,7 +4,7 @@ import { PartyFull } from "../models/Party/Party";
 import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
 import { queueService } from "../models/Queue/QueueService";
-import { QueueTrack } from "../models/Queue/QueueTrack";
+import { QueueTrack, type QueueSpotifyTrack } from "../models/Queue/QueueTrack";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import socket from "../socket";
@@ -628,13 +628,13 @@ export class SpotifyController {
       Promise.all([
         track
           ? Promise.resolve({
-              body: { tracks: [track] as SpotifyApi.TrackObjectFull[] },
+              body: { tracks: [track] as QueueSpotifyTrack[] },
             })
           : this.api.getTracks([trackId]),
         this.api.getAudioFeaturesForTracks([trackId]),
       ])
         .then((data) => {
-          const trackObject: SpotifyApi.TrackObjectFull & {
+          const trackObject: QueueSpotifyTrack & {
             audio_features?: SpotifyApi.AudioFeaturesObject;
           } = data[0].body.tracks[0];
 
