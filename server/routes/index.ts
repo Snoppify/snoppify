@@ -3,17 +3,18 @@ import { PassportStatic } from "passport";
 import { userService } from "../models/User/UserService";
 import { partyService } from "../models/Party/PartyService";
 import socket from "../socket";
-import { createSpotifyAPI } from "../spotify/spotify-api";
 import { logger } from "../utils/snoppify-logger";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
+import { userHostAuth } from "../utils/middlewares/user";
 
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line global-require
   require("dotenv").config();
 }
 
-/* const spotifyAPI = */ createSpotifyAPI().init();
+/* const spotifyAPI = */
+// createSpotifyAPI().init();
 
 // const getGlobalSnoppifyHost = () => getSnoppifyHost(GLOBAL_SNOPPIFY_HOST_ID);
 // const spotifyPlaybackApi = new SpotifyPlaybackAPI(getGlobalSnoppifyHost().api);
@@ -90,10 +91,6 @@ export default function routes(passport: PassportStatic) {
     );
 
     return id ? { id } : null;
-  }
-
-  function isHost(req) {
-    return req.user.host && req.user.host.status === "success";
   }
 
   router.post("/queue-track", (req, res) => {
@@ -181,12 +178,7 @@ export default function routes(passport: PassportStatic) {
     }
   });
 
-  router.get("/search-parties", (req, res) => {
-    if (!isHost(req)) {
-      res.status(401).end();
-      return;
-    }
-
+  router.get("/search-parties", userHostAuth, (req, res) => {
     const data = {
       query: "",
       result: [],
@@ -228,12 +220,7 @@ export default function routes(passport: PassportStatic) {
     res.send(data);
   });
 
-  router.post("/set-party", (req, res) => {
-    if (!isHost(req)) {
-      res.status(401).end();
-      return;
-    }
-
+  router.post("/set-party", userHostAuth, (req, res) => {
     if (!req.user.parties) {
       res.status(404).end();
       return;
@@ -256,12 +243,7 @@ export default function routes(passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.post("/set-party-name", (req, res) => {
-    if (!isHost(req)) {
-      res.status(401).end();
-      return;
-    }
-
+  router.post("/set-party-name", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .updateMainPlaylist(req.body)
       .then((data) => {
@@ -277,12 +259,7 @@ export default function routes(passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.post("/set-backup-playlist", (req, res) => {
-    if (!isHost(req)) {
-      res.status(401).end();
-      return;
-    }
-
+  router.post("/set-backup-playlist", userHostAuth, (req, res) => {
     if (!req.body.uri) {
       // unset backup playlist
       req.snoppifyHost.controller.removeBackupPlaylist();
@@ -322,14 +299,14 @@ export default function routes(passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.post("/set-active-device", (req, res) => {
+  router.post("/set-active-device", userHostAuth, (req, res) => {
     req.snoppifyHost.playbackAPI
       .setActiveDevice(req.body.id)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.get("/get-devices", (req, res) => {
+  router.get("/get-devices", userHostAuth, (req, res) => {
     const host = req.snoppifyHost;
     if (!host) {
       res.status(400).send();
@@ -351,34 +328,35 @@ export default function routes(passport: PassportStatic) {
   router.get("/get-playlists", () => {});
 
   router.post("/play", (req, res) => {
+  router.post("/play", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .play(req.body.playlist)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.post("/pause", (req, res) => {
+  router.post("/pause", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .pause()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.post("/play-next", (req, res) => {
+  router.post("/play-next", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .playNext()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.post("/empty-playlist", (req, res) => {
+  router.post("/empty-playlist", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .emptyPlaylist()
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.post("/empty-queue", (req, res) => {
+  router.post("/empty-queue", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .emptyQueue()
       .then(successHandler(res))
@@ -434,13 +412,7 @@ export default function routes(passport: PassportStatic) {
       .finally(() => res.send());
   });
 
-  router.post("/wifi", (req, res) => {
-    if (!isHost(req)) {
-      res.status(401);
-      res.json({ error: "You need to be host!" });
-      return;
-    }
-
+  router.post("/wifi", userHostAuth, (req, res) => {
     const party = req.snoppifyHost.controller.getParty();
     if (!party) {
       res.status(500);
