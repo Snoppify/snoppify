@@ -41,7 +41,7 @@ export default class SpotifyPlaybackAPI {
     this.accessToken = api.getAccessToken();
   }
 
-  play(opts: PlayOptions = {}) {
+  async play(opts: PlayOptions = {}) {
     const data: Parameters<SpotifyAPI["play"]>[0] = {};
     if (opts.playlist) {
       data.context_uri = `spotify:playlist:${opts.playlist}`;
@@ -54,6 +54,8 @@ export default class SpotifyPlaybackAPI {
         position: opts.position,
       };
     }
+
+    await this.turnOffShuffle();
 
     return this.api.play(data);
   }
@@ -68,6 +70,10 @@ export default class SpotifyPlaybackAPI {
 
   previous() {
     return this.api.skipToPrevious();
+  }
+
+  turnOffShuffle(options?: Parameters<SpotifyAPI["setShuffle"]>[1]) {
+    return this.api.setShuffle(false, options);
   }
 
   addToPlaylist(owner, playlist: string, tracks: string[]) {
