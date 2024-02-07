@@ -22,6 +22,8 @@ export class SpotifyController {
 
   private pollTimeout = 2000;
 
+  private playerPollInterval: NodeJS.Timeout;
+
   private maxQueueSize = 5;
 
   private playlist: SpotifyApi.SinglePlaylistResponse;
@@ -65,6 +67,7 @@ export class SpotifyController {
         id: `q-${id}`,
       }),
       hostUser: opts.hostUser,
+      active: true,
     };
 
     this.party = party;
@@ -102,6 +105,48 @@ export class SpotifyController {
 
   getParty() {
     return this.party;
+  }
+
+  getInfo() {
+    return {
+      party: this.getParty(),
+      queue: this.getQueue(),
+      currentTrack: this.getCurrentTrack(),
+      backupPlaylist: this.getBackupPlaylist(),
+    };
+  }
+
+  async start() {
+    this.beginPlayerPoll();
+    await this.play(true);
+    this.party.active = true;
+    await this.saveParty();
+
+    socket.io.local.emit("info", this.getInfo());
+  }
+
+  async stop() {
+    this.stopPlayerPoll();
+    await this.pause();
+    this.party.active = false;
+    await this.saveParty();
+
+    socket.io.local.emit("info", this.getInfo());
+  }
+
+  private beginPlayerPoll() {
+    if (this.playerPollInterval) {
+      clearInterval(this.playerPollInterval);
+    }
+    this.playerPollInterval = setInterval(() => {
+      this.pollPlayerStatus();
+    }, this.pollTimeout);
+  }
+
+  private stopPlayerPoll() {
+    if (this.playerPollInterval) {
+      clearInterval(this.playerPollInterval);
+    }
   }
 
   async queueTrack(userId: string, trackId: string): Promise<QueueTrack> {
@@ -618,7 +663,7 @@ export class SpotifyController {
   }
 
   getQueue() {
-    return this.party.queue.queue;
+    return this.party?.queue.queue;
   }
 
   getTrack(trackId: string) {
@@ -867,11 +912,7 @@ export class SpotifyController {
 
     await this.reloadPlaylist();
 
-    if (this.api.getCredentials().refreshToken) {
-      setInterval(() => {
-        this.pollPlayerStatus();
-      }, this.pollTimeout);
-    }
+    this.start();
   }
 
   private setupStateMachine() {

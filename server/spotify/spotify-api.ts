@@ -11,13 +11,21 @@ export type SpotifyAPI = SpotifyWebApi & {
   config: ISnoppifyConfig;
   onload: Promise<any>;
   /** Closes the api client */
-  close: () => void;
+  close?: () => void;
 };
 
 let globalSpotifyAPI: SpotifyAPI;
 
 function initAccessTokenRefreshInterval(api: SpotifyAPI) {
+  if (api.close) {
+    return api.close;
+  }
+
   const intervalId = setInterval(() => {
+    if (!api.getRefreshToken()) {
+      logger.info("No refresh token, skipping refresh");
+      return;
+    }
     api.refreshAccessToken().then(
       (data) => {
         logger.info("Updated access_token:", data.body.access_token);

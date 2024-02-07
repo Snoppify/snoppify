@@ -39,6 +39,7 @@ async function upsave(party: PartyFull): Promise<void> {
       id: party.id,
       mainPlaylistId: party.mainPlaylistId,
       name: party.name,
+      active: party.active,
       backupPlaylistId: party.backupPlaylistId,
       queueId: party.queue.id,
       currentTrack: party.currentTrack,

@@ -1,9 +1,4 @@
 export default (axios) => ({
-  setBackupPlaylist(uri) {
-    return axios.post("/set-backup-playlist", {
-      uri,
-    });
-  },
   queueTrack(trackId) {
     return axios.post("/queue-track", {
       trackId,
@@ -47,17 +42,5 @@ export default (axios) => ({
   },
   get() {
     return axios.get("/get-queue");
-  },
-  searchParties(query) {
-    return axios.get("/search-parties", {
-      params: {
-        query,
-      },
-    });
-  },
-  setParty(id) {
-    return axios.post("/set-party", {
-      id,
-    });
   },
 });

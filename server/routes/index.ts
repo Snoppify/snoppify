@@ -327,7 +327,20 @@ export default function routes(passport: PassportStatic) {
 
   router.get("/get-playlists", () => {});
 
-  router.post("/play", (req, res) => {
+  router.post("/start-party", userHostAuth, (req, res) => {
+    req.snoppifyHost.controller
+      .start()
+      .then(successHandler(res))
+      .catch(errorHandler(res));
+  });
+
+  router.post("/stop-party", userHostAuth, (req, res) => {
+    req.snoppifyHost.controller
+      .stop()
+      .then(successHandler(res))
+      .catch(errorHandler(res));
+  });
+
   router.post("/play", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .play(req.body.playlist)
@@ -375,12 +388,7 @@ export default function routes(passport: PassportStatic) {
       res.status(400).send();
       return;
     }
-    res.json({
-      party: host.controller.getParty(),
-      queue: host.controller.getQueue(),
-      currentTrack: host.controller.getCurrentTrack(),
-      backupPlaylist: host.controller.getBackupPlaylist(),
-    });
+    res.json(host.controller.getInfo());
   });
 
   router.post("/play-sound", (req, res) => {

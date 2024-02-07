@@ -5,6 +5,7 @@ import User from "../User/User";
 export interface PartyNormalized {
   id: string;
   name: string;
+  active: boolean;
   queueId: string;
   currentTrack?: SpotifyApi.CurrentlyPlayingObject["item"];
   mainPlaylistId: string;
@@ -16,6 +17,7 @@ export interface PartyNormalized {
 export interface PartyFull {
   id: string;
   name: string;
+  active: boolean;
   queue: Queue<QueueTrack>;
   currentTrack?: SpotifyApi.CurrentlyPlayingObject["item"];
   mainPlaylistId: string;

@@ -7,8 +7,6 @@
         <b>{{ error }}</b>
       </p>
 
-      {{ baseURL + authUrls.spotifyLogin }}
-
       <div v-if="!user.host">
         <form
           v-bind:action="baseURL + authUrls.spotifyLogin"
@@ -60,6 +58,21 @@
         <p>IP: {{ user.host.ip }}</p>
         <p>SnoppiCode: {{ user.host.hostCode }}</p>
         <p>Hoster: {{ user.username }}</p>
+        <p>
+          Status:
+          <span v-if="party && party.active">Active</span>
+          <span v-else>Stopped</span>
+          <span
+            class="party-status"
+            :class="{ 'active a-pulse': party && party.active }"
+          ></span>
+        </p>
+        <button v-on:click="start" v-if="party && !party.active">
+          Get the party started
+        </button>
+        <button v-on:click="stop" v-if="party && party.active">
+          Stop party
+        </button>
 
         <hr />
 
@@ -93,7 +106,11 @@
 
         <button
           v-on:click="playPlaylist"
-          :disabled="!device || (queue.length == 0 && !backupPlaylist)"
+          :disabled="
+            !device ||
+            (queue && queue.length == 0 && !backupPlaylist) ||
+            !(party && party.active)
+          "
           class="start-playback-btn"
         >
           Start playback
@@ -126,6 +143,11 @@
                 <span v-if="index + 1 < currentTrack.artists.length">,</span>
               </span>
             </div>
+            <div class="player-progress" v-if="player.isPlaying">
+              <span>{{ player.status.progress }}</span>
+              {{ " / " }}
+              <span>{{ player.status.duration }}</span>
+            </div>
           </div>
           <div class="current-track__user-info" v-if="currentTrack.snoppify">
             <div
@@ -143,6 +165,11 @@
               <div class="upvotes">
                 {{ currentTrack.snoppify.votes.length }} upvotes
               </div>
+            </div>
+          </div>
+          <div class="current-track__user-info" v-else>
+            <div class="user">
+              <div class="title">Added from backup playlist or Spotify</div>
             </div>
           </div>
         </div>
@@ -339,7 +366,11 @@ export default {
       currentTrack: "Queue/currentTrack",
       backupPlaylist: "Queue/backupPlaylist",
       wifiQR: "Session/wifiQR",
+      party: "Party/party",
     }),
+    currentDevice() {
+      return this.devices.find((d) => d.id === this.device);
+    },
   },
 
   beforeMount() {
@@ -407,7 +438,7 @@ export default {
     },
 
     setBackupPlaylist(uri) {
-      api.queue.setBackupPlaylist(uri).catch(() => {
+      api.party.setBackupPlaylist(uri).catch(() => {
         this.$store.dispatch("Messages/toast", {
           type: "alert",
           html: "Could not set playlist. Did you really paste a playlist URL?",
@@ -415,17 +446,25 @@ export default {
         });
       });
     },
-
+    start() {
+      api.party.start();
+    },
+    stop() {
+      if (!confirm("The party will stop. Continue?")) {
+        return;
+      }
+      api.party.stop();
+    },
     changePartyName() {
       const name = prompt("Change party name", this.user.host.name);
       if (name) {
-        api.spotify.setPartyName(name).then(() => {
+        api.party.setPartyName(name).then(() => {
           window.location.reload();
         });
       }
     },
     searchParties() {
-      api.queue
+      api.party
         .searchParties(this.partySearchTerm)
         .then((r) => {
           this.partyResult = r.result;
@@ -435,7 +474,7 @@ export default {
         });
     },
     setParty(id) {
-      api.queue
+      api.party
         .setParty(id)
         .then(() => {
           window.location.reload();
@@ -474,6 +513,7 @@ export default {
 
 <style lang="scss">
 @import "../assets/variables.scss";
+@import "../assets/animations.scss";
 
 #welcome {
   padding: 1em 0 0;
@@ -546,7 +586,7 @@ a:hover {
 
 .current-track.current-track_compact {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
 
   img {
     width: 2.5em;
@@ -555,6 +595,24 @@ a:hover {
   .current-track__track-info {
     flex: 1;
     padding-left: 1em;
+  }
+
+  .player-progress {
+    font-size: 0.8em;
+    margin-top: 0.5em;
+  }
+}
+
+.party-status {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  background: $red;
+  margin-left: 0.5em;
+
+  &.active {
+    background: $snoppify-green;
   }
 }
 </style>

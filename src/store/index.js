@@ -6,6 +6,7 @@ import Spotify from "./Spotify";
 import Events from "./Events";
 import Queue from "./Queue";
 import Messages from "./Messages";
+import Party from "./Party";
 
 Vue.use(Vuex);
 
@@ -20,6 +21,7 @@ export const store = new Vuex.Store({
     Events,
     Queue,
     Messages,
+    Party,
   },
 
   mutations: {

@@ -21,9 +21,4 @@ export default (axios) => ({
   getDevices() {
     return axios.get("/get-devices");
   },
-  setPartyName(name) {
-    return axios.post("/set-party-name", {
-      name,
-    });
-  },
 });

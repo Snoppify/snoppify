@@ -22,6 +22,7 @@ describe("PartyService", () => {
         queueId: "qID",
         currentTrack: {} as any,
         name: "name",
+        active: true,
         hostUserId: "userID",
       }),
     );
@@ -56,6 +57,7 @@ describe("PartyService", () => {
       id: "partyId",
       mainPlaylistId: "mainPlaylistId",
       name: "name",
+      active: true,
       queue: new Queue({ id: "queueId" }),
       backupPlaylistId: "backupPlaylistId",
       currentTrack: {} as any,
@@ -70,6 +72,7 @@ describe("PartyService", () => {
       id: "partyId",
       mainPlaylistId: "mainPlaylistId",
       name: "name",
+      active: true,
       currentTrack: party.currentTrack,
       wifi: party.wifi,
       queueId: party.queue.id,

@@ -131,7 +131,13 @@ export default function routesAuthIndex(passport: PassportStatic) {
   });
 
   /* Handle Logout */
-  router.get("/logout", (req, res) => {
+  router.get("/logout", async (req, res) => {
+    if (req.user && req.user.host && req.snoppifyHost) {
+      // host logs out, close the party
+      req.snoppifyHost.initialized = false;
+      req.snoppifyHost.api.close();
+      await req.snoppifyHost.controller.stop();
+    }
     req.logout();
     res.redirect("/");
     // req.session.destroy(function(err) {

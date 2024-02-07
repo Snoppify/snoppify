@@ -4,12 +4,14 @@ import auth from "./auth";
 import misc from "./misc";
 import queue from "./queue";
 import spotify from "./spotify";
+import party from "./party";
 
 const api = {
   auth: null,
   queue: null,
   misc: null,
   spotify: null,
+  party: null,
   axios: null,
   initialized: false,
   init,
@@ -43,6 +45,7 @@ function init() {
     queue: queue(_axios),
     misc: misc(_axios),
     spotify: spotify(_axios),
+    party: party(_axios),
     axios: _axios,
     initialized: true,
   });

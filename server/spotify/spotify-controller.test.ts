@@ -31,6 +31,7 @@ describe("SpotifyController", () => {
     expect(mockedPartyService.upsave).toHaveBeenCalledWith<[PartyFull]>({
       id: newParty.id,
       name: newParty.name,
+      active: true,
       mainPlaylistId: newParty.mainPlaylistId,
       queue: expect.any(Queue),
       hostUser,
@@ -82,6 +83,7 @@ describe("SpotifyController", () => {
       id: "partyId",
       mainPlaylistId: "mainPlaylistId",
       name: "Party name!",
+      active: true,
       queue: new Queue(),
     };
 
