@@ -1,8 +1,10 @@
 // import 'vueify/lib/insert-css';
 import Vue from "vue";
 
+import "./api";
 import App from "./App";
 import router from "./router";
+import "./socket";
 import { store } from "./store";
 
 import TrackItem from "./components/TrackItem";
