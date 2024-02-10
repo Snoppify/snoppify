@@ -6,7 +6,7 @@ import socket from "../socket";
 import { logger } from "../utils/snoppify-logger";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
-import { userHostAuth } from "../utils/middlewares/user";
+import { userGuestAuth, userHostAuth } from "../utils/middlewares/user";
 
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line global-require
@@ -93,7 +93,9 @@ export default function routes(passport: PassportStatic) {
     return id ? { id } : null;
   }
 
-  router.post("/queue-track", (req, res) => {
+  /* Guest user */
+
+  router.post("/queue-track", userGuestAuth, (req, res) => {
     logger.info(
       `soMeBodyY (user "${req.user.username}" waTNTS to UQUE a song!!!`,
       req.body.trackId,
@@ -105,28 +107,28 @@ export default function routes(passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.post("/dequeue-track", (req, res) => {
+  router.post("/dequeue-track", userGuestAuth, (req, res) => {
     req.snoppifyHost.controller
       .dequeueTrack(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.post("/vote", (req, res) => {
+  router.post("/vote", userGuestAuth, (req, res) => {
     req.snoppifyHost.controller
       .vote(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.post("/unvote", (req, res) => {
+  router.post("/unvote", userGuestAuth, (req, res) => {
     req.snoppifyHost.controller
       .unvote(req.user.id, req.body.trackId)
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.get("/search", (req, res) => {
+  router.get("/search", userGuestAuth, (req, res) => {
     const query = checkStr(req.query.query) || "";
 
     if (query == "") {
@@ -177,6 +179,31 @@ export default function routes(passport: PassportStatic) {
         .catch(errorHandler(res));
     }
   });
+
+  router.get("/info", userGuestAuth, (req, res) => {
+    const host = req.snoppifyHost;
+    if (!host) {
+      res.status(400).send();
+      return;
+    }
+    res.json(host.controller.getInfo());
+  });
+
+  router.post("/play-sound", userGuestAuth, (req, res) => {
+    if (!socket.io) {
+      logger.error("No socket");
+      return;
+    }
+    socket.io.local.emit("event", {
+      type: "playSound",
+      data: {
+        sound: req.body.sound,
+      },
+    });
+    res.status(200).end();
+  });
+
+  /* Host user */
 
   router.get("/search-parties", userHostAuth, (req, res) => {
     const data = {
@@ -318,14 +345,14 @@ export default function routes(passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.get("/get-track", (req, res) => {
+  router.get("/get-track", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
       .getTrack(checkStr(req.query.trackId))
       .then(successHandler(res))
       .catch(errorHandler(res));
   });
 
-  router.get("/get-playlists", () => {});
+  router.get("/get-playlists", userHostAuth, () => {});
 
   router.post("/start-party", userHostAuth, (req, res) => {
     req.snoppifyHost.controller
@@ -376,36 +403,13 @@ export default function routes(passport: PassportStatic) {
       .catch(errorHandler(res));
   });
 
-  router.get("/get-queue", (req, res) => {
+  router.get("/get-queue", userHostAuth, (req, res) => {
     res.json({
       data: req.snoppifyHost.controller.getQueue(),
     });
   });
 
-  router.get("/info", (req, res) => {
-    const host = req.snoppifyHost;
-    if (!host) {
-      res.status(400).send();
-      return;
-    }
-    res.json(host.controller.getInfo());
-  });
-
-  router.post("/play-sound", (req, res) => {
-    if (!socket.io) {
-      logger.error("No socket");
-      return;
-    }
-    socket.io.local.emit("event", {
-      type: "playSound",
-      data: {
-        sound: req.body.sound,
-      },
-    });
-    res.status(200).end();
-  });
-
-  router.get("/get-host-playlists", (req, res) => {
+  router.get("/get-host-playlists", userHostAuth, (req, res) => {
     req.snoppifyHost.api
       .getUserPlaylists("me", {
         limit: +req.query.limit || 15,
@@ -434,7 +438,7 @@ export default function routes(passport: PassportStatic) {
     );
   });
 
-  router.get("/wifi", (req, res) => {
+  router.get("/wifi", userHostAuth, (req, res) => {
     if (!req.isAuthenticated()) {
       res.status(403).end();
       return;

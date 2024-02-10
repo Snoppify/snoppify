@@ -127,7 +127,6 @@ export class SpotifyController {
 
   async stop() {
     this.stopPlayerPoll();
-    await this.pause();
     this.party.active = false;
     await this.saveParty();
 
