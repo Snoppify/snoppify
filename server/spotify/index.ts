@@ -16,6 +16,7 @@ export type SnoppifyHost = {
 };
 
 export {
+  createParty,
   createSpotifyHost,
   createSpotifyHostWithParty,
   removeSnoppifyHostUser,
@@ -93,7 +94,9 @@ const createSpotifyHostWithParty = async (
   logger.info("createSpotifyHost");
 
   const snoppifyHost = await createSpotifyHost(user);
-  await createParty(user, snoppifyHost);
+  const party = await createParty(user, snoppifyHost);
+
+  await snoppifyHost.controller.setParty(party.id);
 
   return snoppifyHost;
 };
@@ -139,14 +142,19 @@ async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
 async function createParty(
   incomingUser: User,
   snoppifyHost: SnoppifyHost,
-): Promise<SnoppifyHost> {
+): Promise<PartyFull> {
   const user = { ...incomingUser };
 
   const newParty = await snoppifyHost.controller.createNewParty({
     hostUser: user,
   });
 
-  user.host = { ...user.host, status: "success" };
+  user.host = {
+    ...user.host,
+    id: newParty.id,
+    name: newParty.name,
+    status: "success",
+  };
 
   if (!user.parties) {
     user.parties = [];
@@ -163,7 +171,7 @@ async function createParty(
 
   await userService.upsave(user);
 
-  return snoppifyHost;
+  return newParty;
 }
 
 /** mainly for testing */

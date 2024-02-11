@@ -31,6 +31,9 @@ export default (axios) => ({
       id,
     });
   },
+  createParty() {
+    return axios.post("/create-party");
+  },
   deleteParty(id) {
     return axios.post("/delete-party", {
       id,

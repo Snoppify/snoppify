@@ -49,7 +49,7 @@
         <p>Authenticating host...</p>
       </div>
 
-      <div v-if="user.host && user.host.id">
+      <div v-if="user.host && user.host.id && party">
         <p>ID: <input type="text" disabled :value="user.host.id" /></p>
         <p>
           Name: {{ user.host.name }}
@@ -226,12 +226,12 @@
                 <button type="submit">save</button>
               </p>
             </form>
-          </div>
 
-          <p>CURRENT VALUE:</p>
-          <div v-if="wifiQR">
-            <canvas ref="wifiCanvas"></canvas>
-            <p>{{ wifiQR }}</p>
+            <div v-if="wifiQR">
+              <p>CURRENT VALUE:</p>
+              <canvas ref="wifiCanvas"></canvas>
+              <p>{{ wifiQR }}</p>
+            </div>
           </div>
         </div>
 
@@ -259,15 +259,20 @@
             <p>Nothing here :(</p>
           </div>
           <ul v-if="partyResult && partyResult.length > 0" class="search-list">
-            <li v-for="party in partyResult" :key="party.id">
-              {{ party.name }} ({{ party.id }})
-              <input
-                type="button"
-                value="Set"
-                v-on:click="setParty(party.id)"
-              />
+            <li v-for="p in partyResult" :key="p.id">
+              <span v-if="party && p.id === party.id">
+                <strong>Current: {{ p.name }} ({{ p.id }})</strong>
+              </span>
+              <span v-else>
+                {{ p.name }} ({{ p.id }})
+                <input type="button" value="Set" v-on:click="setParty(p.id)" />
+              </span>
             </li>
           </ul>
+        </div>
+
+        <div v-if="user.host.id">
+          <button v-on:click="createParty()">Create new party</button>
         </div>
 
         <hr />
@@ -475,6 +480,16 @@ export default {
         })
         .catch(() => {
           this.partyResult = null;
+        });
+    },
+    createParty() {
+      api.party
+        .createParty()
+        .then(() => {
+          window.location.reload();
+        })
+        .catch((r) => {
+          console.log(r);
         });
     },
     setParty(id) {

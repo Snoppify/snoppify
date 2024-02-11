@@ -7,7 +7,7 @@ import { logger } from "../utils/snoppify-logger";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
 import { userGuestAuth, userHostAuth } from "../utils/middlewares/user";
-import { removeSnoppifyHostParty, removeSnoppifyHostUser } from "../spotify";
+import { createParty, removeSnoppifyHostParty, removeSnoppifyHostUser } from "../spotify";
 
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line global-require
@@ -246,6 +246,20 @@ export default function routes(passport: PassportStatic) {
     data.result.sort((a, b) => a.score - b.score);
 
     res.send(data);
+  });
+
+  router.post("/create-party", userHostAuth, async (req, res) => {
+    const party = await createParty(req.user, req.snoppifyHost);
+
+    req.snoppifyHost.controller
+      .setParty(party.id)
+      .then((data) => {
+        req.user.host.id = party.id;
+        req.user.host.name = party.name;
+
+        userService.upsave(req.user).then(() => res.send(data));
+      })
+      .catch(errorHandler(res));
   });
 
   router.post("/set-party", userHostAuth, (req, res) => {

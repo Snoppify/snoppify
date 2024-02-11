@@ -15,13 +15,13 @@
       <div v-else>
         <h1>Welcome to Snoppify!</h1>
 
-        <div class="party" v-if="party">
+        <div class="party" v-if="user && user.host && party">
           <div class="party__container">
             <p class="party__info">Ongoing party:</p>
             <div class="party__body">
               <div>
                 <p>{{ party.name }}</p>
-                <p>({{ party.hostCode }})</p>
+                <!-- <p>({{ party.hostCode }})</p> -->
               </div>
               <button
                 class="party__button"
@@ -34,14 +34,14 @@
           </div>
         </div>
 
-        <div class="start-input">
+        <!-- <div class="start-input">
           <div class="start-input__text">
             <input v-model="hostIP" placeholder="Host IP or SnoppiCode" />
           </div>
-        </div>
+        </div> -->
         <div class="start-input">
           <div class="start-input__text">
-            <input v-model="partyId" placeholder="Party id" />
+            <input v-model="partyId" placeholder="Enter party code" />
           </div>
         </div>
 
