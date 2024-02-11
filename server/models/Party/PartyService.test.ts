@@ -24,6 +24,7 @@ describe("PartyService", () => {
         name: "name",
         active: true,
         hostUserId: "userID",
+        snoppiCodeUUID: "00000000",
       }),
     );
     jest
@@ -62,6 +63,7 @@ describe("PartyService", () => {
       backupPlaylistId: "backupPlaylistId",
       currentTrack: {} as any,
       wifi: { encryption: "lol", password: "lol", ssid: "lol" },
+      snoppiCodeUUID: "00000000",
     };
 
     await partyService.upsave(party);
@@ -78,6 +80,7 @@ describe("PartyService", () => {
       queueId: party.queue.id,
       hostUserId: party.hostUser.id,
       backupPlaylistId: party.backupPlaylistId,
+      snoppiCodeUUID: party.snoppiCodeUUID,
     });
 
     expect(mockedQueueService.upsave).toHaveBeenCalledWith(party.queue);

@@ -35,6 +35,7 @@ describe("SpotifyController", () => {
       mainPlaylistId: newParty.mainPlaylistId,
       queue: expect.any(Queue),
       hostUser,
+      snoppiCodeUUID: "00000000",
     });
 
     // has mainPlaylistId
@@ -85,6 +86,7 @@ describe("SpotifyController", () => {
       name: "Party name!",
       active: true,
       queue: new Queue(),
+      snoppiCodeUUID: "00000000",
     };
 
     const partyServiceSpy = jest

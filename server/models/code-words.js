@@ -592,7 +592,47 @@ function getIP(code) {
   return a.join(".");
 }
 
+function getSnoppiCodeFromUUID(uid) {
+  if (!uid || uid.length !== 8) {
+    return null;
+  }
+  // split in pairs of two
+  const pairs = uid.match(/.{1,2}/g);
+  const snoppiCode = pairs.map((pair, i) => {
+    const pairInt = parseInt(pair, 16);
+    if (i === 0) {
+      return adjectiveWords[pairInt];
+    }
+    return nounWords[pairInt];
+  });
+  return snoppiCode.join(" ");
+}
+
+function getUUIDFromSnoppiCode(snoppiCode) {
+  if (!snoppiCode || typeof snoppiCode !== "string") {
+    return null;
+  }
+  const words = snoppiCode.split(" ");
+  if (words.length !== 4) {
+    return null;
+  }
+  const uuid = words.map((word, i) => {
+    if (i === 0) {
+      return adjectiveWords.indexOf(word).toString(16).padStart(2, "0");
+    }
+    return nounWords.indexOf(word).toString(16).padStart(2, "0");
+  });
+  return uuid.join("");
+}
+
+function isValidUUID(uuid) {
+  return /^[0-9a-f]{8}$/.test(uuid);
+}
+
 module.exports = {
   getCode,
+  getSnoppiCodeFromUUID,
+  getUUIDFromSnoppiCode,
+  isValidUUID,
   getIP,
 };

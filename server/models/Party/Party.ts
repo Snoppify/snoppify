@@ -12,6 +12,7 @@ export interface PartyNormalized {
   backupPlaylistId?: string;
   wifi?: { ssid: string; password: string; encryption: string };
   hostUserId: string;
+  snoppiCodeUUID: string;
 }
 
 export interface PartyFull {
@@ -24,4 +25,5 @@ export interface PartyFull {
   backupPlaylistId?: string;
   wifi?: { ssid: string; password: string; encryption: string };
   hostUser: User;
+  snoppiCodeUUID: string;
 }

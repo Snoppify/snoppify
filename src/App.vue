@@ -23,7 +23,7 @@ export default {
   created() {
     if (api.initialized) {
       this.getInfo().then((res) => {
-        this.$store.commit("Party/SET_PARTY", res.party);
+        this.$store.commit("Party/SET_INFO", res);
         this.$store.commit("Queue/SET_QUEUE", res.queue);
         this.$store.commit("Queue/SET_CURRENT_TRACK", res.currentTrack);
         this.$store.commit("Queue/SET_BACKUP_PLAYLIST", res.backupPlaylist);

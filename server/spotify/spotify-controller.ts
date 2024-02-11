@@ -1,5 +1,6 @@
 /* global SpotifyApi */
 
+import { getSnoppiCodeFromUUID } from "../models/code-words";
 import { PartyFull } from "../models/Party/Party";
 import { partyService } from "../models/Party/PartyService";
 import { Queue } from "../models/Queue/Queue";
@@ -68,6 +69,7 @@ export class SpotifyController {
       }),
       hostUser: opts.hostUser,
       active: true,
+      snoppiCodeUUID: await partyService.getUniqueSnoppiCodeUUID(),
     };
 
     this.party = party;
@@ -108,17 +110,18 @@ export class SpotifyController {
   }
 
   getInfo() {
+    const party = this.getParty();
     return {
-      party: this.getParty(),
+      party,
       queue: this.getQueue(),
       currentTrack: this.getCurrentTrack(),
       backupPlaylist: this.getBackupPlaylist(),
+      snoppiCode: getSnoppiCodeFromUUID(party?.snoppiCodeUUID),
     };
   }
 
   async start() {
     this.beginPlayerPoll();
-    await this.play(true);
     this.party.active = true;
     await this.saveParty();
 
@@ -911,7 +914,7 @@ export class SpotifyController {
 
     await this.reloadPlaylist();
 
-    this.start();
+    await this.stop();
   }
 
   private setupStateMachine() {

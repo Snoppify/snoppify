@@ -55,8 +55,9 @@
           Name: {{ user.host.name }}
           <input type="button" v-on:click="changePartyName()" value="change" />
         </p>
-        <p>IP: {{ user.host.ip }}</p>
-        <p>SnoppiCode: {{ user.host.hostCode }}</p>
+        <p class="snoppi-code">
+          SnoppiCode: <input type="text" disabled :value="snoppiCode" />
+        </p>
         <p>Hoster: {{ user.username }}</p>
         <p>
           Status:
@@ -367,6 +368,7 @@ export default {
       backupPlaylist: "Queue/backupPlaylist",
       wifiQR: "Session/wifiQR",
       party: "Party/party",
+      snoppiCode: "Party/snoppiCode",
     }),
     currentDevice() {
       return this.devices.find((d) => d.id === this.device);
@@ -613,6 +615,14 @@ a:hover {
 
   &.active {
     background: $snoppify-green;
+  }
+}
+
+.snoppi-code {
+  display: flex;
+
+  input {
+    width: 100%;
   }
 }
 </style>

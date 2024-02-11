@@ -3,6 +3,7 @@ import express, { Request } from "express";
 import { PassportStatic } from "passport";
 import crypto from "crypto";
 import axios from "axios";
+import { partyService } from "../../models/Party/PartyService";
 import { userService } from "../../models/User/UserService";
 import User from "../../models/User/User";
 import { createSpotifyHost, createSpotifyHostWithParty } from "../../spotify";
@@ -32,7 +33,7 @@ const decodeState = (state = "") => {
   return null;
 };
 
-const authCallback = (req: Request, res) => {
+const authCallback = async (req: Request, res) => {
   req.session.host = null;
 
   const state = decodeState(String(req.query.state));
@@ -48,7 +49,8 @@ const authCallback = (req: Request, res) => {
     case AUTH_STATE_GUEST:
       req.session.host = null;
       if (state.id) {
-        req.user.partyId = state.id;
+        const party = await partyService.getPartyFromSnoppiCode(state.id);
+        req.user.partyId = party?.id;
       }
       res.redirect("/party");
       break;
@@ -154,7 +156,10 @@ export default function routesAuthIndex(passport: PassportStatic) {
     async (req, res) => {
       req.session.host = null;
       if (req.body.partyId) {
-        req.user.partyId = req.body.partyId;
+        const party = await partyService.getPartyFromSnoppiCode(
+          req.body.partyId,
+        );
+        req.user.partyId = party?.id;
         await userService.upsave(req.user);
       }
       res.redirect("/party");
@@ -170,7 +175,10 @@ export default function routesAuthIndex(passport: PassportStatic) {
     async (req, res) => {
       req.session.host = null;
       if (req.body.partyId) {
-        req.user.partyId = req.body.partyId;
+        const party = await partyService.getPartyFromSnoppiCode(
+          req.body.partyId,
+        );
+        req.user.partyId = party?.id;
         await userService.upsave(req.user);
       }
       res.redirect("/party");

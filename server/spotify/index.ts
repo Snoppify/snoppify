@@ -1,9 +1,11 @@
+import { partyService } from "../models/Party/PartyService";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
 import { logger } from "../utils/snoppify-logger";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
 import SpotifyPlaybackAPI from "./spotify-playback-api";
+import { getUUIDFromSnoppiCode } from "../models/code-words";
 
 export type SnoppifyHost = {
   initialized: boolean;
@@ -54,9 +56,10 @@ const createSnoppifyHost = (opts: {
 function getSnoppifyHost(partyId: string): SnoppifyHost;
 function getSnoppifyHost(user: User): SnoppifyHost;
 function getSnoppifyHost(userOrPartyId: string | User) {
-  return typeof userOrPartyId === "string"
-    ? activeHosts[userOrPartyId]
-    : activeHosts[userOrPartyId?.partyId] || activeHosts[userOrPartyId?.id];
+  const partyId =
+    typeof userOrPartyId === "string" ? userOrPartyId : userOrPartyId?.partyId;
+  const snoppiCodeUUID = getUUIDFromSnoppiCode(partyId);
+  return activeHosts[snoppiCodeUUID] || activeHosts[partyId];
 }
 
 /**
@@ -108,7 +111,14 @@ async function createSpotifyHost(incomingUser: User): Promise<SnoppifyHost> {
   activeHosts[user.partyId] = snoppifyHost;
 
   if (user.partyId) {
-    snoppifyHost.controller.setParty(user.partyId);
+    const party = await partyService.getParty(user.partyId);
+
+    if (party) {
+      activeHosts[party.snoppiCodeUUID] = snoppifyHost;
+      snoppifyHost.controller.setParty(party.id);
+    } else {
+      logger.error(`Party not found: ${user.partyId}`);
+    }
   }
 
   return snoppifyHost;
@@ -135,7 +145,9 @@ async function createParty(
   });
 
   user.partyId = newParty.id;
+  activeHosts[user.id] = snoppifyHost;
   activeHosts[newParty.id] = snoppifyHost;
+  activeHosts[newParty.snoppiCodeUUID] = snoppifyHost;
 
   await userService.upsave(user);
 

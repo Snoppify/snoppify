@@ -2,7 +2,7 @@ import { Request, RequestHandler } from "express";
 import activityLogger from "../activity-logger";
 
 function isHost(req: Request) {
-  return req.user.host && req.user.host.status === "success";
+  return req.user && req.user.host && req.user.host.status === "success";
 }
 
 function logUserActivity(req: Request) {
