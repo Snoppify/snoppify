@@ -7,6 +7,7 @@ let repo: QueueRepository;
 export const queueService = {
   setRepository,
   getQueue,
+  deleteQueue,
   upsave,
 };
 
@@ -16,6 +17,10 @@ function setRepository(newRepo: QueueRepository) {
 
 function getQueue(id: string) {
   return repo.get(id);
+}
+
+function deleteQueue(id: string) {
+  return repo.delete(id);
 }
 
 function upsave(queue: Queue<QueueTrack>) {

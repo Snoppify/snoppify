@@ -7,6 +7,7 @@ import { logger } from "../utils/snoppify-logger";
 // import { spotifyAPIScopes } from "../spotify/spotify-playback-api";
 import routesAuthIndex from "./auth";
 import { userGuestAuth, userHostAuth } from "../utils/middlewares/user";
+import { removeSnoppifyHostParty, removeSnoppifyHostUser } from "../spotify";
 
 if (process.env.NODE_ENV !== "production") {
   // eslint-disable-next-line global-require
@@ -264,6 +265,36 @@ export default function routes(passport: PassportStatic) {
       .then((data) => {
         req.user.host.id = party.id;
         req.user.host.name = party.name;
+
+        userService.upsave(req.user).then(() => res.send(data));
+      })
+      .catch(errorHandler(res));
+  });
+
+  router.post("/delete-party", userHostAuth, async (req, res) => {
+    const party = req.user.parties.find((p) => p.id === req.body.id);
+    if (!party) {
+      res.status(404).end();
+      return;
+    }
+
+    const partyObj = await partyService.getParty(party.id);
+
+    req.snoppifyHost.controller
+      .delete(party.id)
+      .then((data) => {
+        // NOTE: the party is removed from the DB here
+        removeSnoppifyHostUser(req.user);
+        removeSnoppifyHostParty(partyObj);
+
+        // TODO: also delete snoppifyHost?
+        req.user.host = null;
+        req.user.queue = null;
+        req.user.votes = null;
+        req.user.friends = [];
+        req.user.parties =
+          req.user.parties?.filter((p) => p.id !== party.id) ?? [];
+        req.user.partyId = null;
 
         userService.upsave(req.user).then(() => res.send(data));
       })

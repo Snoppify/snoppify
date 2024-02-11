@@ -11,6 +11,7 @@ let repo: PartyRepository;
 export const partyService = {
   getParty,
   getPartyFromSnoppiCode,
+  deleteParty,
   setRepository,
   upsave,
   getUniqueSnoppiCodeUUID,
@@ -61,6 +62,10 @@ async function getPartyFromSnoppiCode(code: string): Promise<PartyFull> {
       username: "testfakelol",
     }),
   };
+}
+
+async function deleteParty(id: string): Promise<void> {
+  return repo.delete(id);
 }
 
 async function upsave(party: PartyFull): Promise<void> {

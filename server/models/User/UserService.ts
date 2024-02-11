@@ -10,6 +10,7 @@ export const userService = {
   upsave,
   setRepository,
   getAll,
+  getAllInParty,
   addToQueue,
   removeFromQueue,
 };
@@ -32,6 +33,10 @@ function setRepository(newRepo: UserRepository) {
 
 function getAll() {
   return repo.getAll();
+}
+
+function getAllInParty(partyId: string) {
+  return repo.getAllBy("partyId", partyId);
 }
 
 // TODO: Write tests THEn implement! then replace direct modification of User.queue!

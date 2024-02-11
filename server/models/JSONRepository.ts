@@ -102,4 +102,19 @@ export class JSONRepository<T extends ObjectWithID> extends Repository<T> {
       Object.values(this.store).map((o) => this.instantiateObject(o)),
     );
   }
+
+  getAllBy(key: keyof T, value: any): Promise<T[]> {
+    const storeKeys = Object.keys(this.store);
+    return Promise.resolve(
+      storeKeys
+        .filter(
+          (storeKey) =>
+            key in this.store[storeKey] && this.store[storeKey][key] === value,
+        )
+        .map((storeKey) => {
+          const result = JSON.parse(JSON.stringify(this.store[storeKey]));
+          return this.instantiateObject(result);
+        }),
+    );
+  }
 }

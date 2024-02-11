@@ -11,6 +11,7 @@ export const userService: typeof realUserService = {
   }),
   setRepository: jest.fn((newRepo: any) => (repo = { ...newRepo })),
   getAll: jest.fn(() => Promise.resolve(Object.values(repo))),
+  getAllInParty: jest.fn(() => Promise.resolve(Object.values(repo))),
   addToQueue: jest.fn((user: any) => Promise.resolve(user)),
   removeFromQueue: jest.fn((user: any) => Promise.resolve(user)),
 };

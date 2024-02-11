@@ -1,6 +1,7 @@
 import { partyService } from "../models/Party/PartyService";
 import User from "../models/User/User";
 import { userService } from "../models/User/UserService";
+import { PartyFull } from "../models/Party/Party";
 import { logger } from "../utils/snoppify-logger";
 import { createSpotifyAPIUserClient, SpotifyAPI } from "./spotify-api";
 import { SpotifyController } from "./spotify-controller";
@@ -17,6 +18,8 @@ export type SnoppifyHost = {
 export {
   createSpotifyHost,
   createSpotifyHostWithParty,
+  removeSnoppifyHostUser,
+  removeSnoppifyHostParty,
   getSnoppifyHost,
   clearActiveHosts,
 };
@@ -60,6 +63,15 @@ function getSnoppifyHost(userOrPartyId: string | User) {
     typeof userOrPartyId === "string" ? userOrPartyId : userOrPartyId?.partyId;
   const snoppiCodeUUID = getUUIDFromSnoppiCode(partyId);
   return activeHosts[snoppiCodeUUID] || activeHosts[partyId];
+}
+
+async function removeSnoppifyHostUser(user: User) {
+  delete activeHosts[user.id];
+  delete activeHosts[user.partyId];
+}
+
+async function removeSnoppifyHostParty(party: PartyFull) {
+  delete activeHosts[party.snoppiCodeUUID];
 }
 
 /**

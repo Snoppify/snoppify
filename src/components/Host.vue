@@ -74,6 +74,8 @@
         <button v-on:click="stop" v-if="party && party.active">
           Stop party
         </button>
+        <span class="button-divider"></span>
+        <button v-on:click="deleteParty" v-if="party">Delete party</button>
 
         <hr />
 
@@ -485,6 +487,19 @@ export default {
           console.log(r);
         });
     },
+    deleteParty() {
+      if (!confirm("The party and its playlist will be removed. Continue?")) {
+        return;
+      }
+      api.party
+        .deleteParty(this.party.id)
+        .then(() => {
+          window.location = "/";
+        })
+        .catch((r) => {
+          console.log(r);
+        });
+    },
     setWifiCredentials(e) {
       e.preventDefault();
       api.axios.post("wifi", this.wifiCredentials).then((string) => {
@@ -616,6 +631,14 @@ a:hover {
   &.active {
     background: $snoppify-green;
   }
+}
+
+.button-divider {
+  display: inline-block;
+  height: 1em;
+  border-left: 1px solid #888;
+  margin: 0 0.5em;
+  vertical-align: text-bottom;
 }
 
 .snoppi-code {

@@ -136,6 +136,40 @@ export class SpotifyController {
     socket.io.local.emit("info", this.getInfo());
   }
 
+  async delete(partyId: string, deletePlaylist = true) {
+    if (this.party.id !== partyId) {
+      // Some kind of fail safe, not sure...
+      throw new Error("Invalid party id");
+    }
+
+    this.stop();
+
+    // Remove party data from all users
+    const members = await userService.getAllInParty(this.party.id);
+    await Promise.all(
+      members.map((member) => {
+        const exMember = { ...member };
+        delete exMember.queue;
+        delete exMember.votes;
+        delete exMember.friends;
+        delete exMember.partyId;
+        return userService.upsave(exMember);
+      }),
+    );
+
+    // Remove queue
+    await queueService.deleteQueue(this.party.queue.id);
+
+    // Remove party
+    await partyService.deleteParty(this.party.id);
+
+    // Delete playlist
+    if (this.mainPlaylist && deletePlaylist) {
+      // Seems to be the same as deleting a playlist
+      await this.api.unfollowPlaylist(this.mainPlaylist.id);
+    }
+  }
+
   private beginPlayerPoll() {
     if (this.playerPollInterval) {
       clearInterval(this.playerPollInterval);
