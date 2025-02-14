@@ -1,4 +1,4 @@
-const socketio = require("socket.io");
+import { Server } from "socket.io";
 
 // define the actual singleton instance
 // ------------------------------------
@@ -13,7 +13,13 @@ global[SOCKET_SOCKETS_KEY] = {};
 // ------------------------
 
 const singleton = function socket(http) {
-  global[SOCKET_KEY] = socketio(http);
+  global[SOCKET_KEY] = new Server(http, {
+    cors: {
+      origin: process.env.CLIENT_URI,
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
   return singleton;
 };
 
@@ -37,4 +43,4 @@ Object.freeze(singleton);
 // export the singleton API only
 // -----------------------------
 
-module.exports = singleton;
+export default singleton;

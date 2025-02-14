@@ -1,7 +1,10 @@
 import io from "socket.io-client";
 import { store } from "./store";
 
-export const socket = io(process.env.VUE_APP_SERVER_URI);
+export const socket = io(process.env.VUE_APP_SERVER_URI, {
+  withCredentials: true,
+  transports: ["websocket", "polling", "flashsocket"],
+});
 
 const modules = Object.keys(store._modules.root._children);
 

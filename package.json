@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm run server",
+    "start-client": "node client/",
     "build": "npm run build-client-prod && npm run build-server",
     "serve": "npx vue-cli-service build --mode development --watch --port 3001",
     "build-client": "npx vue-cli-service build --mode development --dest dist",

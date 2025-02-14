@@ -64,11 +64,11 @@ const authCallback = async (req: Request, res) => {
             refresh_token: req.user._tokens.refresh_token,
           };
 
-          res.redirect("/host");
+          res.redirect(`${process.env.CLIENT_URI}/host`);
         })
         .catch((error) => {
           logger.error(error);
-          res.redirect("/host?success=false");
+          res.redirect(`${process.env.CLIENT_URI}/host?success=false`);
         });
       break;
     case AUTH_STATE_HOST_LOGIN:
@@ -80,11 +80,11 @@ const authCallback = async (req: Request, res) => {
             refresh_token: req.user._tokens.refresh_token,
           };
 
-          res.redirect("/host");
+          res.redirect(`${process.env.CLIENT_URI}/host`);
         })
         .catch((error) => {
           logger.error(error);
-          res.redirect("/host?success=false");
+          res.redirect(`${process.env.CLIENT_URI}/host?success=false`);
         });
       break;
     default:
@@ -243,7 +243,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
   router.get(
     "/auth/facebook/callback",
     passport.authenticate("facebook", {
-      failureRedirect: `${process.env.SERVER_URI}/host?success=false`,
+      failureRedirect: `${process.env.CLIENT_URI}/host?success=false`,
     }),
     authCallback,
   );
@@ -264,7 +264,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
   router.get(
     "/auth/google/callback",
     passport.authenticate("google", {
-      failureRedirect: `${process.env.SERVER_URI}/host?success=false`,
+      failureRedirect: `${process.env.CLIENT_URI}/host?success=false`,
     }),
     authCallback,
   );
@@ -310,7 +310,7 @@ export default function routesAuthIndex(passport: PassportStatic) {
   router.get(
     "/auth/spotify/callback",
     passport.authenticate("spotify", {
-      failureRedirect: `${process.env.SERVER_URI}/host?success=false`,
+      failureRedirect: `${process.env.CLIENT_URI}/host?success=false`,
     }),
     authCallback,
   );

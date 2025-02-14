@@ -29,6 +29,7 @@ module.exports = {
   ignorePatterns: [
     "dist/",
     "data/",
+    "client/",
     "server-dist/",
     "electron/",
     "electron-dist/",

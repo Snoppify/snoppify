@@ -1,0 +1,49 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    env_file: ".env"
+    ports:
+      - 3000:3000
+    stdin_open: true
+    volumes:
+      - ./:/app
+    restart: always
+    networks:
+      - snoppify-app
+    depends_on:
+      - backend
+  backend:
+    restart: always
+    container_name: backend
+    build:
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+    env_file: ".env"
+    ports:
+      - 3002:3000
+    volumes:
+      - ./:/app
+    depends_on:
+      - database
+    networks:
+      - snoppify-database
+      - snoppify-app
+  database:
+    restart: always
+    container_name: database
+    image: mongo:4.2.0
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - snoppify-database
+    expose:
+      - 27017
+networks:
+  snoppify-app:
+  snoppify-database:
+
+volumes:
+  mongo_data:

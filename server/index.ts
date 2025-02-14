@@ -32,6 +32,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 80;
+const serveStaticClient = process.env.SERVE_STATIC_CLIENT === "true";
 
 const LokiStore = connectLoki(session);
 
@@ -93,7 +94,10 @@ app.use(
   }),
 );
 app.use(cookieparser);
-app.use(express.static(rootDir));
+
+if (serveStaticClient) {
+  app.use(express.static(rootDir));
+}
 
 const mysession = session({
   secret: "spotify är sh1t, snoppify är bra!",
@@ -133,7 +137,7 @@ app.use("/ping", (_, res) => {
 
 app.use(
   fallback("index.html", {
-    root: rootDir,
+    root: serveStaticClient ? rootDir : `${appRootPath}/server`,
   }),
 );
 
