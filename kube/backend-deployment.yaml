@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f compose.yaml
+    kompose.version: 1.35.0 (9532ceef3)
+  labels:
+    io.kompose.service: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f compose.yaml
+        kompose.version: 1.35.0 (9532ceef3)
+      labels:
+        io.kompose.service: backend
+    spec:
+      containers:
+        - env:
+            - name: CLIENT_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: CLIENT_URI
+                  name: env
+            - name: ENABLE_SIGNUP
+              valueFrom:
+                configMapKeyRef:
+                  key: ENABLE_SIGNUP
+                  name: env
+            - name: FACEBOOK_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: FACEBOOK_CLIENT_ID
+                  name: env
+            - name: FACEBOOK_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: FACEBOOK_CLIENT_SECRET
+                  name: env
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: GOOGLE_CLIENT_ID
+                  name: env
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: GOOGLE_CLIENT_SECRET
+                  name: env
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: env
+            - name: SERVER_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_URI
+                  name: env
+            - name: SERVE_STATIC_CLIENT
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVE_STATIC_CLIENT
+                  name: env
+            - name: SPOTIFY_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: SPOTIFY_CLIENT_ID
+                  name: env
+            - name: SPOTIFY_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: SPOTIFY_CLIENT_SECRET
+                  name: env
+            - name: TURNSTILE_SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: TURNSTILE_SECRET_KEY
+                  name: env
+            - name: VUE_APP_SERVER_URI
+              valueFrom:
+                configMapKeyRef:
+                  key: VUE_APP_SERVER_URI
+                  name: env
+          image: backend
+          name: backend
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app
+              name: backend-cm0
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: backend-cm0
+          name: backend-cm0

@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  CLIENT_URI: http://snoppify.local.gd:3000
+  ENABLE_SIGNUP: "true"
+  FACEBOOK_CLIENT_ID: "441745129577205"
+  FACEBOOK_CLIENT_SECRET: 2eb6de98b65a4f29b6e098932bab43dd
+  GOOGLE_CLIENT_ID: 753036895161-s4js5717669so22j1om84nndnmioo395.apps.googleusercontent.com
+  GOOGLE_CLIENT_SECRET: PS2wtk-0S-VBgI90fn24_1K6
+  PORT: "3000"
+  SERVE_STATIC_CLIENT: "false"
+  SERVER_URI: http://snoppify.local.gd:3002
+  SPOTIFY_CLIENT_ID: 1e62943d6e7843afb48654f227fa06b4
+  SPOTIFY_CLIENT_SECRET: f01c555344e249d2895fbf73f6255290
+  TURNSTILE_SECRET_KEY: 0x4AAAAAAARUYsC3R-ctExGkYM341sa53Co
+  VUE_APP_SERVER_URI: http://snoppify.local.gd:3002
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: backend-env
+  name: env
