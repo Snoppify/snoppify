@@ -1,3 +1,4 @@
+import User from "../User/User";
 import { Queue } from "./Queue";
 import { QueueRepository } from "./QueueRepository";
 import { QueueTrack } from "./QueueTrack";
@@ -21,3 +22,9 @@ function getQueue(id: string) {
 function upsave(queue: Queue<QueueTrack>) {
   return repo.upsave(queue);
 }
+
+function removeFromQueue(opts: {
+  queue: Queue<QueueTrack>;
+  track: { id: string };
+  user?: User;
+}) {}

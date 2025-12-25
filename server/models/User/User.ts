@@ -31,6 +31,10 @@ export default class User extends UserBase {
   // TODO: Move to UserService and call QueueService to empty queue
   static clearUser(user: User) {
     // user.queue.clear();  // TODO: Move to UserService and call QueueService to empty queue
+
+    // eslint-disable-next-line no-param-reassign
+    user.queue = new StaticQueue({ id: user.queue.id });
+
     // eslint-disable-next-line no-param-reassign
     user.votes = {
       received: {},

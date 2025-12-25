@@ -1,4 +1,4 @@
-import { Queue } from "../Queue/Queue";
+import { StaticQueue } from "../Queue/StaticQueue";
 import User from "./User";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { userService } from "./UserService";
@@ -47,7 +47,7 @@ function assertValidNewMinimalUser(newUser: User) {
   expect(newUser.username).toBe(expetedUserData.username);
   expect(newUser.displayName).toBe(expetedUserData.displayName);
   expect(newUser.id).toBe(expetedUserData.id);
-  expect(newUser.queue).toStrictEqual(new Queue({ id: "id", queue: [] }));
+  expect(newUser.queue).toStrictEqual(new StaticQueue({ id: "id", queue: [] }));
   expect(newUser.friends).toStrictEqual([]);
   expect(newUser.votes).toStrictEqual({
     received: {},
@@ -60,7 +60,7 @@ function assertValidNewMinimalUser(newUser: User) {
 function fullUserData() {
   return {
     ...minimalUserData(),
-    queue: new Queue({ queue: [{ id: "SONG_ID" }] }),
+    queue: new StaticQueue({ queue: [{ id: "SONG_ID" }] }),
     votes: {
       received: { OTHER_USER_ID_1: 1 },
       given: { OTHER_USER_ID_1: 1, OTHER_USER_ID_2: 2 },
@@ -79,7 +79,7 @@ function assertValidNewFullUser(newUser: User) {
   expect(newUser.displayName).toBe(expetedUserData.displayName);
   expect(newUser.id).toBe(expetedUserData.id);
   expect(newUser.queue).toStrictEqual(
-    new Queue({ id: "id", queue: [{ id: "SONG_ID" }] }),
+    new StaticQueue({ id: "id", queue: [{ id: "SONG_ID" }] }),
   );
   expect(newUser.friends).toStrictEqual(expetedUserData.friends);
   expect(newUser.votes).toStrictEqual(expetedUserData.votes);
