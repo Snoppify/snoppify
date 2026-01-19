@@ -35,12 +35,12 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 **Day 5: Frontend Scaffold**
 - [ ] Create web/ directory
 - [ ] Initialize with `bun create vite` for React + TypeScript
-- [ ] Install dependencies using Bun: Tailwind, Zustand, React Router, Socket.io client
+- [ ] Install dependencies using Bun: Panda CSS, Park UI, Zustand, React Router, Socket.io client
 - [ ] Install `@hey-api/openapi-ts` for client generation
-- [ ] Configure Tailwind CSS
+- [ ] Configure Panda CSS with design tokens
 - [ ] Set up basic routing structure
 - [ ] Create base layout component
-- [ ] Add Shadcn/ui components
+- [ ] Add Park UI components (Button, Card, Input, Dialog)
 
 ### Week 2: Backend & Database
 

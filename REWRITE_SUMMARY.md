@@ -56,7 +56,7 @@ A democratic party music queue app that integrates with Spotify. Multiple users 
 ## Rewrite Goals
 
 ### New Tech Stack
-- **Frontend:** React 18 + TypeScript + Tailwind + Zustand
+- **Frontend:** React 18 + TypeScript + Panda CSS + Zustand
 - **Backend:** Bun + TypeScript + Hono + OpenAPI
 - **Database:** PostgreSQL + Redis
 - **Real-time:** Socket.io (maintained for compatibility)

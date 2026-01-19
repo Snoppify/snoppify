@@ -510,15 +510,141 @@ bun add react-router-dom
 bun add socket.io-client
 bun add @tanstack/react-query
 
-# Install Tailwind
-bun add -D tailwindcss postcss autoprefixer
-bunx tailwindcss init -p
+# Install Panda CSS
+bun add -D @pandacss/dev
+bunx panda init --postcss
 
-# Install Shadcn/ui
-bunx shadcn-ui@latest init
+# Install Park UI (Panda CSS component library)
+bunx @park-ui/cli init
+bunx @park-ui/cli add button card input dialog
 
 # Install OpenAPI client generator
 bun add -D @hey-api/openapi-ts
+```
+
+### Configure Panda CSS
+
+```bash
+# panda.config.ts is created by init, but let's configure it
+cat > panda.config.ts << 'EOF'
+import { defineConfig } from '@pandacss/dev'
+
+export default defineConfig({
+  // Enable preflight (CSS reset)
+  preflight: true,
+  
+  // Include files to scan for Panda CSS usage
+  include: ['./src/**/*.{js,jsx,ts,tsx}'],
+  exclude: [],
+  
+  // Design tokens
+  theme: {
+    extend: {
+      tokens: {
+        colors: {
+          primary: { value: '#7c3aed' },      // Purple (Spotify-like)
+          secondary: { value: '#6b7280' },    // Gray
+          success: { value: '#10b981' },      // Green
+          danger: { value: '#ef4444' },       // Red
+          warning: { value: '#f59e0b' },      // Amber
+          background: { value: '#ffffff' },   // White
+          foreground: { value: '#0f172a' },   // Dark slate
+        },
+        spacing: {
+          xs: { value: '0.5rem' },   // 8px
+          sm: { value: '1rem' },     // 16px
+          md: { value: '1.5rem' },   // 24px
+          lg: { value: '2rem' },     // 32px
+          xl: { value: '3rem' },     // 48px
+        },
+        radii: {
+          sm: { value: '0.375rem' }, // 6px
+          md: { value: '0.5rem' },   // 8px
+          lg: { value: '0.75rem' },  // 12px
+          full: { value: '9999px' },
+        },
+      },
+      // Component recipes for reusable styles
+      recipes: {
+        button: {
+          className: 'button',
+          description: 'Button component styles',
+          base: {
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 'md',
+            fontWeight: 'medium',
+            transition: 'all 0.2s',
+            cursor: 'pointer',
+            _disabled: {
+              opacity: 0.5,
+              cursor: 'not-allowed',
+            },
+          },
+          variants: {
+            variant: {
+              primary: {
+                bg: 'primary',
+                color: 'white',
+                _hover: { bg: 'purple.600' },
+              },
+              secondary: {
+                bg: 'secondary',
+                color: 'white',
+                _hover: { bg: 'gray.600' },
+              },
+              outline: {
+                border: '2px solid',
+                borderColor: 'primary',
+                color: 'primary',
+                _hover: { bg: 'purple.50' },
+              },
+            },
+            size: {
+              sm: { px: '3', py: '1.5', fontSize: 'sm' },
+              md: { px: '4', py: '2', fontSize: 'md' },
+              lg: { px: '6', py: '3', fontSize: 'lg' },
+            },
+          },
+          defaultVariants: {
+            variant: 'primary',
+            size: 'md',
+          },
+        },
+        card: {
+          className: 'card',
+          description: 'Card component styles',
+          base: {
+            bg: 'background',
+            border: '1px solid',
+            borderColor: 'gray.200',
+            borderRadius: 'lg',
+            p: 'md',
+            shadow: 'md',
+          },
+        },
+      },
+    },
+  },
+  
+  // Output directory for generated CSS
+  outdir: 'styled-system',
+})
+EOF
+
+# Generate Panda CSS output
+bunx panda codegen
+```
+
+**Why Panda CSS?**
+- ✅ **Type-Safe:** Autocomplete for all styles, catch typos at compile-time
+- ✅ **Zero Runtime:** All styles processed at build time, no runtime CSS-in-JS overhead
+- ✅ **Design Tokens:** Centralized theme configuration with type safety
+- ✅ **Recipes:** Reusable component styles with variants (like CVA but built-in)
+- ✅ **No Utility Class Spam:** Clean JSX without `className="flex items-center justify-center p-4 bg-blue-500..."`
+- ✅ **Performance:** Generates optimized CSS at build time
+- ✅ **DX:** Better than Tailwind (type-safe) and styled-components (zero runtime)
 ```
 
 ### Generate TypeScript Client from OpenAPI
@@ -553,11 +679,16 @@ bun run generate:client
 ### Example: Using Generated Client
 
 ```bash
-# Create a page that uses the generated client
+# Create a page that uses the generated client with Park UI components
 cat > src/pages/CreateParty.tsx << 'EOF'
 import { useState } from 'react'
 import { createParty } from '@/client/services.gen'
 import type { PartySchema } from '@/client/types.gen'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { css } from '@/styled-system/css'
+import { container, vstack } from '@/styled-system/patterns'
 
 export function CreateParty() {
   const [partyName, setPartyName] = useState('')
@@ -588,36 +719,46 @@ export function CreateParty() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Create a Party</h1>
+    <div className={container({ maxW: '2xl', p: '4' })}>
+      <h1 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '4' })}>
+        Create a Party
+      </h1>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
+      <form onSubmit={handleSubmit} className={vstack({ gap: '4', alignItems: 'stretch' })}>
+        <Input
           type="text"
           value={partyName}
           onChange={(e) => setPartyName(e.target.value)}
           placeholder="Party name"
-          className="border p-2 rounded w-full"
         />
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          variant="primary"
+          size="lg"
         >
           {loading ? 'Creating...' : 'Create Party'}
-        </button>
+        </Button>
       </form>
       
       {party && (
-        <div className="mt-4 p-4 bg-green-100 rounded">
-          <p>Party created: {party.name}</p>
-          <p>ID: {party.id}</p>
-        </div>
+        <Card className={css({ mt: '4', bg: 'green.50', borderColor: 'green.200' })}>
+          <p className={css({ fontWeight: 'semibold' })}>Party created: {party.name}</p>
+          <p className={css({ color: 'gray.600', fontSize: 'sm' })}>ID: {party.id}</p>
+        </Card>
       )}
     </div>
   )
 }
 EOF
+```
+
+**Notice the benefits:**
+- ✅ **Type-safe:** `css()` and patterns like `container()` are fully typed
+- ✅ **No class spam:** Clean, readable JSX
+- ✅ **Park UI components:** Pre-built accessible components styled with Panda
+- ✅ **Design tokens:** Colors and spacing use your configured tokens
+- ✅ **Autocomplete:** IDE suggests available tokens and patterns
 ```
 
 ### Type Safety Workflow
@@ -636,27 +777,6 @@ bun run generate:client
 
 # 4. Use typed API in frontend
 # Types are synchronized! Compile errors if API changes!
-```
-
-### Configure Tailwind
-```bash
-# Update tailwind.config.js
-cat > tailwind.config.js << 'EOF'
-/** @type {import('tailwindcss').Config} */
-export default {
-  darkMode: ["class"],
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [require("tailwindcss-animate")],
-}
-EOF
 ```
 
 ### Create Basic App Structure
@@ -686,22 +806,36 @@ function App() {
 export default App
 EOF
 
-# Create placeholder pages
+# Create placeholder pages with Panda CSS
 cat > src/pages/Landing.tsx << 'EOF'
 import { Link } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { css } from '@/styled-system/css'
+import { center, vstack } from '@/styled-system/patterns'
 
 export function Landing() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600">
-      <div className="text-center text-white">
-        <h1 className="text-6xl font-bold mb-4">Snoppify</h1>
-        <p className="text-xl mb-8">Democratic party playlists</p>
-        <Link 
-          to="/login" 
-          className="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition"
-        >
-          Get Started
-        </Link>
+    <div className={css({
+      minH: 'screen',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      bgGradient: 'to-br',
+      gradientFrom: 'purple.600',
+      gradientTo: 'blue.600',
+    })}>
+      <div className={vstack({ gap: '6', textAlign: 'center', color: 'white' })}>
+        <h1 className={css({ fontSize: '6xl', fontWeight: 'bold' })}>
+          Snoppify
+        </h1>
+        <p className={css({ fontSize: 'xl' })}>
+          Democratic party playlists
+        </p>
+        <Button asChild variant="outline" size="lg">
+          <Link to="/login">
+            Get Started
+          </Link>
+        </Button>
       </div>
     </div>
   )
@@ -709,19 +843,26 @@ export function Landing() {
 EOF
 
 cat > src/pages/Login.tsx << 'EOF'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { css } from '@/styled-system/css'
+import { center, vstack } from '@/styled-system/patterns'
+
 export function Login() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold mb-6">Login to Snoppify</h1>
-        <div className="space-y-4">
-          <button className="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600">
+    <div className={center({ minH: 'screen' })}>
+      <Card className={css({ p: '8', shadow: 'lg', maxW: 'md' })}>
+        <h1 className={css({ fontSize: '2xl', fontWeight: 'bold', mb: '6' })}>
+          Login to Snoppify
+        </h1>
+        <div className={vstack({ gap: '4' })}>
+          <Button variant="primary" size="lg" className={css({ w: 'full', bg: 'green.500' })}>
             Login with Spotify
-          </button>
-          <button className="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600">
+          </Button>
+          <Button variant="primary" size="lg" className={css({ w: 'full', bg: 'blue.500' })}>
             Login with Google
-          </button>
-          <button className="w-full bg-blue-700 text-white py-3 rounded-lg hover:bg-blue-800">
+          </Button>
+          <Button variant="primary" size="lg" className={css({ w: 'full', bg: 'blue.700' })}>
             Login with Facebook
           </button>
         </div>

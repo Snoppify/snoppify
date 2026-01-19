@@ -13,12 +13,116 @@ This document specifies the requirements and approach for a complete rewrite of 
 - **Why React:** Excellent AI tooling support, massive ecosystem, strong TypeScript integration
 - **Why TypeScript:** Type safety, better IDE support, fewer runtime errors
 - **API Client:** Auto-generated from OpenAPI spec using `@hey-api/openapi-ts` (zero manual maintenance)
-- **UI Framework:** Shadcn/ui + Radix UI (accessible, customizable components)
-- **Styling:** Tailwind CSS (utility-first, fast development)
+- **UI Framework:** Park UI + Ark UI (accessible, customizable components - Panda CSS equivalent of Shadcn/ui)
+- **Styling:** Panda CSS (type-safe, zero-runtime CSS-in-JS with design tokens and recipes)
 - **State Management:** Zustand (lightweight, simple, TypeScript-first)
 - **Routing:** React Router v6 (standard, well-supported)
 - **Real-Time:** Socket.io client
 - **Build Tool:** Vite (fast dev server, optimized builds)
+
+#### Why Panda CSS + Park UI?
+
+**Panda CSS** is a next-generation styling solution that combines the best of utility-first CSS (like Tailwind) with type safety and zero runtime overhead:
+
+✅ **Type-Safe Styling:**
+```typescript
+import { css } from '@/styled-system/css'
+
+// Full autocomplete and type checking
+<div className={css({ 
+  color: 'primary',      // ✅ Autocomplete shows your design tokens
+  fontSize: 'xl',        // ✅ Type-safe - typos caught at compile time
+  padding: 'md',         // ✅ Uses your configured spacing tokens
+})} />
+```
+
+✅ **Zero Runtime Overhead:**
+- All styles processed at build time
+- No runtime CSS-in-JS library loaded
+- Generates optimized CSS file
+- Better performance than Tailwind (no PurgeCSS needed) or styled-components (no runtime)
+
+✅ **Design Tokens & Recipes:**
+```typescript
+// panda.config.ts - Type-safe design system
+export default defineConfig({
+  theme: {
+    tokens: {
+      colors: {
+        primary: { value: '#7c3aed' },    // Purple (Spotify-like)
+        secondary: { value: '#6b7280' },  // Gray
+      },
+      spacing: {
+        xs: { value: '0.5rem' },
+        sm: { value: '1rem' },
+      },
+    },
+    recipes: {
+      button: {
+        base: { /* base styles */ },
+        variants: {
+          variant: {
+            primary: { bg: 'primary', color: 'white' },
+            outline: { border: '2px solid', borderColor: 'primary' },
+          },
+          size: {
+            sm: { px: '3', py: '1.5' },
+            lg: { px: '6', py: '3' },
+          },
+        },
+      },
+    },
+  },
+})
+```
+
+✅ **Clean JSX (No Utility Class Spam):**
+```typescript
+// ❌ Tailwind - Long className strings
+<button className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-md font-medium hover:bg-purple-700">
+
+// ✅ Panda CSS - Clean and typed
+import { button } from '@/styled-system/recipes'
+<button className={button({ variant: 'primary', size: 'md' })}>
+```
+
+✅ **Patterns for Common Layouts:**
+```typescript
+import { container, vstack, hstack } from '@/styled-system/patterns'
+
+<div className={container({ maxW: '2xl' })}>
+  <div className={vstack({ gap: '4' })}>
+    <div className={hstack({ justify: 'between' })}>
+      {/* Content */}
+    </div>
+  </div>
+</div>
+```
+
+**Park UI** provides pre-built accessible components (similar to Shadcn/ui) that are styled with Panda CSS:
+- Button, Card, Input, Dialog, Select, Tabs, etc.
+- Fully accessible (ARIA compliant)
+- Fully customizable with Panda recipes
+- Built on Ark UI (headless, unstyled base)
+- Copy-paste components (not installed as dependency)
+
+**Installation:**
+```bash
+bun add -D @pandacss/dev
+bunx panda init --postcss
+bunx @park-ui/cli init
+bunx @park-ui/cli add button card input dialog
+```
+
+**Benefits over Tailwind + Shadcn:**
+| Feature | Panda CSS | Tailwind |
+|---------|-----------|----------|
+| Type Safety | ✅ Full autocomplete | ❌ String-based |
+| Runtime | ✅ Zero | ⚠️ Needs PurgeCSS |
+| Design Tokens | ✅ Built-in | ⚠️ Via config |
+| Recipes | ✅ Built-in with variants | ❌ Manual CVA |
+| Clean JSX | ✅ No class spam | ❌ Long classNames |
+| Performance | ✅ Build-time only | ⚠️ Runtime PurgeCSS |
 
 ### Backend
 **Bun + TypeScript**

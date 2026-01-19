@@ -53,7 +53,7 @@ Snoppify is a **democratic party music queue application** that integrates with 
 ### Frontend
 - **React 18** + TypeScript
 - **Vite** (dev) / **Bun bundler** (production builds)
-- **Tailwind CSS** + Shadcn/ui (styling)
+- **Panda CSS** + Park UI (type-safe, zero-runtime styling with design tokens)
 - **Zustand** (state management)
 - **React Router** (routing)
 - **Socket.io Client** (real-time)
