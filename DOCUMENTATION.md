@@ -50,7 +50,7 @@ Snoppify is a **democratic party music queue application** that integrates with 
 
 ### Frontend
 - **React 18** + TypeScript
-- **Vite** (build tool)
+- **Vite** (dev) / **Bun bundler** (production builds)
 - **Tailwind CSS** + Shadcn/ui (styling)
 - **Zustand** (state management)
 - **React Router** (routing)
@@ -64,9 +64,17 @@ Snoppify is a **democratic party music queue application** that integrates with 
 - **Redis** (sessions + caching)
 - **Socket.io** (real-time)
 
+### Development (All-in-One with Bun)
+- **Runtime:** Bun (3x faster than Node.js)
+- **Package Manager:** Bun (replaces npm/yarn/pnpm)
+- **Bundler:** Bun build (replaces Webpack/esbuild)
+- **Test Runner:** Bun test (replaces Jest/Vitest)
+- **Transpiler:** Built-in TypeScript/JSX (no babel/tsc)
+- **Monorepo:** Bun workspaces (replaces Turborepo)
+
 ### Why These Choices?
 - **React:** Best AI tooling, huge ecosystem, excellent TypeScript support
-- **Bun:** 3x faster than Node.js, built-in TypeScript, modern APIs
+- **Bun:** All-in-one tool - fewer dependencies, faster everything, simpler setup
 - **PostgreSQL:** Battle-tested, ACID compliance, powerful queries
 - **Redis:** Fast sessions, pub/sub for real-time, excellent caching
 
@@ -220,14 +228,14 @@ See [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) for complete code examp
 
 ## 🧪 Testing Strategy
 
-### Unit Tests (Vitest)
+### Unit Tests (Bun Test)
 - API endpoint handlers
 - Business logic (queue ordering, voting)
 - Database queries
 - Spotify service methods
 - Target: 80%+ coverage
 
-### Integration Tests
+### Integration Tests (Bun Test)
 - API endpoint flows
 - Database operations
 - Socket.io events
@@ -240,6 +248,14 @@ See [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) for complete code examp
 - Vote on track
 - Host controls playback
 - Real-time updates across clients
+
+### Why Bun Test?
+- **Jest-compatible:** Easy to learn if you know Jest
+- **Fast:** Concurrent execution, built-in transpiler
+- **No config:** Works with TypeScript/JSX out-of-the-box
+- **Built-in:** No extra dependencies needed
+- **Coverage:** `bun test --coverage`
+- **Watch mode:** `bun test --watch`
 
 ---
 

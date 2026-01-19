@@ -60,12 +60,12 @@ A democratic party music queue app that integrates with Spotify. Multiple users 
 - **Backend:** Bun + TypeScript + Hono
 - **Database:** PostgreSQL + Redis
 - **Real-time:** Socket.io (maintained for compatibility)
-- **Build Tools:** Vite (frontend), Bun (backend)
+- **Build/Test/Package:** All handled by Bun (all-in-one tool)
 - **Deployment:** Docker containers
 
 ### Why These Choices?
 - **React:** Best AI tooling support, huge ecosystem, excellent TypeScript integration
-- **Bun:** Ultra-fast runtime, built-in TypeScript, modern APIs, excellent performance
+- **Bun:** All-in-one tool (runtime + package manager + bundler + test runner), 3x faster than Node.js
 - **PostgreSQL:** Battle-tested, ACID compliance, scales well, powerful query capabilities
 - **Redis:** Fast session storage, pub/sub for real-time, excellent caching layer
 - **TypeScript:** Type safety across the stack, fewer bugs, better maintainability
@@ -319,7 +319,7 @@ GET /api/tracks/:id
 
 ## Testing Strategy
 
-### Unit Tests (Vitest)
+### Unit Tests (Bun Test)
 - API endpoint handlers
 - Business logic (queue ordering, vote counting)
 - Database queries
@@ -327,7 +327,7 @@ GET /api/tracks/:id
 - Utility functions
 - Target: 80%+ coverage
 
-### Integration Tests
+### Integration Tests (Bun Test)
 - API endpoint flows (auth, queue, vote)
 - Database operations
 - Socket.io events
@@ -339,6 +339,15 @@ GET /api/tracks/:id
 - Vote on track and see reorder
 - Host controls playback
 - Real-time updates across clients
+
+### Bun Test Features
+- **Jest-compatible API:** Easy migration from Jest
+- **TypeScript/JSX:** Works out-of-the-box
+- **Fast:** Concurrent execution in single process
+- **Watch mode:** `bun test --watch`
+- **Coverage:** `bun test --coverage`
+- **Mocking:** Built-in mock utilities
+- **DOM testing:** happy-dom included
 
 ---
 

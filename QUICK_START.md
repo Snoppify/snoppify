@@ -42,8 +42,17 @@ This guide helps you get started quickly with the Snoppify rewrite using the doc
 bun --version  # Should be >= 1.0
 docker --version
 docker-compose --version
-node --version  # For compatibility checks
 ```
+
+**Why Bun?** Bun is an all-in-one JavaScript runtime that replaces multiple tools:
+- ✅ **Runtime:** 3x faster than Node.js
+- ✅ **Package Manager:** Fast, npm-compatible (replaces npm/yarn/pnpm)
+- ✅ **Bundler:** Faster than esbuild, built-in (replaces Webpack/Rollup/Vite)
+- ✅ **Test Runner:** Jest-compatible, built-in (replaces Jest/Vitest)
+- ✅ **Transpiler:** TypeScript & JSX out-of-the-box (no babel/tsc needed)
+- ✅ **Workspaces:** Native monorepo support (no Turborepo needed)
+
+This means **fewer dependencies, faster builds, simpler setup**.
 
 ### Clone and Initialize
 ```bash
@@ -60,7 +69,7 @@ mkdir -p apps/web apps/server packages/shared
 
 ### Set Up Monorepo
 ```bash
-# Root package.json
+# Root package.json with Bun workspaces
 cat > package.json << 'EOF'
 {
   "name": "snoppify-monorepo",
@@ -68,14 +77,13 @@ cat > package.json << 'EOF'
   "private": true,
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "test": "turbo test",
-    "lint": "turbo lint",
+    "dev": "bun run --filter '*' dev",
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "lint": "bun run --filter '*' lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
     "prettier": "^3.0.0",
     "typescript": "^5.3.0"
   }
@@ -84,26 +92,6 @@ EOF
 
 # Install root dependencies
 bun install
-
-# Set up Turborepo
-cat > turbo.json << 'EOF'
-{
-  "$schema": "https://turbo.build/schema.json",
-  "pipeline": {
-    "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
-    "lint": {},
-    "test": {
-      "dependsOn": ["build"]
-    }
-  }
-}
 EOF
 ```
 
@@ -270,6 +258,7 @@ cat > package.json << 'EOF'
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
+    "test": "bun test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
@@ -583,17 +572,23 @@ Key files to reference:
 
 ### Testing Your Code
 ```bash
-# Backend tests
+# Backend tests with Bun's built-in test runner
 cd apps/server
 bun test
 
-# Frontend tests
+# Watch mode
+bun test --watch
+
+# With coverage
+bun test --coverage
+
+# Frontend tests with Bun test
 cd apps/web
 bun test
 
 # E2E tests (after Playwright setup)
 cd ../..
-bun test:e2e
+bunx playwright test
 ```
 
 ### Common Commands
@@ -621,6 +616,12 @@ bun run format
 
 # Lint code
 bun run lint
+
+# Run tests
+bun test
+
+# Build for production
+bun run build
 ```
 
 ---

@@ -18,7 +18,7 @@ This document specifies the requirements and approach for a complete rewrite of 
 - **Routing:** React Router v6 (standard, well-supported)
 - **Real-Time:** Socket.io client
 - **HTTP Client:** Axios with interceptors
-- **Build Tool:** Vite (fast dev server, optimized builds)
+- **Build Tool:** Vite (fast dev server, optimized builds) or Bun's bundler for production
 
 ### Backend
 **Bun + TypeScript**
@@ -41,13 +41,15 @@ This document specifies the requirements and approach for a complete rewrite of 
 - **Containerization:** Docker + Docker Compose
 - **Environment:** Dotenv for local, proper secrets management for production
 - **Monitoring:** Pino logger + optional Sentry for errors
-- **Testing:** Vitest (fast, Vite-native) + Playwright for E2E
-- **CI/CD:** GitHub Actions
+- **Testing:** Bun's built-in test runner (Jest-compatible, fast) + Playwright for E2E
+- **CI/CD:** GitHub Actions with Bun
 - **Deployment:** Docker containers, deployable to any platform (Railway, Fly.io, AWS, etc.)
 
-### Development Tools
-- **Package Manager:** Bun (fast, built-in)
-- **Monorepo:** Turborepo (optional, if apps/packages grow)
+### Development Tools (All-in-One with Bun)
+- **Package Manager:** Bun (fast, built-in, npm-compatible)
+- **Monorepo:** Bun Workspaces (native, no extra tools needed)
+- **Build Tool:** Bun's bundler (faster than esbuild, built-in)
+- **Test Runner:** Bun test (Jest-compatible, TypeScript/JSX out-of-the-box)
 - **Code Quality:** ESLint + Prettier + TypeScript strict mode
 - **Git Hooks:** Husky + lint-staged
 - **API Testing:** Bruno or Thunder Client (team-friendly, git-based)
@@ -87,7 +89,8 @@ snoppify/
 │       └── package.json
 ├── docker-compose.yml       # Local development stack
 ├── Dockerfile               # Production container
-└── turbo.json              # Turborepo config (if used)
+├── package.json             # Root package.json with workspaces
+└── bun.lockb                # Bun lockfile
 ```
 
 ### Database Schema (High-Level)
@@ -690,9 +693,14 @@ function useSocket(partyId: string) {
 - Queue updates in real-time
 
 ### 4. Testing Tools
-- **Vitest:** Unit and integration tests
+- **Bun test:** Built-in test runner (Jest-compatible API, TypeScript/JSX support)
+  - Fast execution with concurrent tests
+  - Watch mode with `--watch` flag
+  - Coverage reports with `--coverage` flag
+  - Mocking utilities built-in
+  - DOM testing with happy-dom (included)
 - **Playwright:** E2E browser tests
-- **MSW:** API mocking
+- **MSW:** API mocking for integration tests
 - **@faker-js/faker:** Test data generation
 
 ---

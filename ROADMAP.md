@@ -18,11 +18,11 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 
 **Day 1-2: Repository Setup**
 - [ ] Create new Git repository or branch
-- [ ] Set up Turborepo monorepo structure
+- [ ] Set up Bun workspaces monorepo structure (no Turborepo needed)
 - [ ] Configure root package.json with workspaces
 - [ ] Set up ESLint + Prettier + TypeScript configs
 - [ ] Configure Git hooks with Husky
-- [ ] Set up GitHub Actions for CI
+- [ ] Set up GitHub Actions for CI with Bun
 
 **Day 3-4: Development Environment**
 - [ ] Create docker-compose.yml for local development
@@ -34,8 +34,8 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 
 **Day 5: Frontend Scaffold**
 - [ ] Create apps/web directory
-- [ ] Initialize Vite + React + TypeScript
-- [ ] Install dependencies: Tailwind, Zustand, React Router, Socket.io client, Axios
+- [ ] Initialize with `bun create vite` for React + TypeScript
+- [ ] Install dependencies using Bun: Tailwind, Zustand, React Router, Socket.io client, Axios
 - [ ] Configure Tailwind CSS
 - [ ] Set up basic routing structure
 - [ ] Create base layout component
@@ -45,8 +45,8 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 
 **Day 1-2: Backend Scaffold**
 - [ ] Create apps/server directory
-- [ ] Initialize Bun project
-- [ ] Install dependencies: Hono, Drizzle ORM, Socket.io, Zod
+- [ ] Initialize Bun project with `bun init`
+- [ ] Install dependencies with Bun: Hono, Drizzle ORM, Socket.io, Zod
 - [ ] Set up Hono app with middleware
 - [ ] Configure CORS, body parser, error handler
 - [ ] Set up logger (Pino)
@@ -59,28 +59,28 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - [ ] Define queue table with indexes
 - [ ] Define votes table with unique constraint
 - [ ] Define sessions table
-- [ ] Create initial migration
-- [ ] Run migration on local PostgreSQL
+- [ ] Create initial migration with `bun run db:generate`
+- [ ] Run migration on local PostgreSQL with `bun run db:migrate`
 
 **Day 5: Testing Infrastructure**
-- [ ] Set up Vitest for backend
-- [ ] Set up Vitest + Testing Library for frontend
+- [ ] Set up Bun test for backend (built-in, no install needed)
+- [ ] Set up Bun test for frontend components
 - [ ] Set up Playwright for E2E tests
 - [ ] Create test database setup/teardown scripts
-- [ ] Write first smoke tests
+- [ ] Write first smoke tests with `bun test`
 
 **Deliverables:**
-- ✅ Working monorepo with apps/web and apps/server
+- ✅ Working Bun workspaces monorepo with apps/web and apps/server
 - ✅ Docker Compose environment running
 - ✅ Database schema created and migrated
-- ✅ Basic frontend and backend apps running
-- ✅ CI/CD pipeline configured
+- ✅ Basic frontend and backend apps running with Bun
+- ✅ CI/CD pipeline configured with Bun
 
 **Success Criteria:**
 - `bun dev` starts both frontend and backend
 - `docker-compose up` starts all services
-- Tests run in CI
-- Database migrations apply successfully
+- `bun test` runs all tests in CI
+- Database migrations apply successfully with Bun
 
 ---
 
@@ -134,7 +134,7 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 **Tests:**
 - [ ] Unit: JWT generation and verification
 - [ ] Integration: OAuth callback handling
-- [ ] E2E: Complete login/logout flow
+- [ ] E2E: Complete login/logout flow (run with `bun test`)
 
 ---
 
@@ -525,18 +525,18 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Optimize performance
 
 ### Day 1-2: Backend Tests
-- [ ] Write unit tests for all services
+- [ ] Write unit tests for all services using Bun test
 - [ ] Write integration tests for all API endpoints
 - [ ] Write tests for queue reordering
 - [ ] Write tests for voting system
 - [ ] Write tests for state machine
-- [ ] Achieve 80%+ code coverage
+- [ ] Achieve 80%+ code coverage with `bun test --coverage`
 
 ### Day 2-3: Frontend Tests
-- [ ] Write component tests for all components
+- [ ] Write component tests with Bun test + happy-dom
 - [ ] Write store tests for Zustand stores
 - [ ] Write hook tests for custom hooks
-- [ ] Write E2E tests for critical flows:
+- [ ] Write E2E tests for critical flows with Playwright:
   - [ ] Login flow
   - [ ] Create/join party
   - [ ] Add track to queue
