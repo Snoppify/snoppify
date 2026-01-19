@@ -27,10 +27,13 @@ This guide helps you get started quickly with the Snoppify rewrite using the doc
 4. **REWRITE_SPECIFICATION.md** (5 min skim)
    - Look at database schema
    - Look at API endpoint structure
-   - Note the tech stack
+   - Note the tech stack and OpenAPI workflow
 
 5. **ROADMAP.md** (reference as you go)
    - Use this as your daily task list
+
+6. **DEPLOYMENT_GUIDE.md** (optional)
+   - Deployment options from $0/month (self-hosted) to cloud services
 
 ---
 
@@ -50,9 +53,8 @@ docker-compose --version
 - ✅ **Bundler:** Faster than esbuild, built-in (replaces Webpack/Rollup/Vite)
 - ✅ **Test Runner:** Jest-compatible, built-in (replaces Jest/Vitest)
 - ✅ **Transpiler:** TypeScript & JSX out-of-the-box (no babel/tsc needed)
-- ✅ **Workspaces:** Native monorepo support (no Turborepo needed)
 
-This means **no Node.js, fewer dependencies, faster builds, simpler setup**.
+This means **no Node.js, no monorepo complexity, fewer dependencies, faster builds, simpler setup**.
 
 ### Clone and Initialize
 ```bash
@@ -63,36 +65,42 @@ cd snoppify
 # Create new branch for rewrite
 git checkout -b rewrite/setup
 
-# Create root structure
-mkdir -p apps/web apps/server packages/shared
+# Create simple structure (no monorepo)
+mkdir -p web/src server/src
 ```
 
-### Set Up Monorepo
+### Root Package.json (Convenience Scripts Only)
 ```bash
-# Root package.json with Bun workspaces
+# Root package.json - NOT a workspace, just convenience scripts
 cat > package.json << 'EOF'
 {
-  "name": "snoppify-monorepo",
+  "name": "snoppify",
   "version": "2.0.0",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "dev": "bun run --filter '*' dev",
-    "build": "bun run --filter '*' build",
-    "test": "bun test",
-    "lint": "bun run --filter '*' lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "dev:server": "cd server && bun run dev",
+    "dev:web": "cd web && bun run dev",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:web\"",
+    "build:server": "cd server && bun run build",
+    "build:web": "cd web && bun run build",
+    "build": "bun run build:server && bun run build:web",
+    "test:server": "cd server && bun test",
+    "test:web": "cd web && bun test",
+    "test": "bun run test:server && bun run test:web",
+    "generate:openapi": "cd server && bun run generate:openapi",
+    "generate:client": "cd web && bun run generate:client",
+    "generate": "bun run generate:openapi && bun run generate:client",
+    "docker:dev": "docker compose up",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up -d"
   },
   "devDependencies": {
-    "prettier": "^3.0.0",
-    "typescript": "^5.3.0"
+    "concurrently": "^8.0.0"
   }
 }
 EOF
 
-# Install root dependencies
+# Install
 bun install
-EOF
 ```
 
 ### Set Up Docker Compose
@@ -189,19 +197,18 @@ cp .env.example .env
 
 ### Initialize Server App
 ```bash
-cd apps/server
+cd server
 
 # Initialize Bun project
 bun init -y
 
 # Install dependencies
-bun add hono
+bun add hono @hono/zod-openapi
 bun add drizzle-orm postgres
 bun add socket.io
 bun add zod
 bun add pino
 bun add dotenv
-bun add @hono/zod-validator
 
 # Install dev dependencies
 bun add -D drizzle-kit
@@ -209,18 +216,19 @@ bun add -D @types/bun
 bun add -D typescript
 ```
 
-### Create Basic Server Structure
+### Create Basic Server Structure with OpenAPI
 ```bash
 mkdir -p src/{routes,services,db,auth,middleware,types,utils}
 
-# Create main entry point
+# Create main entry point with OpenAPI support
 cat > src/index.ts << 'EOF'
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import { swaggerUI } from '@hono/swagger-ui'
 import pino from 'pino'
 
-const app = new Hono()
+const app = new OpenAPIHono()
 const log = pino()
 
 // Middleware
@@ -235,8 +243,28 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
+// OpenAPI documentation endpoint
+app.doc('/openapi.json', {
+  openapi: '3.0.0',
+  info: {
+    title: 'Snoppify API',
+    version: '2.0.0',
+    description: 'Democratic party music queue application API',
+  },
+  servers: [
+    {
+      url: 'http://localhost:3000',
+      description: 'Development server',
+    },
+  ],
+})
+
+// Swagger UI for testing API
+app.get('/api/docs', swaggerUI({ url: '/openapi.json' }))
+
 const port = Number(process.env.PORT) || 3000
 log.info(`Server starting on port ${port}`)
+log.info(`API documentation available at http://localhost:${port}/api/docs`)
 
 // Export for Bun to serve
 export default {
@@ -245,7 +273,7 @@ export default {
 }
 EOF
 
-# Update package.json
+# Update package.json with OpenAPI generation script
 cat > package.json << 'EOF'
 {
   "name": "@snoppify/server",
@@ -256,12 +284,94 @@ cat > package.json << 'EOF'
     "build": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "test": "bun test",
+    "generate:openapi": "bun run src/index.ts --generate-spec > openapi.json",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"
   }
 }
 EOF
+```
+
+### Example: Create API Route with OpenAPI
+
+```bash
+# Create parties route with OpenAPI annotations
+cat > src/routes/parties.ts << 'EOF'
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+
+// Define schemas with Zod (validation + OpenAPI generation)
+const PartySchema = z.object({
+  id: z.string().openapi({ example: 'party_123' }),
+  name: z.string().min(1).max(100).openapi({ example: 'Friday Night Party' }),
+  hostUserId: z.string(),
+  maxTracksPerUser: z.number().int().min(1).max(10).default(5),
+  status: z.enum(['active', 'paused', 'ended']).default('active'),
+  createdAt: z.string().datetime(),
+})
+
+const CreatePartySchema = PartySchema.pick({ name: true, maxTracksPerUser: true })
+
+// Define route with OpenAPI annotations
+const createPartyRoute = createRoute({
+  method: 'post',
+  path: '/api/parties',
+  tags: ['Parties'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreatePartySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Party created successfully',
+      content: {
+        'application/json': {
+          schema: PartySchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+    },
+  },
+})
+
+const app = new OpenAPIHono()
+
+// Implement route with full type safety
+app.openapi(createPartyRoute, async (c) => {
+  const body = c.req.valid('json') // Fully typed!
+  
+  // Your implementation here
+  const party = {
+    id: 'party_' + Math.random().toString(36).substr(2, 9),
+    name: body.name,
+    hostUserId: 'user_123', // From auth middleware
+    maxTracksPerUser: body.maxTracksPerUser ?? 5,
+    status: 'active' as const,
+    createdAt: new Date().toISOString(),
+  }
+  
+  return c.json(party, 200)
+})
+
+export default app
+EOF
+```
+
+### Generate OpenAPI Spec
+
+```bash
+# Generate OpenAPI spec
+bun run generate:openapi
+
+# This creates openapi.json file
+# Frontend will use this to generate TypeScript client
 ```
 
 ### Set Up Database Schema
@@ -388,7 +498,7 @@ curl http://localhost:3000/health
 ### Initialize Web App
 ```bash
 cd ../../  # Back to root
-cd apps/web
+cd web
 
 # Create Vite + React + TypeScript project
 bun create vite . --template react-ts
@@ -397,7 +507,6 @@ bun create vite . --template react-ts
 bun install
 bun add zustand
 bun add react-router-dom
-bun add axios
 bun add socket.io-client
 bun add @tanstack/react-query
 
@@ -407,6 +516,126 @@ bunx tailwindcss init -p
 
 # Install Shadcn/ui
 bunx shadcn-ui@latest init
+
+# Install OpenAPI client generator
+bun add -D @hey-api/openapi-ts
+```
+
+### Generate TypeScript Client from OpenAPI
+
+```bash
+# Add generation script to package.json
+cat > package.json << 'EOF'
+{
+  "name": "@snoppify/web",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "bun test",
+    "generate:client": "bunx @hey-api/openapi-ts -i ../server/openapi.json -o ./src/client"
+  }
+}
+EOF
+
+# Generate typed client from backend's OpenAPI spec
+bun run generate:client
+
+# This creates:
+# - src/client/types.gen.ts (TypeScript types)
+# - src/client/services.gen.ts (API functions)
+# - src/client/schemas.gen.ts (Zod schemas)
+```
+
+### Example: Using Generated Client
+
+```bash
+# Create a page that uses the generated client
+cat > src/pages/CreateParty.tsx << 'EOF'
+import { useState } from 'react'
+import { createParty } from '@/client/services.gen'
+import type { PartySchema } from '@/client/types.gen'
+
+export function CreateParty() {
+  const [partyName, setPartyName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [party, setParty] = useState<PartySchema | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    
+    // Fully typed API call - autocomplete works!
+    const { data, error } = await createParty({
+      body: {
+        name: partyName,
+        maxTracksPerUser: 5,
+      },
+    })
+    
+    if (error) {
+      console.error('Failed to create party:', error)
+      setLoading(false)
+      return
+    }
+    
+    // data is fully typed as PartySchema
+    setParty(data)
+    setLoading(false)
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Create a Party</h1>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={partyName}
+          onChange={(e) => setPartyName(e.target.value)}
+          placeholder="Party name"
+          className="border p-2 rounded w-full"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          {loading ? 'Creating...' : 'Create Party'}
+        </button>
+      </form>
+      
+      {party && (
+        <div className="mt-4 p-4 bg-green-100 rounded">
+          <p>Party created: {party.name}</p>
+          <p>ID: {party.id}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+EOF
+```
+
+### Type Safety Workflow
+
+```bash
+# 1. Backend developer defines API route with OpenAPI
+cd ../server
+# Edit src/routes/parties.ts
+
+# 2. Generate OpenAPI spec
+bun run generate:openapi
+
+# 3. Frontend automatically gets new types
+cd ../web
+bun run generate:client
+
+# 4. Use typed API in frontend
+# Types are synchronized! Compile errors if API changes!
 ```
 
 ### Configure Tailwind

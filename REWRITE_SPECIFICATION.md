@@ -12,24 +12,25 @@ This document specifies the requirements and approach for a complete rewrite of 
 **React 18+ with TypeScript**
 - **Why React:** Excellent AI tooling support, massive ecosystem, strong TypeScript integration
 - **Why TypeScript:** Type safety, better IDE support, fewer runtime errors
+- **API Client:** Auto-generated from OpenAPI spec using `@hey-api/openapi-ts` (zero manual maintenance)
 - **UI Framework:** Shadcn/ui + Radix UI (accessible, customizable components)
 - **Styling:** Tailwind CSS (utility-first, fast development)
 - **State Management:** Zustand (lightweight, simple, TypeScript-first)
 - **Routing:** React Router v6 (standard, well-supported)
 - **Real-Time:** Socket.io client
-- **HTTP Client:** Axios with interceptors
-- **Build Tool:** Vite (fast dev server, optimized builds) or Bun's bundler for production
+- **Build Tool:** Vite (fast dev server, optimized builds)
 
 ### Backend
 **Bun + TypeScript**
 - **Why Bun:** Fast runtime, built-in TypeScript support, excellent performance, modern APIs
 - **Why TypeScript:** Type safety across the stack, shared types with frontend
 - **Framework:** Hono (ultrafast, lightweight, edge-compatible)
-- **Real-Time:** Socket.io for backward compatibility
+- **API Documentation:** `@hono/zod-openapi` (OpenAPI 3.0 with automatic type generation)
+- **Type Safety:** OpenAPI spec generates TypeScript types for frontend (zero manual sync)
+- **Real-Time:** Socket.io for real-time features
 - **Authentication:** Better-auth or Lucia (modern, secure)
 - **Database ORM:** Drizzle ORM (lightweight, type-safe, SQL-first)
-- **Validation:** Zod (runtime type validation)
-- **API Documentation:** OpenAPI/Swagger via Hono OpenAPI
+- **Validation:** Zod (runtime type validation + OpenAPI schema generation)
 
 ### Database
 **PostgreSQL with Redis**
@@ -47,12 +48,12 @@ This document specifies the requirements and approach for a complete rewrite of 
 
 ### Development Tools (All-in-One with Bun)
 - **Package Manager:** Bun (fast, built-in, npm-compatible)
-- **Monorepo:** Bun Workspaces (native, no extra tools needed)
 - **Build Tool:** Bun's bundler (faster than esbuild, built-in)
 - **Test Runner:** Bun test (Jest-compatible, TypeScript/JSX out-of-the-box)
+- **Type Generation:** `@hey-api/openapi-ts` (automatic client generation from OpenAPI)
 - **Code Quality:** ESLint + Prettier + TypeScript strict mode
 - **Git Hooks:** Husky + lint-staged
-- **API Testing:** Bruno or Thunder Client (team-friendly, git-based)
+- **API Testing:** Auto-generated from OpenAPI spec
 
 ---
 
@@ -61,37 +62,205 @@ This document specifies the requirements and approach for a complete rewrite of 
 ### High-Level Structure
 ```
 snoppify/
-├── apps/
-│   ├── web/                 # React frontend
-│   │   ├── src/
-│   │   │   ├── components/  # React components
-│   │   │   ├── hooks/       # Custom hooks
-│   │   │   ├── stores/      # Zustand stores
-│   │   │   ├── lib/         # Utilities, API clients
-│   │   │   ├── types/       # TypeScript types
-│   │   │   └── pages/       # Page components
-│   │   └── package.json
-│   └── server/              # Bun backend
-│       ├── src/
-│       │   ├── routes/      # API routes
-│       │   ├── services/    # Business logic
-│       │   ├── db/          # Database schema & queries
-│       │   ├── auth/        # Authentication logic
-│       │   ├── spotify/     # Spotify integration
-│       │   ├── realtime/    # Socket.io handlers
-│       │   └── types/       # TypeScript types
-│       └── package.json
-├── packages/
-│   └── shared/              # Shared types, utilities
-│       ├── src/
-│       │   ├── types/       # Shared TypeScript types
-│       │   └── utils/       # Shared utilities
-│       └── package.json
-├── docker-compose.yml       # Local development stack
-├── Dockerfile               # Production container
-├── package.json             # Root package.json with workspaces
-└── bun.lockb                # Bun lockfile
+├── web/                     # React frontend
+│   ├── src/
+│   │   ├── client/         # 🔥 Auto-generated from OpenAPI
+│   │   ├── components/     # React components
+│   │   ├── hooks/          # Custom hooks
+│   │   ├── stores/         # Zustand stores
+│   │   ├── pages/          # Page components
+│   │   └── lib/            # Utilities
+│   └── package.json
+├── server/                  # Bun backend  
+│   ├── src/
+│   │   ├── routes/         # API routes (uses @hono/zod-openapi)
+│   │   ├── services/       # Business logic
+│   │   ├── db/             # Database schema & queries
+│   │   ├── auth/           # Authentication logic
+│   │   ├── spotify/        # Spotify integration
+│   │   └── realtime/       # Socket.io handlers
+│   ├── openapi.json        # 🔥 Generated OpenAPI spec
+│   └── package.json
+├── docker-compose.yml       # Local development
+├── docker-compose.prod.yml  # 🔥 Production deployment
+├── Caddyfile               # 🔥 Reverse proxy (automatic HTTPS)
+├── Dockerfile.web          # Frontend container
+├── Dockerfile.server       # Backend container
+└── package.json            # Root convenience scripts (NOT a workspace)
 ```
+
+**Key Changes from Monorepo:**
+- ✅ No `apps/` or `packages/` directory complexity
+- ✅ Simple `web/` and `server/` at root
+- ✅ No workspace configuration needed
+- ✅ Types auto-generated from OpenAPI (no manual sharing)
+- ✅ Production-ready deployment files included
+
+### OpenAPI Type Generation Workflow
+
+**Zero manual type maintenance** - Types automatically sync between frontend and backend.
+
+#### Backend: Define API with OpenAPI Annotations
+
+```typescript
+// server/src/routes/parties.ts
+import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
+
+// Define schemas with Zod (used for both validation AND OpenAPI generation)
+const PartySchema = z.object({
+  id: z.string().openapi({ example: 'party_123' }),
+  name: z.string().min(1).max(100).openapi({ example: 'Friday Night Party' }),
+  hostUserId: z.string().openapi({ example: 'user_456' }),
+  maxTracksPerUser: z.number().int().min(1).max(10).default(5),
+  status: z.enum(['active', 'paused', 'ended']).default('active'),
+  createdAt: z.string().datetime(),
+})
+
+const CreatePartySchema = PartySchema.pick({ name: true, maxTracksPerUser: true })
+
+// Define route with OpenAPI annotations
+const createPartyRoute = createRoute({
+  method: 'post',
+  path: '/api/parties',
+  tags: ['Parties'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreatePartySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Party created successfully',
+      content: {
+        'application/json': {
+          schema: PartySchema,
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized',
+    },
+  },
+})
+
+// Implement route with full type safety
+app.openapi(createPartyRoute, async (c) => {
+  const body = c.req.valid('json') // Fully typed!
+  const user = c.get('user') // From middleware
+  
+  const party = await partyService.create({
+    name: body.name,
+    hostUserId: user.id,
+    maxTracksPerUser: body.maxTracksPerUser ?? 5,
+  })
+  
+  return c.json(party, 200) // Type-checked response!
+})
+
+// Generate OpenAPI spec
+app.doc('/openapi.json', {
+  openapi: '3.0.0',
+  info: {
+    title: 'Snoppify API',
+    version: '2.0.0',
+  },
+})
+```
+
+#### Generate OpenAPI Spec
+
+```bash
+# In server directory
+cd server
+
+# Add script to package.json:
+# "generate:openapi": "bun run src/index.ts --generate-spec"
+
+# Generate openapi.json
+bun run generate:openapi
+# Output: server/openapi.json
+```
+
+#### Frontend: Generate TypeScript Client
+
+```bash
+# In web directory
+cd web
+
+# Add script to package.json:
+# "generate:client": "bunx @hey-api/openapi-ts -i ../server/openapi.json -o ./src/client"
+
+# Generate typed client
+bun run generate:client
+```
+
+**Generated files:**
+- `web/src/client/types.gen.ts` - All TypeScript types
+- `web/src/client/services.gen.ts` - Typed API functions
+- `web/src/client/schemas.gen.ts` - Zod schemas
+
+#### Use Generated Client
+
+```typescript
+// web/src/pages/CreateParty.tsx
+import { createParty } from '@/client/services.gen'
+import type { PartySchema } from '@/client/types.gen'
+
+function CreateParty() {
+  const handleSubmit = async (data: { name: string }) => {
+    // Fully typed! Autocomplete works, catches errors at compile time
+    const { data: party, error } = await createParty({
+      body: {
+        name: data.name,
+        maxTracksPerUser: 5,
+      },
+    })
+    
+    if (error) {
+      // Type-safe error handling
+      console.error('Failed to create party:', error)
+      return
+    }
+    
+    // party is fully typed as PartySchema
+    console.log('Created party:', party.id, party.name)
+  }
+  
+  return <form onSubmit={handleSubmit}>...</form>
+}
+```
+
+#### Development Workflow
+
+```bash
+# 1. Backend developer adds/modifies API endpoint
+cd server/src/routes
+# Edit parties.ts, add new route with OpenAPI annotations
+
+# 2. Regenerate OpenAPI spec
+cd server
+bun run generate:openapi
+
+# 3. Frontend automatically gets new types
+cd web
+bun run generate:client
+
+# 4. Frontend developer uses new typed API
+# Types are synchronized! No manual updates needed!
+```
+
+**Benefits:**
+- ✅ Zero manual type synchronization
+- ✅ Frontend and backend always in sync
+- ✅ Compile-time type safety across the stack
+- ✅ Auto-complete in IDE for API calls
+- ✅ Automatic API documentation (OpenAPI/Swagger UI)
+- ✅ Client-side validation with same Zod schemas
+- ✅ Catches breaking changes at build time
 
 ### Database Schema (High-Level)
 
@@ -707,9 +876,27 @@ function useSocket(partyId: string) {
 
 ## Deployment & DevOps
 
+Snoppify supports **three deployment paths** from $0/month (self-hosted at home) to fully managed cloud services.
+
+### Deployment Options
+
+| Option | Infrastructure | Cost/Month | Best For |
+|--------|---------------|------------|----------|
+| **Home Server** | Docker on existing hardware | $0 | Personal use, local parties |
+| **Raspberry Pi** | Docker on RPi 4 (8GB) | $0 (after hardware) | Home setup, low traffic |
+| **Hetzner VPS** | CX11 (2GB RAM) | €3.79 (~$4) | Budget self-hosting |
+| **DigitalOcean** | Basic Droplet | $6/month | Simple VPS |
+| **Railway Free** | Managed PaaS | $0 ($5 credit) | MVP testing |
+| **Vercel + Railway** | Managed PaaS | ~$25-30/month | Production, no DevOps |
+
+**See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for complete setup instructions for each option.**
+
 ### Development Environment
+
 ```yaml
 # docker-compose.yml
+version: '3.8'
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -719,14 +906,18 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
   
   server:
-    build: ./apps/server
+    build: ./server
     environment:
       DATABASE_URL: postgresql://snoppify:password@postgres/snoppify_dev
       REDIS_URL: redis://redis:6379
@@ -734,49 +925,209 @@ services:
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
     ports:
       - "3000:3000"
+    volumes:
+      - ./server:/app
     depends_on:
       - postgres
       - redis
   
   web:
-    build: ./apps/web
+    build: ./web
     ports:
       - "5173:5173"
+    volumes:
+      - ./web:/app
     environment:
       VITE_API_URL: http://localhost:3000
+
+volumes:
+  postgres_data:
+  redis_data:
 ```
 
-### Production Deployment
-1. **Build Docker images:**
-   - Multi-stage builds for optimization
-   - Separate images for web and server
-   
-2. **Environment Configuration:**
-   - Use secrets management (e.g., Doppler, AWS Secrets Manager)
-   - Environment-specific config files
-   
-3. **Database Migration:**
-   - Drizzle migrations in CI/CD pipeline
-   - Rollback strategy
-   
-4. **Monitoring:**
-   - Application logs (Pino + log aggregation)
-   - Error tracking (Sentry)
-   - Performance monitoring (optional: New Relic, DataDog)
-   - Uptime monitoring (Uptime Robot, Pingdom)
+### Production Deployment (Self-Hosted)
 
-5. **Scaling:**
-   - Horizontal scaling with load balancer
-   - Redis for session sharing across instances
-   - Database read replicas for heavy read load
-   - CDN for static assets
+**docker-compose.prod.yml** - Complete production setup with automatic HTTPS:
+
+```yaml
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: ../Dockerfile.web
+    restart: unless-stopped
+    environment:
+      - VITE_API_URL=http://server:3000
+  
+  server:
+    build:
+      context: ./server
+      dockerfile: ../Dockerfile.server
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: snoppify
+      POSTGRES_USER: snoppify
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U snoppify"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - server
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+```
+
+**Caddyfile** - Automatic HTTPS with Let's Encrypt:
+
+```
+snoppify.yourdomain.com {
+    reverse_proxy web:3000
+    reverse_proxy /api/* server:3000
+    reverse_proxy /socket.io/* server:3000
+}
+```
+
+**Deploy in one command:**
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Caddy automatically:
+- Obtains SSL certificates
+- Renews certificates
+- Redirects HTTP → HTTPS
+- Sets security headers
+
+### Cloud Deployment (Vercel + Railway)
+
+**Frontend on Vercel:**
+```bash
+cd web
+vercel
+# Follow prompts, auto-deploys on git push
+```
+
+**Backend on Railway:**
+```bash
+cd server
+railway init
+railway add --postgres
+railway add --redis
+railway up
+```
+
+**Free tier limits:**
+- Vercel: 100GB bandwidth/month (free forever)
+- Railway: $5 credit/month (enough for hobby projects)
+
+### CI/CD Pipeline
+
+**.github/workflows/deploy.yml:**
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+      
+      - name: Install dependencies
+        run: |
+          cd server && bun install
+          cd ../web && bun install
+      
+      - name: Run tests
+        run: |
+          cd server && bun test
+          cd ../web && bun test
+      
+      - name: Generate OpenAPI spec
+        run: cd server && bun run generate:openapi
+      
+      - name: Generate frontend client
+        run: cd web && bun run generate:client
+      
+      - name: Build
+        run: |
+          cd server && bun run build
+          cd ../web && bun run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Deploy to your chosen platform
+      # See DEPLOYMENT_GUIDE.md for specific instructions
+```
+
+### Monitoring & Maintenance
+
+1. **Logs:** Pino logger with structured output
+2. **Errors:** Optional Sentry integration
+3. **Uptime:** Uptime Kuma (self-hosted) or Uptime Robot (cloud)
+4. **Backups:** Automated PostgreSQL backups (daily)
+5. **Updates:** Watchtower for automatic Docker image updates
 
 ---
 
 ## Migration Strategy
 
 ### Phase 1: Foundation (Weeks 1-2)
-- [ ] Set up monorepo structure
+- [ ] Set up simple directory structure (no monorepo)
 - [ ] Configure development environment
 - [ ] Set up PostgreSQL + Redis
 - [ ] Implement database schema with Drizzle
