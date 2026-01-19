@@ -10,7 +10,7 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 
 ### Goals
 - Set up development environment
-- Configure monorepo structure
+- Configure simple directory structure (no monorepo)
 - Establish database schema
 - Set up build tools and CI/CD
 
@@ -18,8 +18,8 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 
 **Day 1-2: Repository Setup**
 - [ ] Create new Git repository or branch
-- [ ] Set up Bun workspaces monorepo structure (no Turborepo needed)
-- [ ] Configure root package.json with workspaces
+- [ ] Set up simple directory structure (web/ and server/)
+- [ ] Configure root package.json with convenience scripts only
 - [ ] Set up ESLint + Prettier + TypeScript configs
 - [ ] Configure Git hooks with Husky
 - [ ] Set up GitHub Actions for CI with Bun
@@ -33,9 +33,10 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - [ ] Write development setup documentation
 
 **Day 5: Frontend Scaffold**
-- [ ] Create apps/web directory
+- [ ] Create web/ directory
 - [ ] Initialize with `bun create vite` for React + TypeScript
-- [ ] Install dependencies using Bun: Tailwind, Zustand, React Router, Socket.io client, Axios
+- [ ] Install dependencies using Bun: Tailwind, Zustand, React Router, Socket.io client
+- [ ] Install `@hey-api/openapi-ts` for client generation
 - [ ] Configure Tailwind CSS
 - [ ] Set up basic routing structure
 - [ ] Create base layout component
@@ -44,12 +45,13 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 ### Week 2: Backend & Database
 
 **Day 1-2: Backend Scaffold**
-- [ ] Create apps/server directory
+- [ ] Create server/ directory
 - [ ] Initialize Bun project with `bun init`
-- [ ] Install dependencies with Bun: Hono, Drizzle ORM, Socket.io, Zod
-- [ ] Set up Hono app with middleware
+- [ ] Install dependencies with Bun: Hono, `@hono/zod-openapi`, Drizzle ORM, Socket.io, Zod
+- [ ] Set up Hono app with OpenAPI support
 - [ ] Configure CORS, body parser, error handler
 - [ ] Set up logger (Pino)
+- [ ] Add OpenAPI doc endpoint and Swagger UI
 
 **Day 3-4: Database Schema**
 - [ ] Create Drizzle schema files
@@ -70,10 +72,11 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - [ ] Write first smoke tests with `bun test`
 
 **Deliverables:**
-- ✅ Working Bun workspaces monorepo with apps/web and apps/server
+- ✅ Working simple structure with web/ and server/
 - ✅ Docker Compose environment running
 - ✅ Database schema created and migrated
 - ✅ Basic frontend and backend apps running with Bun
+- ✅ OpenAPI spec generation working
 - ✅ CI/CD pipeline configured with Bun
 
 **Success Criteria:**
@@ -81,6 +84,7 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - `docker-compose up` starts all services
 - `bun test` runs all tests in CI
 - Database migrations apply successfully with Bun
+- `bun run generate` creates OpenAPI spec and typed client
 
 ---
 
@@ -102,6 +106,8 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - [ ] Implement token encryption for database
 
 ### Day 3-4: Auth API & Middleware
+- [ ] Create auth routes with `@hono/zod-openapi` annotations
+- [ ] Define Zod schemas for auth requests/responses
 - [ ] Create POST /api/auth/login/{provider} endpoints
 - [ ] Create GET /api/auth/callback/{provider} endpoints
 - [ ] Create POST /api/auth/logout endpoint
@@ -109,9 +115,12 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - [ ] Implement JWT token generation
 - [ ] Implement JWT verification middleware
 - [ ] Create auth guard middleware for protected routes
+- [ ] Generate OpenAPI spec: `bun run generate:openapi`
 
 ### Day 5: Frontend Auth
+- [ ] Generate TypeScript client: `bun run generate:client`
 - [ ] Create auth store (Zustand)
+- [ ] Use generated API client for auth calls
 - [ ] Create Login page component
 - [ ] Create AuthGuard component
 - [ ] Implement OAuth redirect flow
@@ -575,10 +584,11 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Deploy to staging and production
 
 ### Day 1-2: Docker Setup
-- [ ] Write Dockerfile for apps/server
-- [ ] Write Dockerfile for apps/web
+- [ ] Write Dockerfile.server for server
+- [ ] Write Dockerfile.web for web
 - [ ] Create multi-stage builds for optimization
-- [ ] Create docker-compose.prod.yml
+- [ ] Create docker-compose.prod.yml with Caddy
+- [ ] Create Caddyfile for automatic HTTPS
 - [ ] Test production builds locally
 - [ ] Configure environment variables
 - [ ] Set up secrets management
@@ -587,33 +597,36 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - [ ] Configure GitHub Actions workflow
 - [ ] Add linting step
 - [ ] Add type checking step
+- [ ] Add OpenAPI generation step
+- [ ] Add TypeScript client generation step
 - [ ] Add unit test step
 - [ ] Add E2E test step
 - [ ] Add Docker build step
 - [ ] Add deploy step (staging)
 - [ ] Configure deployment secrets
 
-### Day 4-5: Deployment
-- [ ] Set up PostgreSQL database (managed service)
-- [ ] Set up Redis instance (managed service)
-- [ ] Deploy containers to hosting platform
-- [ ] Configure DNS and SSL certificates
+### Day 4-5: Deployment Options
+- [ ] **Option A: Free Cloud** - Set up Vercel + Railway free tier
+- [ ] **Option B: VPS** - Deploy to Hetzner/DigitalOcean with Docker Compose
+- [ ] **Option C: Home Server** - Configure for self-hosting with Tailscale
+- [ ] Set up PostgreSQL database
+- [ ] Set up Redis instance
+- [ ] Configure DNS and SSL (Caddy handles SSL automatically)
 - [ ] Set up monitoring (logs, errors, uptime)
 - [ ] Run load tests
-- [ ] Deploy to production
 - [ ] Monitor for errors
 
 **Deliverables:**
 - ✅ Docker containers built and tested
-- ✅ CI/CD pipeline fully automated
-- ✅ Staging environment deployed
-- ✅ Production environment deployed
+- ✅ CI/CD pipeline fully automated with OpenAPI generation
+- ✅ Deployment guide completed
+- ✅ At least one deployment option configured
 - ✅ Monitoring configured
 
 **Success Criteria:**
 - Docker images build successfully
-- CI pipeline passes all checks
-- Staging deployment accessible
+- CI pipeline passes all checks including type generation
+- Deployment accessible via HTTPS (Caddy automatic SSL)
 - Production handles test load
 - Zero downtime during deployment
 

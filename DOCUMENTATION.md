@@ -5,15 +5,16 @@ This directory contains comprehensive documentation for rewriting Snoppify from 
 ## 📚 Documentation Index
 
 ### Getting Started
-- **[QUICK_START.md](./QUICK_START.md)** - Start here! Step-by-step setup guide for developers/AI agents
+- **[QUICK_START.md](./QUICK_START.md)** - Start here! Step-by-step setup guide with OpenAPI workflow
 - **[REWRITE_SUMMARY.md](./REWRITE_SUMMARY.md)** - Executive summary and quick reference
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Three deployment options ($0-30/month)
 
 ### Understanding the Current System
 - **[FEATURE_ANALYSIS.md](./FEATURE_ANALYSIS.md)** - Comprehensive breakdown of all 10 core features
 - **[IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)** - Critical algorithms and patterns that must be preserved
 
 ### Building the New System
-- **[REWRITE_SPECIFICATION.md](./REWRITE_SPECIFICATION.md)** - Complete tech stack, architecture, and API design
+- **[REWRITE_SPECIFICATION.md](./REWRITE_SPECIFICATION.md)** - Complete tech stack, OpenAPI workflow, and architecture
 - **[ROADMAP.md](./ROADMAP.md)** - 12-week implementation roadmap with daily tasks
 
 ### Original Documentation
@@ -37,10 +38,11 @@ Snoppify is a **democratic party music queue application** that integrates with 
 
 **For AI Agents / Developers:**
 
-1. **Read First:** [QUICK_START.md](./QUICK_START.md) - Follow the step-by-step setup
+1. **Read First:** [QUICK_START.md](./QUICK_START.md) - Setup with OpenAPI workflow
 2. **Understand Features:** [FEATURE_ANALYSIS.md](./FEATURE_ANALYSIS.md) - Sections 1-4
 3. **Reference Patterns:** [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) - Keep open while coding
 4. **Follow Roadmap:** [ROADMAP.md](./ROADMAP.md) - Use as daily task list
+5. **Deployment:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) - Choose your deployment option
 
 **Estimated reading time:** 30-45 minutes to understand everything
 
@@ -55,10 +57,12 @@ Snoppify is a **democratic party music queue application** that integrates with 
 - **Zustand** (state management)
 - **React Router** (routing)
 - **Socket.io Client** (real-time)
+- **Auto-generated API client** from OpenAPI
 
 ### Backend
 - **Bun** (runtime)
 - **Hono** (web framework)
+- **@hono/zod-openapi** (OpenAPI + type generation)
 - **Drizzle ORM** (database)
 - **PostgreSQL** (database)
 - **Redis** (sessions + caching)
@@ -70,11 +74,17 @@ Snoppify is a **democratic party music queue application** that integrates with 
 - **Bundler:** Bun build (replaces Webpack/esbuild)
 - **Test Runner:** Bun test (replaces Jest/Vitest)
 - **Transpiler:** Built-in TypeScript/JSX (no babel/tsc)
-- **Monorepo:** Bun workspaces (replaces Turborepo)
+- **Type Generation:** OpenAPI → TypeScript (zero manual sync)
+
+### Architecture
+- ✅ **Simple structure:** `web/` and `server/` (no monorepo complexity)
+- ✅ **OpenAPI workflow:** Backend defines API, frontend auto-generates client
+- ✅ **Three deployment options:** Free cloud, VPS ($4-6), or home server ($0)
 
 ### Why These Choices?
 - **React:** Best AI tooling, huge ecosystem, excellent TypeScript support
 - **Bun:** All-in-one tool - fewer dependencies, faster everything, simpler setup
+- **OpenAPI:** Zero manual type maintenance, compile-time safety
 - **PostgreSQL:** Battle-tested, ACID compliance, powerful queries
 - **Redis:** Fast sessions, pub/sub for real-time, excellent caching
 

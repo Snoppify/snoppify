@@ -57,15 +57,22 @@ A democratic party music queue app that integrates with Spotify. Multiple users 
 
 ### New Tech Stack
 - **Frontend:** React 18 + TypeScript + Tailwind + Zustand
-- **Backend:** Bun + TypeScript + Hono
+- **Backend:** Bun + TypeScript + Hono + OpenAPI
 - **Database:** PostgreSQL + Redis
 - **Real-time:** Socket.io (maintained for compatibility)
+- **Type Generation:** OpenAPI → TypeScript (zero manual sync)
 - **Build/Test/Package:** All handled by Bun (all-in-one tool)
-- **Deployment:** Docker containers
+- **Deployment:** Three options ($0-30/month)
+
+### New Architecture
+- ✅ **Simple structure:** `web/` and `server/` (no monorepo)
+- ✅ **OpenAPI types:** Auto-generated from backend to frontend
+- ✅ **Flexible deployment:** Free cloud, VPS ($4-6), or home server ($0)
 
 ### Why These Choices?
 - **React:** Best AI tooling support, huge ecosystem, excellent TypeScript integration
 - **Bun:** All-in-one tool (runtime + package manager + bundler + test runner), 3x faster than Node.js
+- **OpenAPI:** Zero manual type maintenance, compile-time safety across stack
 - **PostgreSQL:** Battle-tested, ACID compliance, scales well, powerful query capabilities
 - **Redis:** Fast session storage, pub/sub for real-time, excellent caching layer
 - **TypeScript:** Type safety across the stack, fewer bugs, better maintainability
@@ -364,24 +371,44 @@ GET /api/tracks/:id
 
 ## Deployment
 
+### Three Deployment Options
+
+| Option | Cost/Month | Best For |
+|--------|------------|----------|
+| **Home Server** | $0 | Personal use, local parties |
+| **Hetzner VPS** | ~$4 | Budget self-hosting |
+| **DigitalOcean** | $6 | Simple VPS |
+| **Railway Free** | $0 ($5 credit) | MVP testing |
+| **Vercel + Railway** | ~$25-30 | Production, no DevOps |
+
+See **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** for complete instructions.
+
+### Quick Deploy (Self-Hosted)
+
+```bash
+# Clone and configure
+git clone https://github.com/yourusername/snoppify.git
+cd snoppify
+cp .env.example .env.prod
+nano .env.prod  # Add your settings
+
+# Deploy with one command
+docker compose -f docker-compose.prod.yml up -d
+
+# Caddy automatically handles HTTPS!
+```
+
 ### Development
 ```bash
-docker-compose up  # Starts PostgreSQL, Redis, server, web
+docker compose up  # Starts PostgreSQL, Redis, server, web
 ```
 
-### Production
-```dockerfile
-# Multi-stage Docker builds
-# Separate containers for web and server
-# Environment-specific configs
-# Database migrations in CI/CD
-```
+### OpenAPI Type Generation
 
-### Monitoring
-- Application logs (Pino)
-- Error tracking (Sentry)
-- Uptime monitoring
-- Performance metrics
+```bash
+# Generate types from backend API
+bun run generate  # Runs generate:openapi then generate:client
+```
 
 ---
 
