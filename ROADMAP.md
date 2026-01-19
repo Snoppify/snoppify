@@ -66,10 +66,15 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 
 **Day 5: Testing Infrastructure**
 - [ ] Set up Bun test for backend (built-in, no install needed)
-- [ ] Set up Bun test for frontend components
+- [ ] Set up Bun test for frontend components  
 - [ ] Set up Playwright for E2E tests
 - [ ] Create test database setup/teardown scripts
+- [ ] Create test helpers and factories (createTestUser, createTestParty, etc.)
 - [ ] Write first smoke tests with `bun test`
+- [ ] Configure coverage thresholds (80%+ overall)
+- [ ] Set up test commands in package.json scripts
+- [ ] Configure CI to run tests on every PR
+- [ ] **Read TESTING_GUIDE.md for comprehensive best practices**
 
 **Deliverables:**
 - ✅ Working simple structure with web/ and server/
@@ -140,10 +145,24 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Logout clears session
 - Protected routes redirect to login
 
-**Tests:**
-- [ ] Unit: JWT generation and verification
-- [ ] Integration: OAuth callback handling
-- [ ] E2E: Complete login/logout flow (run with `bun test`)
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests:**
+  - [ ] JWT generation with correct payload
+  - [ ] JWT verification (valid/expired/invalid tokens)
+  - [ ] Token refresh logic
+  - [ ] Session storage/retrieval from Redis
+- [ ] **Integration Tests:**
+  - [ ] POST /api/auth/login/spotify returns redirect URL
+  - [ ] GET /api/auth/callback/spotify creates user session
+  - [ ] POST /api/auth/logout clears session
+  - [ ] Protected routes return 401 without valid token
+  - [ ] Auth middleware attaches user to request context
+- [ ] **E2E Tests (Playwright):**
+  - [ ] User can click "Login with Spotify" and complete OAuth flow
+  - [ ] User session persists after page refresh
+  - [ ] User can logout and session is cleared
+  - [ ] Protected pages redirect to login when not authenticated
+- [ ] **Run:** `bun test` (aim for 80%+ coverage on auth module)
 
 ---
 
@@ -196,10 +215,27 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Joining party loads party data
 - Party settings persist
 
-**Tests:**
-- [ ] Unit: Party validation logic
-- [ ] Integration: Party CRUD operations
-- [ ] E2E: Create and join party flow
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests:**
+  - [ ] Party name validation (1-100 characters)
+  - [ ] Max tracks per user validation (1-10)
+  - [ ] Spotify playlist creation
+  - [ ] Party access control (only host can update/delete)
+- [ ] **Integration Tests:**
+  - [ ] POST /api/parties creates party and Spotify playlist
+  - [ ] GET /api/parties returns only user's parties
+  - [ ] PATCH /api/parties/:id updates settings (host only)
+  - [ ] DELETE /api/parties/:id ends party (host only)
+  - [ ] POST /api/parties/:id/join adds user to party
+  - [ ] Returns 400 for invalid party data
+  - [ ] Returns 403 when non-host tries to update
+- [ ] **E2E Tests (Playwright):**
+  - [ ] User can create party with custom settings
+  - [ ] Spotify playlist appears in host's Spotify account
+  - [ ] User can join party via link or code
+  - [ ] Party list updates after creating/joining party
+  - [ ] Host can update party settings
+- [ ] **Run:** `bun test` (aim for 80%+ coverage on party module)
 
 ---
 
@@ -250,11 +286,29 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Currently playing track stays at top
 - User can't exceed track limit
 
-**Tests:**
-- [ ] Unit: Queue validation logic
-- [ ] Unit: Queue reordering algorithm
-- [ ] Integration: Queue CRUD with database
-- [ ] E2E: Add and remove track flow
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests (100% Coverage - Critical Algorithm):**
+  - [ ] Queue reordering: currently playing stays at position 0
+  - [ ] Queue reordering: pending tracks sorted by vote_count DESC
+  - [ ] Queue reordering: ties broken by added_at ASC
+  - [ ] Queue validation: max tracks per user enforced
+  - [ ] Queue validation: no duplicate tracks
+  - [ ] Queue validation: track must be on Spotify
+- [ ] **Integration Tests:**
+  - [ ] POST /api/parties/:id/queue adds track to database
+  - [ ] GET /api/parties/:id/queue returns ordered queue
+  - [ ] DELETE /api/parties/:id/queue/:trackId removes track
+  - [ ] Adding track syncs to Spotify playlist
+  - [ ] Removing track syncs to Spotify playlist
+  - [ ] Returns 400 when user at track limit
+  - [ ] Returns 400 for duplicate track
+- [ ] **E2E Tests (Playwright):**
+  - [ ] User searches and adds track to queue
+  - [ ] Track appears in correct position in queue list
+  - [ ] User removes own track from queue
+  - [ ] Error shown when trying to add 6th track
+  - [ ] Queue updates in real-time for other users
+- [ ] **Run:** `bun test` (aim for 100% coverage on queue ordering algorithm)
 
 ---
 
@@ -303,11 +357,30 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Queue reorders immediately
 - Users can't vote on own tracks
 
-**Tests:**
-- [ ] Unit: Vote toggle logic
-- [ ] Integration: Vote with queue reorder
-- [ ] Integration: Concurrent votes (race condition)
-- [ ] E2E: Vote and see queue reorder
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests (100% Coverage - Critical Feature):**
+  - [ ] Vote toggle: INSERT vote if not exists
+  - [ ] Vote toggle: DELETE vote if exists
+  - [ ] Vote count: updates correctly after vote/unvote
+  - [ ] Vote validation: user can't vote on own tracks
+  - [ ] Vote validation: one vote per user per track
+- [ ] **Integration Tests:**
+  - [ ] POST /api/parties/:id/queue/:trackId/vote creates vote
+  - [ ] POST (again) removes vote (toggle)
+  - [ ] Vote count increments/decrements correctly
+  - [ ] Queue reorders after vote changes
+  - [ ] Transaction rollback on vote failure
+  - [ ] **Race condition test:** 100 concurrent votes on same track
+  - [ ] **Race condition test:** vote count remains accurate
+  - [ ] Returns 400 when voting on own track
+- [ ] **E2E Tests (Playwright):**
+  - [ ] User clicks upvote button on track
+  - [ ] Vote count increments and button shows active state
+  - [ ] User clicks upvote again (unvote)
+  - [ ] Vote count decrements and button shows inactive state
+  - [ ] Queue reorders when track gets more votes
+  - [ ] User can't upvote own tracks (button disabled)
+- [ ] **Run:** `bun test` (aim for 100% coverage on vote system)
 
 ---
 
@@ -355,10 +428,27 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Results show if track in queue
 - Track details load correctly
 
-**Tests:**
-- [ ] Unit: URL/URI parsing
-- [ ] Integration: Search API with caching
-- [ ] E2E: Search and add track to queue
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests:**
+  - [ ] Spotify URL/URI parsing (all formats)
+  - [ ] Search result caching logic
+  - [ ] Rate limiting enforcement
+  - [ ] Track already in queue detection
+- [ ] **Integration Tests:**
+  - [ ] GET /api/search returns Spotify results
+  - [ ] Search results cached in Redis
+  - [ ] Cache expires after TTL
+  - [ ] GET /api/tracks/:id fetches and caches track
+  - [ ] Search respects rate limits
+  - [ ] Handles Spotify API 429 (rate limit) errors
+  - [ ] Handles Spotify API 401 (auth) errors
+- [ ] **E2E Tests (Playwright):**
+  - [ ] User types search query and sees results
+  - [ ] Search debounced (doesn't fire immediately)
+  - [ ] User pastes Spotify URL and gets track
+  - [ ] Results show "Already in queue" for queued tracks
+  - [ ] User clicks track to see details page
+- [ ] **Run:** `bun test` (aim for 80%+ coverage on search module)
 
 ---
 
@@ -410,11 +500,31 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Track ending triggers automatic skip
 - Empty queue plays backup playlist
 
-**Tests:**
-- [ ] Unit: State machine transitions
-- [ ] Integration: Playback API calls
-- [ ] Integration: State machine with queue
-- [ ] E2E: Host controls playback
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests (100% Coverage - Critical State Machine):**
+  - [ ] State transition: paused → playing (on play command)
+  - [ ] State transition: playing → waitingForNextSong (< 10s remaining)
+  - [ ] State transition: waitingForNextSong → playSong (next track available)
+  - [ ] State transition: playSong → playing (playback started)
+  - [ ] Handles empty queue → backup playlist
+  - [ ] Marks track as 'played' when finished
+  - [ ] No infinite loops in state machine
+- [ ] **Integration Tests:**
+  - [ ] POST /api/parties/:id/playback/play starts playback
+  - [ ] POST /api/parties/:id/playback/pause pauses playback
+  - [ ] POST /api/parties/:id/playback/skip moves to next track
+  - [ ] GET /api/parties/:id/playback/devices returns Spotify devices
+  - [ ] State machine polling updates playback state
+  - [ ] Track auto-advances when < 10s remaining
+  - [ ] Handles no active device gracefully
+- [ ] **E2E Tests (Playwright):**
+  - [ ] Host clicks play and playback starts on Spotify
+  - [ ] Host clicks pause and playback stops
+  - [ ] Host clicks skip and next track plays
+  - [ ] Progress bar updates in real-time
+  - [ ] Track auto-advances when song ends
+  - [ ] Backup playlist plays when queue empty
+- [ ] **Run:** `bun test` (aim for 100% coverage on state machine)
 
 ---
 
@@ -465,10 +575,23 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - No duplicate events
 - Connection survives network blips
 
-**Tests:**
-- [ ] Integration: Socket authentication
-- [ ] Integration: Event broadcasting to rooms
-- [ ] E2E: Multi-client real-time sync
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Integration Tests:**
+  - [ ] Socket connection with JWT authentication
+  - [ ] User joins party room successfully
+  - [ ] User receives queue:updated event after track added
+  - [ ] User receives playback:updated event from state machine
+  - [ ] User receives vote:changed event after vote
+  - [ ] Multiple users in same room receive same events
+  - [ ] User in different room doesn't receive events
+  - [ ] Reconnection works after disconnect
+- [ ] **E2E Tests (Playwright - Multi-Client):**
+  - [ ] User A adds track, User B sees it instantly
+  - [ ] User A votes, User B sees vote count update
+  - [ ] Host starts playback, all users see progress bar
+  - [ ] User joins party, sees current queue and playback state
+  - [ ] User disconnects and reconnects, everything still works
+- [ ] **Run:** `bun test` (aim for 80%+ coverage on real-time module)
 
 ---
 
@@ -518,43 +641,156 @@ This roadmap provides a detailed, week-by-week plan for rewriting Snoppify. Each
 - Track ending triggers skip within 10 seconds
 - All jobs handle errors gracefully
 
-**Tests:**
-- [ ] Unit: Token refresh logic
-- [ ] Integration: Playlist sync with Spotify API
-- [ ] Integration: Playback polling with state machine
+**Tests (TDD Approach - Write Tests First):**
+- [ ] **Unit Tests (100% Coverage - Critical Background Jobs):**
+  - [ ] Token refresh: identifies tokens expiring < 10 min
+  - [ ] Token refresh: successfully refreshes token
+  - [ ] Token refresh: handles refresh failure gracefully
+  - [ ] Playlist sync: calculates correct diff (add/remove/reorder)
+  - [ ] Playlist sync: retries on Spotify API failure
+  - [ ] Playback polling: detects track ending (< 10s)
+  - [ ] Playback polling: doesn't spam state machine
+- [ ] **Integration Tests:**
+  - [ ] Token refresh job runs every 5 minutes
+  - [ ] Tokens updated in database after refresh
+  - [ ] Playlist sync job syncs queue to Spotify
+  - [ ] Playlist changes reflected on Spotify within 5 seconds
+  - [ ] Playback polling updates state machine
+  - [ ] All jobs recover from database failures
+  - [ ] All jobs recover from Spotify API failures
+- [ ] **Run:** `bun test` (aim for 100% coverage on background jobs)
 
 ---
 
 ## Phase 10: Polish & Testing (Week 11)
 
 ### Goals
-- Write comprehensive tests
-- Improve error handling
-- Add loading states
+- Achieve 80%+ code coverage across the codebase
+- Write comprehensive E2E tests for all critical flows
+- Improve error handling and edge cases
+- Add loading states and polish UX
 - Optimize performance
 
-### Day 1-2: Backend Tests
-- [ ] Write unit tests for all services using Bun test
-- [ ] Write integration tests for all API endpoints
-- [ ] Write tests for queue reordering
-- [ ] Write tests for voting system
-- [ ] Write tests for state machine
-- [ ] Achieve 80%+ code coverage with `bun test --coverage`
+### Day 1-2: Backend Tests (Complete Coverage)
+- [ ] **Unit Tests:** Write/complete unit tests for all services using Bun test
+  - [ ] All utility functions (100% coverage)
+  - [ ] Queue reordering algorithm (100% coverage)
+  - [ ] Vote system logic (100% coverage)
+  - [ ] State machine transitions (100% coverage)
+  - [ ] Token refresh logic (100% coverage)
+  - [ ] Playlist sync logic (100% coverage)
+- [ ] **Integration Tests:** Write/complete integration tests for all API endpoints
+  - [ ] All auth endpoints with success/error cases
+  - [ ] All party endpoints with validation
+  - [ ] All queue endpoints with edge cases
+  - [ ] All vote endpoints including race conditions
+  - [ ] All search endpoints with caching
+  - [ ] All playback endpoints with Spotify integration
+- [ ] **Run:** `bun test --coverage` and verify 80%+ backend coverage
 
-### Day 2-3: Frontend Tests
-- [ ] Write component tests with Bun test + happy-dom
-- [ ] Write store tests for Zustand stores
-- [ ] Write hook tests for custom hooks
-- [ ] Write E2E tests for critical flows with Playwright:
-  - [ ] Login flow
-  - [ ] Create/join party
-  - [ ] Add track to queue
-  - [ ] Vote on track
-  - [ ] Host controls playback
+### Day 2-3: Frontend Tests (Complete Coverage)
+- [ ] **Component Tests:** Write component tests with Bun test + happy-dom
+  - [ ] All UI components (Button, Card, Input, Dialog, etc.)
+  - [ ] TrackItem component
+  - [ ] QueueList component
+  - [ ] SearchResults component
+  - [ ] PlaybackControls component
+  - [ ] VoteButton component
+- [ ] **Store Tests:** Write tests for all Zustand stores
+  - [ ] Auth store (login/logout/token refresh)
+  - [ ] Party store (CRUD operations)
+  - [ ] Queue store (add/remove/reorder)
+  - [ ] Playback store (play/pause/skip)
+  - [ ] Search store (search/cache)
+- [ ] **Hook Tests:** Write tests for all custom hooks
+  - [ ] useSocket hook (connection/events)
+  - [ ] useQueue hook (queue operations)
+  - [ ] useVote hook (vote toggle)
+  - [ ] usePlayback hook (playback control)
+- [ ] **Run:** `bun test --coverage` and verify 70%+ frontend coverage
 
-### Day 4-5: Polish
-- [ ] Add loading states to all async operations
-- [ ] Add error messages for all failures
+### Day 3-4: E2E Tests (Critical User Flows)
+- [ ] **Setup Playwright:** Configure test database and test accounts
+- [ ] **E2E Test Suite:**
+  - [ ] **Authentication Flow:**
+    - [ ] User logs in with Spotify OAuth
+    - [ ] Session persists after page refresh
+    - [ ] User logs out successfully
+    - [ ] Protected routes redirect when logged out
+  - [ ] **Party Management Flow:**
+    - [ ] User creates party with custom settings
+    - [ ] Spotify playlist created in host's account
+    - [ ] User joins party via invite link
+    - [ ] Host updates party settings
+    - [ ] Host ends party
+  - [ ] **Queue & Voting Flow:**
+    - [ ] User searches for track
+    - [ ] User adds track to queue
+    - [ ] Track appears in queue list
+    - [ ] User upvotes track
+    - [ ] Queue reorders based on votes
+    - [ ] User removes own track
+    - [ ] User reaches max track limit
+  - [ ] **Playback Flow (Host):**
+    - [ ] Host selects Spotify device
+    - [ ] Host starts playback
+    - [ ] Progress bar updates in real-time
+    - [ ] Host pauses playback
+    - [ ] Host skips to next track
+    - [ ] Track auto-advances when song ends
+  - [ ] **Real-Time Sync Flow:**
+    - [ ] Open two browser windows (User A & B)
+    - [ ] User A adds track, User B sees it instantly
+    - [ ] User A votes, User B sees vote update
+    - [ ] Host plays music, both users see progress
+- [ ] **Run:** `bunx playwright test` for full E2E suite
+
+### Day 4-5: Polish & Performance
+- [ ] **Error Handling:**
+  - [ ] Add user-friendly error messages for all failure cases
+  - [ ] Add retry logic for transient failures
+  - [ ] Add error boundaries in React components
+  - [ ] Log errors to Pino logger
+- [ ] **Loading States:**
+  - [ ] Add loading spinners to all async operations
+  - [ ] Add skeleton loaders for queue list
+  - [ ] Add optimistic updates for votes
+  - [ ] Add progress indicators for search
+- [ ] **Performance:**
+  - [ ] Implement virtualization for large queue lists
+  - [ ] Optimize database queries with proper indexes
+  - [ ] Add Redis caching for frequently accessed data
+  - [ ] Lazy load non-critical components
+  - [ ] Optimize bundle size with code splitting
+- [ ] **UX Polish:**
+  - [ ] Add animations for queue reordering
+  - [ ] Add haptic feedback for mobile votes
+  - [ ] Add toast notifications for user actions
+  - [ ] Add empty states for empty queues
+  - [ ] Improve mobile responsiveness
+
+**Deliverables:**
+- ✅ 80%+ code coverage (backend)
+- ✅ 70%+ code coverage (frontend)
+- ✅ All critical user flows tested with E2E
+- ✅ All error cases handled gracefully
+- ✅ All loading states implemented
+- ✅ Smooth animations and transitions
+
+**Success Criteria:**
+- `bun test --coverage` shows 80%+ backend, 70%+ frontend
+- `bunx playwright test` passes all E2E tests
+- No console errors in browser
+- All async operations show loading state
+- Error messages are user-friendly
+
+**Testing Checklist (Review TESTING_GUIDE.md):**
+- [ ] All critical algorithms have 100% coverage
+- [ ] All API endpoints have integration tests
+- [ ] All components have basic tests
+- [ ] All critical user flows have E2E tests
+- [ ] Tests run in CI on every PR
+- [ ] Coverage reports uploaded to Codecov
 - [ ] Improve mobile responsive design
 - [ ] Add animations and transitions
 - [ ] Optimize images (WebP, lazy loading)

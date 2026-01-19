@@ -8,6 +8,7 @@ This directory contains comprehensive documentation for rewriting Snoppify from 
 - **[QUICK_START.md](./QUICK_START.md)** - Start here! Step-by-step setup guide with OpenAPI workflow
 - **[REWRITE_SUMMARY.md](./REWRITE_SUMMARY.md)** - Executive summary and quick reference
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Three deployment options ($0-30/month)
+- **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Comprehensive testing best practices with Bun
 
 ### Understanding the Current System
 - **[FEATURE_ANALYSIS.md](./FEATURE_ANALYSIS.md)** - Comprehensive breakdown of all 10 core features
@@ -122,6 +123,9 @@ Snoppify is a **democratic party music queue application** that integrates with 
 
 **"How do I implement authentication?"**
 → Follow [ROADMAP.md](./ROADMAP.md) - Phase 2 (Week 3)
+
+**"How do I write and run tests?"**
+→ Read [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Complete testing guide with examples
 
 ---
 
@@ -238,34 +242,77 @@ See [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md) for complete code examp
 
 ## 🧪 Testing Strategy
 
-### Unit Tests (Bun Test)
+### Overview
+Testing is integrated throughout development using **TDD (Test-Driven Development)** approach. See [TESTING_GUIDE.md](./TESTING_GUIDE.md) for comprehensive best practices, examples, and workflows.
+
+### Test Types
+
+**Unit Tests (Bun Test)**
 - API endpoint handlers
-- Business logic (queue ordering, voting)
+- Business logic (queue ordering, voting, state machine)
 - Database queries
 - Spotify service methods
-- Target: 80%+ coverage
+- Target: 80%+ overall, 100% for critical algorithms
 
-### Integration Tests (Bun Test)
-- API endpoint flows
-- Database operations
-- Socket.io events
-- Spotify API integration (mocked)
+**Integration Tests (Bun Test)**
+- Complete API endpoint flows with database
+- Socket.io event broadcasting
+- Spotify API integration (with mocking)
+- Race condition scenarios (concurrent votes)
+- Background job execution
 
-### E2E Tests (Playwright)
-- User login flow
+**E2E Tests (Playwright)**
+- User login and authentication flow
 - Create and join party
-- Add track to queue
-- Vote on track
-- Host controls playback
-- Real-time updates across clients
+- Add track to queue and vote
+- Host playback controls
+- Real-time updates across multiple clients
 
 ### Why Bun Test?
-- **Jest-compatible:** Easy to learn if you know Jest
-- **Fast:** Concurrent execution, built-in transpiler
-- **No config:** Works with TypeScript/JSX out-of-the-box
+- **Jest-compatible API:** Familiar syntax (`describe`, `it`, `expect`)
+- **10x faster:** Concurrent execution, native TypeScript
+- **No configuration:** Works with TypeScript/JSX out-of-the-box
 - **Built-in:** No extra dependencies needed
-- **Coverage:** `bun test --coverage`
-- **Watch mode:** `bun test --watch`
+- **Coverage:** `bun test --coverage` built-in
+- **Watch mode:** `bun test --watch` for TDD
+
+### Test Commands
+
+```bash
+# Run all tests
+bun test
+
+# Watch mode (TDD)
+bun test --watch
+
+# With coverage
+bun test --coverage
+
+# E2E tests
+cd web && bunx playwright test
+```
+
+### When to Write Tests
+
+**During Development (TDD):**
+1. Write failing test first (Red)
+2. Write minimal code to pass (Green)
+3. Refactor and improve (Refactor)
+4. Repeat
+
+**Critical Paths Require 100% Coverage:**
+- Queue reordering algorithm
+- Vote system with race conditions
+- Playback state machine
+- Token refresh logic
+- Playlist synchronization
+
+**See [TESTING_GUIDE.md](./TESTING_GUIDE.md) for:**
+- Complete test examples (unit, integration, E2E)
+- Best practices and patterns
+- Mocking strategies
+- CI/CD integration
+- Coverage configuration
 
 ---
 
