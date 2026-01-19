@@ -44,15 +44,15 @@ docker --version
 docker-compose --version
 ```
 
-**Why Bun?** Bun is an all-in-one JavaScript runtime that replaces multiple tools:
-- ✅ **Runtime:** 3x faster than Node.js
+**Why Bun?** Bun is an all-in-one JavaScript runtime that replaces Node.js and multiple tools:
+- ✅ **Runtime:** 3x faster than Node.js, **no Node.js needed**
 - ✅ **Package Manager:** Fast, npm-compatible (replaces npm/yarn/pnpm)
 - ✅ **Bundler:** Faster than esbuild, built-in (replaces Webpack/Rollup/Vite)
 - ✅ **Test Runner:** Jest-compatible, built-in (replaces Jest/Vitest)
 - ✅ **Transpiler:** TypeScript & JSX out-of-the-box (no babel/tsc needed)
 - ✅ **Workspaces:** Native monorepo support (no Turborepo needed)
 
-This means **fewer dependencies, faster builds, simpler setup**.
+This means **no Node.js, fewer dependencies, faster builds, simpler setup**.
 
 ### Clone and Initialize
 ```bash
@@ -195,7 +195,7 @@ cd apps/server
 bun init -y
 
 # Install dependencies
-bun add hono @hono/node-server
+bun add hono
 bun add drizzle-orm postgres
 bun add socket.io
 bun add zod
@@ -205,7 +205,7 @@ bun add @hono/zod-validator
 
 # Install dev dependencies
 bun add -D drizzle-kit
-bun add -D @types/node
+bun add -D @types/bun
 bun add -D typescript
 ```
 
@@ -215,7 +215,6 @@ mkdir -p src/{routes,services,db,auth,middleware,types,utils}
 
 # Create main entry point
 cat > src/index.ts << 'EOF'
-import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
@@ -236,16 +235,14 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
-// Start server
 const port = Number(process.env.PORT) || 3000
 log.info(`Server starting on port ${port}`)
 
-serve({
+// Export for Bun to serve
+export default {
+  port,
   fetch: app.fetch,
-  port
-})
-
-export default app
+}
 EOF
 
 # Update package.json
